@@ -12,4 +12,4 @@ python:
       path: .
 
 conda:
-  environment: docs/requirements.yaml
+  environment: environment.yml
