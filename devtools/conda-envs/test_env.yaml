@@ -6,7 +6,6 @@ dependencies:
     # Base depends
   - python
   - pip
-  - westpa>=2022.03
   - scikit-learn
   - pip:
     - pylcs
