@@ -27,13 +27,6 @@ dependencies = [
     "pylcs",
 ]
 
-EXTRAS_REQUIRE = {
-    "westpa": ["westpa>=2022.03"],
-    "ray": ["ray"],
-}
-
-EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["westpa"] + EXTRAS_REQUIRE["ray"]
-
 # Update the urls once the hosting is set up.
 #[project.urls]
 #"Source" = "https://github.com/<username>/w_pathways/"
@@ -43,6 +36,14 @@ EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["westpa"] + EXTRAS_REQUIRE["ray"]
 test = [
   "pytest>=6.1.2",
   "pytest-runner"
+]
+westpa = ["westpa>=2022.03",]
+
+ray = ["ray",]
+
+dev = [
+  "ray",
+  "westpa>=2022.03"
 ]
 
 [tool.setuptools]
