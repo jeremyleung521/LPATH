@@ -34,10 +34,11 @@ def add_args():
     iogroup.add_argument('-rw', '--rewrite-weights', action='store_true', help='Copy the H5 files and output individual files where  ')
 
     parmgroup = parser.add_argument_group('parameters')
-    parmgroup.add_argument('-so', '--source', '--source-state', '--SOURCE-STATE', dest='source_state_num', type=check_non_neg, default=0, help='')
-    parmgroup.add_argument('-si', '--sink', '--sink-state', '--SINK-STATE', dest='sink_state_num', type=check_non_neg, default=1, help='')
+    parmgroup.add_argument('-ss', '--source', '--source-state', '--SOURCE-STATE', dest='source_state_num', type=check_non_neg, default=0, help='')
+    parmgroup.add_argument('-ts', '--target', '--target-state', '--SINK-STATE', dest='target_state_num', type=check_non_neg, default=1, help='')
     parmgroup.add_argument('--first', '--first-iter', '--FIRST-ITER', dest='first_iter', type=check_non_neg, default=1, help='')
     parmgroup.add_argument('--last', '--last-iter', '--LAST-ITER', dest='last_iter', type=check_non_neg, default=0, help='')
+    parmgroup.add_argument('-b', '--trace-basis', dest='trace_basis', action='store_true', help='')
 
     opgroup = parser.add_argument_group('Runtime options')
     opgroup.add_argument('-R', '--ray', '--use-ray', dest='use_ray', action='store_true', help='Use Ray work manager.')    

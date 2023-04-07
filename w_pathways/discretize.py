@@ -1,4 +1,4 @@
-# 01_gen_succ_list_ray.py
+# discretize.py
 #
 # Code that traces through an assign.h5 to generate a list of lists containing
 #     successful source -> target transitions. 
@@ -17,26 +17,22 @@
 # Change `trace_basis` to False to trace the transition time.
 #
 # Written by Jeremy Leung
-# Last modified: Jan 4th, 2023
+# Last modified: Apr 7, 2023
 
 
 import westpa.analysis as wa
 import h5py
 import pickle
 import numpy
-import argparser
+from w_pathways import argparser
 from tqdm.auto import trange
 from shutil import copyfile
 from os import mkdir
 from os.path import isdir, exists
 
-
-def entry_point():
-    args = argparser.add_args()
-    main(args)
-
 def main(args):
-    if args['use_ray'] is True:
+    if args.use_ray is True:
+        import ray
         @ray.remote
         class TraceActor:
             """
@@ -347,233 +343,236 @@ def main(args):
             run.close()
             return indv_trace, indv_traj, frame_info
     
-   def retain_succ(
-       west_name=args['west_name'],
-       assign_name=args['assign_name'],
-       source_state_num=args['source_state_num'],
-       target_state_num=args['target_state_num'],
-       first_iter=args['first_iter'],
-       last_iter=args['last_iter'],
-       trace_basis=args['trace_basis'],
-       out_traj=args['out_traj'],
-       out_traj_ext=args['out_traj_ext'],
-       out_state_ext=args['out_state_ext'],
-       out_top=args['out_state_ext'],
-       out_dir=args['out_dir'],
-       hdf5=args['hdf5'],
-       rewrite_weights=args['rewrite_weights'],
-       use_ray=args['use_ray'],
-       threads=args['threads'],
-       pcoord=args['pcoord'],
-       auxdata=args['auxdata'],
-   ):
-       """
-       Code that goes through an assign file (assign_name) and extracts iteration
-       and segment number + its trace into a pickle object. Defaults to just
-       the whole passage but can be override by trace_basis=False
-       to just the transition time (between it last exits source to when
-       it first touches target). Can also extract the trajectories along
-       the way with out_traj=True.
-   
-       Arguments
-       =========
-       west_name : str, default: "west.h5"
-           Name of the HDF5 File.
-   
-       assign_name : str, default: "assign.h5"
-           Name of the `w_assign` output file.
-   
-       source_state_num : int, default: 0
-           Index of the source state. Should be the first state defined in
-           west.cfg before running `w_assign`.
-   
-       sink_state_num : int, default: 1
-           Index of the sink state. Should be the second state defined in
-           west.cfg before running `w_assign`.
-   
-       first_iter : int, default: 1
-           First iteration to analyze. Inclusive.
-   
-       last_iter : int, default: 0
-           Last iteration to analyze. Inclusive. 0 implies it will
-           analyze all labeled iterations.
-   
-       trace_basis : bool, default: True
-           Option to analyze each successful trajectory up till its
-           basis state. False will only analyze the transition time
-           (i.e. last it exited source until it first touches the target state).
-   
-       out_traj : bool, default: False
-           Option to output trajectory files into `out_dir`.
-   
-       out_traj_ext : str, default: ".nc"
-           Extension of the segment files. The name of the file is assumed to be
-           `seg`, meaning the default name of the file is `seg.nc`.
-   
-       out_state_ext : str, default: "_nowat.ncrst"
-           Extension of the restart files. The name of the file is assumed to be
-           `seg`, meaning the default name the file is `seg_nowat.ncrst`.
-   
-       out_top : str, default: "system.prmtop"
-           Name of the topology file.
-           Name is relative to `$WEST_SIM_ROOT/common_files/`.
-   
-       out_dir : str, default: "succ_traj"
-           Name of directory to output the trajectories.
-           Name is relative to `$WEST_SIM_ROOT`.
-   
-       hdf5 : bool, default: False
-           Option to use the `HDF5MDTrajectory()` object in `westpa.analysis`
-           instead. To be used with trajectories saved with the HDF5 Framework.
-   
-       rewrite_weights : bool, default: False
-           Option to zero out the weights of all segments that are not part of
-           the successful trajectories ensemble. Note this generates a new h5
-           file with the _succ suffix added. Default name is thus `west_succ.h5`.
-   
-       threads : int, default: None
-           Number of actors/workers for ray to initialize. It will take over all
-           CPUs if None.
-   
-       auxdata : list of strings, default: None
-           Auxiliary data set you would like to include in the output.pickle file.
-           None means you don't want any. Only includes the last frame.
-   
-       pcoord : bool, default: True
-           Boolean confirming if you would like to include the progress coordinate
-           of the last frame in the output.pickle file. Default to True.
-   
-       Outputs
-       =======
-       'output.pickle': pickle obj
-           A list of the form [n_traj, n_frame, [n_iter, n_seg]]. Note that each
-           list runs backwards from the target iteration.
-   
-       'frame_info.pickle': pickle obj
-           A list of the form [n_traj, [index number of each segment]]. Note that
-           each list runs backwards from the target iteration.
-   
-       """
-       # Variables validation
-       if last_iter is None:
-           with h5py.File(assign_name, "r") as assign_file:
-               last_iter = len(assign_file["nsegs"])
-       else:
-           assert type(last_iter) is int, "last_iter is not legal and must be int."
-   
-       # Create Output file
-       try:    
-           mkdir(out_dir)
-       except FileExistsError:
-           print(f"Folder {out_dir} already exists. Files within might be overwritten.")
-   
-       # Copying the file
-       name_root = west_name.rsplit(".h5", maxsplit=1)[0]
-       new_file = f"{out_dir}/{name_root}_succ.h5"
-       if not exists(new_file):
-           copyfile(west_name, new_file)
-   
-       # Prepping final list to be outputted
-       trace_out_list = []
-       frame_info_list = []
-   
-       # Ray stuff...
-       if use_ray is True:
-           ray.init()
-           if threads == 0:
-               n_actors = int(ray.available_resources().get("CPU",1))
-           else:
-               n_actors = threads
-           all_ray_actors = []
-           for i in range(n_actors):
-               all_ray_actors.append(TraceActor.remote(assign_name, new_file))
-       
-           # Yes, tracing backwards from the last iteration. This will (theoretically) allow us to catch duplicates more efficiently.
-           with h5py.File(assign_name, "r") as assign_file, wa.Run(new_file) as h5run:
-               tqdm_iter = trange(last_iter, first_iter - 1, -1, desc="iter")
-               for n_iter in tqdm_iter:
-                   all_ray_tasks = []
-                   for n_seg in range(assign_file["nsegs"][n_iter - 1]):
-                       if target_state_num in set(assign_file["statelabels"][n_iter - 1, n_seg]):
-                           all_ray_tasks.append(all_ray_actors[n_seg%n_actors].trace_seg_to_last_state.remote(
-                               source_state_num,
-                               target_state_num,
-                               n_iter,
-                               n_seg,
-                               first_iter,
-                               trace_basis,
-                               out_traj,
-                               out_traj_ext,
-                               out_state_ext,
-                               out_top,
-                               hdf5,
-                               pcoord,
-                               auxdata,
-                               ))
-       
-                   while all_ray_tasks:
-                       finished, all_ray_tasks = ray.wait(all_ray_tasks, num_returns=min(n_actors*5, len(all_ray_tasks)))
-                       results = ray.get(finished)
-                       for each_return in results:
-                           (trace_output, traj_output, frame_info) = each_return
-                           if trace_output is not None:
-                               trace_out_list.append(trace_output)
-                           if traj_output is not None:
-                               traj_output.save(f"{out_dir}/{n_iter}_{n_seg}{out_traj_ext}")
-                           if frame_info is not None:
-                               frame_info_list.append(frame_info)
-       
-           # Shutting down ray since we're done with parallelization
-           ray.shutdown()
-       else:
-           # Yes, tracing backwards from the last iteration. This will (theoretically) allow us to catch duplicates more efficiently.
-           with h5py.File(assign_name, "r") as assign_file:
-               tqdm_iter = trange(last_iter, first_iter - 1, -1, desc="iter")
-               for n_iter in tqdm_iter:
-                   for n_seg in range(assign_file["nsegs"][n_iter - 1]):
-                       if target_state_num in set(assign_file["statelabels"][n_iter - 1, n_seg]):
-                           trace_output, traj_output, frame_info = trace_seg_to_last_state(
-                               source_state_num,
-                               target_state_num,
-                               new_file,
-                               assign_file,
-                               n_iter,
-                               n_seg,
-                               trace_basis,
-                               out_traj,
-                               out_traj_ext,
-                               out_state_ext,
-                               out_top,
-                               hdf5,
-                               tqdm_iter,
-                               pcoord,
-                               auxdata,
-                           )
-       
-                           if trace_output is not None:
-                               trace_out_list.append(trace_output)
-                           if traj_output is not None:
-                               traj_output.save(f"{out_dir}/{n_iter}_{n_seg}{out_traj_ext}")
-                           if frame_info is not None:
-                               frame_info_list.append(frame_info)
-            
-       # Output list
-       trace_out_list = sorted(trace_out_list, key=lambda x: (-x[0][0], x[0][1]))
-       with open(f"{out_dir}/output.pickle", "wb") as fo:
-           pickle.dump(trace_out_list, fo)
-   
-       with open(f"{out_dir}/frame_info.pickle", "wb") as fo:
-           pickle.dump(frame_info_list, fo)
-   
-       # Finally, zero out (iter,seg) that do not fall in this "successful" list.
-       if rewrite_weights:
-           exclusive_set = {tuple([pair[0],pair[1]]) for ilist in trace_out_list for pair in ilist}
-           with h5py.File(new_file, "r+") as h5file, h5py.File(assign_name, "r") as assign_file:
-               for n_iter in tqdm_iter:
-                   for n_seg in range(assign_file["nsegs"][n_iter - 1]):
-                       if (n_iter, n_seg) not in exclusive_set:
-                           h5file[f"iterations/iter_{n_iter:>08}/seg_index"]["weight", n_seg] = 0
-
+    def retain_succ(
+        west_name=args.west_name,
+        assign_name=args.assign_name,
+        source_state_num=args.source_state_num,
+        target_state_num=args.target_state_num,
+        first_iter=args.first_iter,
+        last_iter=args.last_iter,
+        trace_basis=args.trace_basis,
+        out_traj=args.out_traj,
+        out_traj_ext=args.out_traj_ext,
+        out_state_ext=args.out_state_ext,
+        out_top=args.out_state_ext,
+        out_dir=args.out_dir,
+        hdf5=args.hdf5,
+        rewrite_weights=args.rewrite_weights,
+        use_ray=args.use_ray,
+        threads=args.threads,
+        pcoord=args.pcoord,
+        auxdata=args.auxdata,
+    ):
+        """
+        Code that goes through an assign file (assign_name) and extracts iteration
+        and segment number + its trace into a pickle object. Defaults to just
+        the whole passage but can be override by trace_basis=False
+        to just the transition time (between it last exits source to when
+        it first touches target). Can also extract the trajectories along
+        the way with out_traj=True.
+    
+        Arguments
+        =========
+        west_name : str, default: "west.h5"
+            Name of the HDF5 File.
+    
+        assign_name : str, default: "assign.h5"
+            Name of the `w_assign` output file.
+    
+        source_state_num : int, default: 0
+            Index of the source state. Should be the first state defined in
+            west.cfg before running `w_assign`.
+    
+        sink_state_num : int, default: 1
+            Index of the sink state. Should be the second state defined in
+            west.cfg before running `w_assign`.
+    
+        first_iter : int, default: 1
+            First iteration to analyze. Inclusive.
+    
+        last_iter : int, default: 0
+            Last iteration to analyze. Inclusive. 0 implies it will
+            analyze all labeled iterations.
+    
+        trace_basis : bool, default: True
+            Option to analyze each successful trajectory up till its
+            basis state. False will only analyze the transition time
+            (i.e. last it exited source until it first touches the target state).
+    
+        out_traj : bool, default: False
+            Option to output trajectory files into `out_dir`.
+    
+        out_traj_ext : str, default: ".nc"
+            Extension of the segment files. The name of the file is assumed to be
+            `seg`, meaning the default name of the file is `seg.nc`.
+    
+        out_state_ext : str, default: "_nowat.ncrst"
+            Extension of the restart files. The name of the file is assumed to be
+            `seg`, meaning the default name the file is `seg_nowat.ncrst`.
+    
+        out_top : str, default: "system.prmtop"
+            Name of the topology file.
+            Name is relative to `$WEST_SIM_ROOT/common_files/`.
+    
+        out_dir : str, default: "succ_traj"
+            Name of directory to output the trajectories.
+            Name is relative to `$WEST_SIM_ROOT`.
+    
+        hdf5 : bool, default: False
+            Option to use the `HDF5MDTrajectory()` object in `westpa.analysis`
+            instead. To be used with trajectories saved with the HDF5 Framework.
+    
+        rewrite_weights : bool, default: False
+            Option to zero out the weights of all segments that are not part of
+            the successful trajectories ensemble. Note this generates a new h5
+            file with the _succ suffix added. Default name is thus `west_succ.h5`.
+    
+        threads : int, default: None
+            Number of actors/workers for ray to initialize. It will take over all
+            CPUs if None.
+    
+        auxdata : list of strings, default: None
+            Auxiliary data set you would like to include in the output.pickle file.
+            None means you don't want any. Only includes the last frame.
+    
+        pcoord : bool, default: True
+            Boolean confirming if you would like to include the progress coordinate
+            of the last frame in the output.pickle file. Default to True.
+    
+        Outputs
+        =======
+        'output.pickle': pickle obj
+            A list of the form [n_traj, n_frame, [n_iter, n_seg]]. Note that each
+            list runs backwards from the target iteration.
+    
+        'frame_info.pickle': pickle obj
+            A list of the form [n_traj, [index number of each segment]]. Note that
+            each list runs backwards from the target iteration.
+    
+        """
+        # Variables validation
+        if last_iter is None:
+            with h5py.File(assign_name, "r") as assign_file:
+                last_iter = len(assign_file["nsegs"])
+        else:
+            assert type(last_iter) is int, "last_iter is not legal and must be int."
+    
+        # Create Output file
+        try:    
+            mkdir(out_dir)
+        except FileExistsError:
+            print(f"Folder {out_dir} already exists. Files within might be overwritten.")
+    
+        # Copying the file
+        name_root = west_name.rsplit(".h5", maxsplit=1)[0]
+        new_file = f"{out_dir}/{name_root}_succ.h5"
+        if not exists(new_file):
+            copyfile(west_name, new_file)
+    
+        # Prepping final list to be outputted
+        trace_out_list = []
+        frame_info_list = []
+    
+        # Ray stuff...
+        if use_ray is True:
+            ray.init()
+            if threads == 0:
+                n_actors = int(ray.available_resources().get("CPU",1))
+            else:
+                n_actors = threads
+            all_ray_actors = []
+            for i in range(n_actors):
+                all_ray_actors.append(TraceActor.remote(assign_name, new_file))
+        
+            # Yes, tracing backwards from the last iteration. This will (theoretically) allow us to catch duplicates more efficiently.
+            with h5py.File(assign_name, "r") as assign_file, wa.Run(new_file) as h5run:
+                tqdm_iter = trange(last_iter, first_iter - 1, -1, desc="iter")
+                for n_iter in tqdm_iter:
+                    all_ray_tasks = []
+                    for n_seg in range(assign_file["nsegs"][n_iter - 1]):
+                        if target_state_num in set(assign_file["statelabels"][n_iter - 1, n_seg]):
+                            all_ray_tasks.append(all_ray_actors[n_seg%n_actors].trace_seg_to_last_state.remote(
+                                source_state_num,
+                                target_state_num,
+                                n_iter,
+                                n_seg,
+                                first_iter,
+                                trace_basis,
+                                out_traj,
+                                out_traj_ext,
+                                out_state_ext,
+                                out_top,
+                                hdf5,
+                                pcoord,
+                                auxdata,
+                                ))
+        
+                    while all_ray_tasks:
+                        finished, all_ray_tasks = ray.wait(all_ray_tasks, num_returns=min(n_actors*5, len(all_ray_tasks)))
+                        results = ray.get(finished)
+                        for each_return in results:
+                            (trace_output, traj_output, frame_info) = each_return
+                            if trace_output is not None:
+                                trace_out_list.append(trace_output)
+                            if traj_output is not None:
+                                traj_output.save(f"{out_dir}/{n_iter}_{n_seg}{out_traj_ext}")
+                            if frame_info is not None:
+                                frame_info_list.append(frame_info)
+        
+            # Shutting down ray since we're done with parallelization
+            ray.shutdown()
+        else:
+            # Yes, tracing backwards from the last iteration. This will (theoretically) allow us to catch duplicates more efficiently.
+            with h5py.File(assign_name, "r") as assign_file:
+                tqdm_iter = trange(last_iter, first_iter - 1, -1, desc="iter")
+                for n_iter in tqdm_iter:
+                    for n_seg in range(assign_file["nsegs"][n_iter - 1]):
+                        if target_state_num in set(assign_file["statelabels"][n_iter - 1, n_seg]):
+                            trace_output, traj_output, frame_info = trace_seg_to_last_state(
+                                source_state_num,
+                                target_state_num,
+                                new_file,
+                                assign_file,
+                                n_iter,
+                                n_seg,
+                                trace_basis,
+                                out_traj,
+                                out_traj_ext,
+                                out_state_ext,
+                                out_top,
+                                hdf5,
+                                tqdm_iter,
+                                pcoord,
+                                auxdata,
+                            )
+        
+                            if trace_output is not None:
+                                trace_out_list.append(trace_output)
+                            if traj_output is not None:
+                                traj_output.save(f"{out_dir}/{n_iter}_{n_seg}{out_traj_ext}")
+                            if frame_info is not None:
+                                frame_info_list.append(frame_info)
+             
+        # Output list
+        trace_out_list = sorted(trace_out_list, key=lambda x: (-x[0][0], x[0][1]))
+        with open(f"{out_dir}/output.pickle", "wb") as fo:
+            pickle.dump(trace_out_list, fo)
+    
+        with open(f"{out_dir}/frame_info.pickle", "wb") as fo:
+            pickle.dump(frame_info_list, fo)
+    
+        # Finally, zero out (iter,seg) that do not fall in this "successful" list.
+        if rewrite_weights:
+            exclusive_set = {tuple([pair[0],pair[1]]) for ilist in trace_out_list for pair in ilist}
+            with h5py.File(new_file, "r+") as h5file, h5py.File(assign_name, "r") as assign_file:
+                for n_iter in tqdm_iter:
+                    for n_seg in range(assign_file["nsegs"][n_iter - 1]):
+                        if (n_iter, n_seg) not in exclusive_set:
+                            h5file[f"iterations/iter_{n_iter:>08}/seg_index"]["weight", n_seg] = 0
+ 
+def entry_point():
+    args = argparser.add_args()
+    main(args)
 
 if __name__ == "__main__":
     import argparse
