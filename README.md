@@ -9,7 +9,7 @@ A user-friendly, Python tool for clustering pathways from molecular dynamics sim
 
 ### Copyright
 
-Copyright (c) 2023, jeremyleung521
+Copyright (c) 2023, Anthony Bogetti, Jeremy Leung, Lillian Chong
 
 
 #### Acknowledgements

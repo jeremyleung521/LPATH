@@ -10,7 +10,9 @@ description = "A user-friendly, Python tool for clustering pathways from molecul
 dynamic = ["version"]
 readme = "README.md"
 authors = [
-    { name = "jeremyleung521", email = "jml230@pitt.edu" }
+    { name = "Anthony Bogetti", email = "atb43@pitt.edu"},
+    { name = "Jeremy Leung", email = "jml230@pitt.edu" },
+    { name = "Lillian Chong", email = "lchong@pitt.edu"},
 ]
 license = { text = "MIT" }
 # See https://pypi.org/classifiers/

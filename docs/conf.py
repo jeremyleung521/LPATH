@@ -23,9 +23,9 @@ import w_pathways
 # -- Project information -----------------------------------------------------
 
 project = 'w_pathways'
-copyright = ("2023, jeremyleung521. Project structure based on the "
+copyright = ("2023, Anthony Bogetti, Jeremy Leung, Lillian Chong. Project structure based on the "
              "Computational Molecular Science Python Cookiecutter version 1.1")
-author = 'jeremyleung521'
+author = 'Anthony Bogetti, Jeremy Leung, Lillian Chong'
 
 # The short X.Y version
 version = ''
