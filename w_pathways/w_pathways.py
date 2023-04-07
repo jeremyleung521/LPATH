@@ -1,7 +1,5 @@
 """Provide the primary functions."""
 
-import disretize
-
 
 def canvas(with_attribution=True):
     """
@@ -27,9 +25,5 @@ def canvas(with_attribution=True):
 
 
 if __name__ == "__main__":
-    try:
-        import ray
-    except ModuleNotFoundError:
-        discretize():
     # Do something if this file is invoked on its own
     print(canvas())
