@@ -29,7 +29,7 @@ dependencies = [
 
 EXTRAS_REQUIRE = {
     "westpa": ["westpa>=2022.03"],
-    "ray": ["ray"]
+    "ray": ["ray"],
 }
 
 EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["westpa"] + EXTRAS_REQUIRE["ray"]
