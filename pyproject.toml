@@ -28,11 +28,11 @@ dependencies = [
 ]
 
 EXTRAS_REQUIRE = {
-    "we": ['westpa >= 2022.03'],
-    "ray": ['ray']
+    "westpa": ["westpa>=2022.03"],
+    "ray": ["ray"]
 }
 
-EXTRAS_REQUIRE['all'] = EXTRAS_REQUIRE["we"] + EXTRAS_REQUIRE["ray"]
+EXTRAS_REQUIRE["dev"] = EXTRAS_REQUIRE["westpa"] + EXTRAS_REQUIRE["ray"]
 
 # Update the urls once the hosting is set up.
 #[project.urls]
