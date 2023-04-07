@@ -25,6 +25,7 @@ requires-python = ">=3.8"
 dependencies = [
     "scikit-learn",
     "pylcs",
+    "ray"
 ]
 
 # Update the urls once the hosting is set up.
@@ -34,16 +35,15 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-  "pytest>=6.1.2",
-  "pytest-runner"
+    "pytest>=6.1.2",
+    "pytest-runner"
 ]
-westpa = ["westpa>=2022.03",]
-
-ray = ["ray",]
+westpa = [
+    "westpa>=2022.03"
+]
 
 dev = [
-  "ray",
-  "westpa>=2022.03"
+    "w_pathways[test,westpa]"
 ]
 
 [tool.setuptools]
