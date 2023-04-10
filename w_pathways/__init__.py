@@ -4,5 +4,3 @@
 from .w_pathways import *
 
 from ._version import __version__
-
-rc = argparser.RC

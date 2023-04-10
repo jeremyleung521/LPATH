@@ -57,7 +57,11 @@ def main(arguments):
 
 
 def entry_point():
-    arguments = w_pathways.rc.add_discretize_args()
+    from w_pathways import argparser
+    import argparse
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=argparser.arg_desc)
+    arguments = argparser.add_discretize_args(parser)
     log.debug(f'{arguments}')
     main(arguments)
 

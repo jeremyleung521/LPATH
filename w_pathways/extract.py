@@ -469,7 +469,7 @@ def main(arguments):
             each list runs backwards from the target iteration.
         """
         # Variables validation
-        if last_iter is 0:
+        if last_iter == 0:
             with h5py.File(assign_name, "r") as assign_file:
                 last_iter = len(assign_file["nsegs"])
         else:
@@ -595,7 +595,11 @@ def main(arguments):
 
 
 def entry_point():
-    args = w_pathways.rc.add_extract_args()
+    from w_pathways import argparser
+    import argparse
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=argparser.arg_desc)
+    args = argparser.add_extract_args(parser)
     log.debug(f'{args}')
     main(args)
 
