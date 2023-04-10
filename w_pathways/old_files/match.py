@@ -20,7 +20,6 @@ from shutil import copyfile
 from os.path import exists
 import h5py
 
-
 log = logging.getLogger(__name__)
 
 
@@ -35,6 +34,21 @@ def tostr(b):
         return b.decode('utf-8')
     else:
         return str(b)
+
+def get_object(object_name, path=None):
+    """Attempt to load the given object, using additional path information if given."""
+
+    try:
+        (modspec, symbol) = object_name.rsplit('.', 1)
+    except ValueError:
+        # no period found
+        raise ValueError("object_name name must be in the form 'module.symbol'")
+
+    log.debug('attempting to load %r from %r' % (symbol, modspec))
+    module = load_module(modspec, path)
+
+    # This will raise AttributeError (as expected) if the symbol is not in the module
+    return getattr(module, symbol)
 
 
 def calc_dist(seq1, seq2):
@@ -80,7 +94,7 @@ def load_data(file_name, n=0):
     return data, pathways
 
 
-def reassign_custom(data, pathways):
+def reassign_custom(data, pathways, assign_file):
     """
     Reclassify/assign frames into different states. This is highly
     specific to the system. If w_assign's definition is already
@@ -117,7 +131,7 @@ def reassign_custom(data, pathways):
 
     return dictionary
 
-def reassign_statelebel(data, pathways, assign_file):
+def reassign_statelabel(data, pathways, assign_file):
     """
     Use assign.h5 states as is with statelabels. Does not reclassify/assign frames
     into new states.
@@ -326,13 +340,26 @@ def ask_number_cluster():
 
 
 def main(arguments):
+    # Dealing with the preassign_method
+    preset_reassign = {
+        'reassign_identity': reassign_identity(),
+        'reassign_statelabel': reassign_statelabel(),
+        'reassign_custom': reassign_custom()
+    }
+
+    if arguments.reassign_method in preset_reassign.keys():
+        reassign = preset_reassign[arguments.reassign_method]
+    else:
+        reassign = get_object(arguments.reassign_method)
+
     # Prepping the data + Calculating the distance matrix
-    data, pathways = load_data(arguments.input_pickle,
-                               n=arguments.n_datasets)  # Two extra dimensions for Phi/Psi, Iter/seg/state_id/weight are assumed to be present
+    # Two extra dimensions for Phi/Psi, Iter/seg/state_id/weight are assumed to be present
+    data, pathways = load_data(arguments.input_pickle, n=arguments.n_datasets)
+
 
     # Reassignment... (or not) Make sure `dictionary` is declared globally since calc_distances() requires it.
-    dictionary = reassign(data, pathways,
-                          assign_file=arguments.assign_name)  # system-specific reassignment of states
+    dictionary = reassign(data, pathways, assign_name)  # system-specific reassignment of states
+    # dictionary = reassign(data, pathways, assign_file=arguments.assign_name)  # system-specific reassignment of states
     # mapping states > 9 states to their statelabels instead.
     # dictionary = reassign_identity(data, pathways, assign_file=arguments.assign_name) # Use assign.h5 states as is...
 
