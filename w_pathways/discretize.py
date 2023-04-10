@@ -1,4 +1,8 @@
 # discretize.py
+#
+# Code that allows you to discretize MD trajectories and output as
+#
+#
 
 import logging
 import numpy
@@ -57,13 +61,14 @@ def main(arguments):
 
 
 def entry_point():
-    from w_pathways import argparser
     import argparse
+    from w_pathways import argparser
+
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=argparser.arg_desc)
-    arguments = argparser.add_discretize_args(parser)
-    log.debug(f'{arguments}')
-    main(arguments)
+    args = argparser.add_discretize_args(parser)
+    log.debug(f'{args}')
+    main(args)
 
 
 if __name__ == "__main__":

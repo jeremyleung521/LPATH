@@ -595,8 +595,9 @@ def main(arguments):
 
 
 def entry_point():
-    from w_pathways import argparser
     import argparse
+    from w_pathways import argparser
+
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=argparser.arg_desc)
     args = argparser.add_extract_args(parser)
