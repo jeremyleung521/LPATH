@@ -25,13 +25,15 @@ import w_pathways
 from tqdm.auto import trange
 from shutil import copyfile
 from os import mkdir
-from os.path import isdir, exists
+from os.path import exists
 
 log = logging.getLogger(__name__)
 
-def main(args):
-    if args.use_ray is True:
+
+def main(arguments):
+    if arguments.use_ray is True:
         import ray
+
         @ray.remote
         class TraceActor:
             """
@@ -57,7 +59,7 @@ def main(args):
                 hdf5,
                 pcoord,
                 auxdata,
-                #tqdm_bar,
+                # tqdm_bar,
             ):
                 """
                 Code that traces a seg to frame it leaves source state. Can run to export trajectories too!
@@ -86,7 +88,7 @@ def main(args):
                     len(run.iteration(iteration_num).walker(segment_num).pcoords) - 1
                 )  # Length is number of frames in traj + 1 (parent); only caring about the number of frames
             
-                #tqdm_bar.set_description(f"tracing {iteration_num}.{segment_num}")
+                # tqdm_bar.set_description(f"tracing {iteration_num}.{segment_num}")
                 # Going through segs in reverse order
                 for iwalker in reversed(trace):
                     ad_arr = []
@@ -143,7 +145,8 @@ def main(args):
                                     # iteration into list
                                     # Also making sure it's not a target -> target transition
                                     indv_trace.append(
-                                        [iwalker.iteration.summary.name, iwalker.segment_summary.name, corr_assign[-1], *ad_arr, weight]
+                                        [iwalker.iteration.summary.name, iwalker.segment_summary.name, corr_assign[-1],
+                                         *ad_arr, weight]
                                     )
                         else:
                             # This else captures cases where it was in the source in this iteration
@@ -176,7 +179,7 @@ def main(args):
             
                 # Block for outputting the traj
                 if out_traj:
-                    #tqdm_bar.set_description(f"outputting traj for {iteration_num}.{segment_num}")
+                    # tqdm_bar.set_description(f"outputting traj for {iteration_num}.{segment_num}")
                     if hdf5 is False:
                         trajectory = wa.BasicMDTrajectory(
                             traj_ext=out_traj_ext, state_ext=out_state_ext, top=out_top
@@ -189,7 +192,7 @@ def main(args):
             
                     # Extra check so it won't output past first_iter. 
                     if first_iter != 1:
-                        max_length = iter_num - first_iter + 1
+                        max_length = iteration_num - first_iter + 1
                         trace = run.iteration(iteration_num).walker(segment_num).trace(max_length=max_length)
         
                     indv_traj = trajectory(trace)
@@ -198,7 +201,7 @@ def main(args):
                 else:
                     indv_traj = None
             
-                #print(indv_trace)
+                # print(indv_trace)
             
                 return indv_trace, indv_traj, frame_info
     else: 
@@ -336,7 +339,6 @@ def main(args):
                     trajectory = wa.BasicMDTrajectory(
                         traj_ext=out_traj_ext, state_ext=out_state_ext, top=out_top
                     )
-                                # Hey, there is a target > target transition.
                 elif hdf5 is True:
                     trajectory = wa.HDF5MDTrajectory()
                 else:
@@ -355,24 +357,24 @@ def main(args):
             return indv_trace, indv_traj, frame_info
     
     def retain_succ(
-        west_name=args.west_name,
-        assign_name=args.assign_name,
-        source_state_num=args.source_state_num,
-        target_state_num=args.target_state_num,
-        first_iter=args.first_iter,
-        last_iter=args.last_iter,
-        trace_basis=args.trace_basis,
-        out_traj=args.out_traj,
-        out_traj_ext=args.out_traj_ext,
-        out_state_ext=args.out_state_ext,
-        out_top=args.out_state_ext,
-        out_dir=args.out_dir,
-        hdf5=args.hdf5,
-        rewrite_weights=args.rewrite_weights,
-        use_ray=args.use_ray,
-        threads=args.threads,
-        pcoord=args.pcoord,
-        auxdata=args.auxdata,
+        west_name=arguments.west_name,
+        assign_name=arguments.assign_name,
+        source_state_num=arguments.source_state_num,
+        target_state_num=arguments.target_state_num,
+        first_iter=arguments.first_iter,
+        last_iter=arguments.last_iter,
+        trace_basis=arguments.trace_basis,
+        out_traj=arguments.out_traj,
+        out_traj_ext=arguments.out_traj_ext,
+        out_state_ext=arguments.out_state_ext,
+        out_top=arguments.out_state_ext,
+        out_dir=arguments.out_dir,
+        hdf5=arguments.hdf5,
+        rewrite_weights=arguments.rewrite_weights,
+        use_ray=arguments.use_ray,
+        threads=arguments.threads,
+        pcoord=arguments.pcoord,
+        auxdata=arguments.auxdata,
     ):
         """
         Code that goes through an assign file (assign_name) and extracts iteration
@@ -394,8 +396,8 @@ def main(args):
             Index of the source state. Should be the first state defined in
             west.cfg before running `w_assign`.
     
-        sink_state_num : int, default: 1
-            Index of the sink state. Should be the second state defined in
+        target_state_num : int, default: 1
+            Index of the target state. Should be the second state defined in
             west.cfg before running `w_assign`.
     
         first_iter : int, default: 1
@@ -437,7 +439,11 @@ def main(args):
             Option to zero out the weights of all segments that are not part of
             the successful trajectories ensemble. Note this generates a new h5
             file with the _succ suffix added. Default name is thus `west_succ.h5`.
-    
+
+        use_ray : bool, default: True if ray exists
+            Option to turn ray on. This is assumed to be True if ray could be
+            imported.
+
         threads : int, default: None
             Number of actors/workers for ray to initialize. It will take over all
             CPUs if None.
@@ -450,8 +456,10 @@ def main(args):
             Boolean confirming if you would like to include the progress coordinate
             of the last frame in the output.pickle file. Default to True.
     
-        Outputs
-        =======
+        Notes
+        =====
+        The following files are saved/outputted to disk.
+
         'output.pickle': pickle obj
             A list of the form [n_traj, n_frame, [n_iter, n_seg, state_id, [pcoord/auxdata], weight]]. Note that each
             list runs backwards from the target iteration.
@@ -459,7 +467,6 @@ def main(args):
         'frame_info.pickle': pickle obj
             A list of the form [n_traj, [index number of each segment]]. Note that
             each list runs backwards from the target iteration.
-    
         """
         # Variables validation
         if last_iter is 0:
@@ -469,7 +476,7 @@ def main(args):
             assert type(last_iter) is int, "last_iter is not legal and must be int."
     
         # Create Output file
-        try:    
+        try:
             mkdir(out_dir)
         except FileExistsError:
             print(f"Folder {out_dir} already exists. Files within might be overwritten.")
@@ -488,7 +495,7 @@ def main(args):
         if use_ray is True:
             ray.init()
             if threads == 0:
-                n_actors = int(ray.available_resources().get("CPU",1))
+                n_actors = int(ray.available_resources().get("CPU", 1))
             else:
                 n_actors = threads
             all_ray_actors = []
@@ -497,13 +504,13 @@ def main(args):
         
             # Yes, tracing backwards from the last iteration. This will (theoretically) allow us to catch
             # duplicates more efficiently.
-            with h5py.File(assign_name, "r") as assign_file, wa.Run(new_file) as h5run:
+            with h5py.File(assign_name, "r") as assign_file:
                 tqdm_iter = trange(last_iter, first_iter - 1, -1, desc="iter")
                 for n_iter in tqdm_iter:
                     all_ray_tasks = []
                     for n_seg in range(assign_file["nsegs"][n_iter - 1]):
                         if target_state_num in set(assign_file["statelabels"][n_iter - 1, n_seg]):
-                            all_ray_tasks.append(all_ray_actors[n_seg%n_actors].trace_seg_to_last_state.remote(
+                            all_ray_tasks.append(all_ray_actors[n_seg % n_actors].trace_seg_to_last_state.remote(
                                 source_state_num,
                                 target_state_num,
                                 n_iter,
@@ -577,7 +584,7 @@ def main(args):
     
         # Finally, zero out (iter,seg) that do not fall in this "successful" list.
         if rewrite_weights:
-            exclusive_set = {tuple([pair[0],pair[1]]) for ilist in trace_out_list for pair in ilist}
+            exclusive_set = {tuple([pair[0], pair[1]]) for ilist in trace_out_list for pair in ilist}
             with h5py.File(new_file, "r+") as h5file, h5py.File(assign_name, "r") as assign_file:
                 for n_iter in tqdm_iter:
                     for n_seg in range(assign_file["nsegs"][n_iter - 1]):
@@ -586,10 +593,12 @@ def main(args):
 
     retain_succ()
 
+
 def entry_point():
     args = w_pathways.rc.add_extract_args()
     log.debug(f'{args}')
     main(args)
+
 
 if __name__ == "__main__":
     import argparse
@@ -609,7 +618,7 @@ if __name__ == "__main__":
         hdf5=False,
         rewrite_weights=False,
         pcoord=True,
-	    auxdata=['phi', 'psi'],
+        auxdata=['phi', 'psi'],
         use_ray=False,
         threads=None,
     )
