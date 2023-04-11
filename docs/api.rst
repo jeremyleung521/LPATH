@@ -3,5 +3,8 @@ API Documentation
 
 .. autosummary::
    :toctree: autosummary
+   :recursive:
 
-   mphat.canvas
+   mphat.discretize
+   mphat.extract
+   mphat.match
