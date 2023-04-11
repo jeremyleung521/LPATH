@@ -10,7 +10,7 @@
 # Main function includes:
 #   * Output a list containing traces of source -> sink iter/seg numbers
 #   * Output the trajectories of the traces
-#   * Rewrite an h5 file so any non-successful trajectories have 0 weight.
+#   * Rewrite a H5 file so any non-successful trajectories have 0 weight.
 #
 # Defaults to the first passage (from basis state to first touch target)
 #     for all of the above.
@@ -21,7 +21,6 @@ import h5py
 import pickle
 import numpy
 import logging
-import w_pathways
 from tqdm.auto import trange
 from shutil import copyfile
 from os import mkdir
@@ -31,6 +30,16 @@ log = logging.getLogger(__name__)
 
 
 def main(arguments):
+    """
+    Main function that executes the whole `match` step. Also called by the
+    entry_point() function.
+
+    Parameters
+    ----------
+    arguments : argparse.Namespace
+        A Namespace object will all the necessary parameters.
+
+    """
     if arguments.use_ray is True:
         import ray
 
@@ -77,7 +86,7 @@ def main(arguments):
             
                 frame_info : lst of lst
                     A list of list containing the frame number of each iteration. Goes backwards from the last frame.
-                    Returns None if does not end in the target state.
+                    Returns None if it does not end in the target state.
             
                 """
                 run = self.h5run
@@ -141,7 +150,7 @@ def main(arguments):
                                     # Breaking out...
                                     return None, None, None
                                 else:
-                                    # If haven't been in state A, and not in target iteration... add the whole
+                                    # If traj hasn't been in state A, and not in target iteration... add the whole
                                     # iteration into list
                                     # Also making sure it's not a target -> target transition
                                     indv_trace.append(
@@ -169,6 +178,7 @@ def main(arguments):
                     source_frame_num
                 except NameError:
                     source_frame_num = 0
+
                 # Total number of frames necessary
                 start_trace = (traj_len - source_frame_num) + ((len(indv_trace) - 1) * traj_len)
                 end_trace = traj_len - term_frame_num
@@ -190,7 +200,7 @@ def main(arguments):
                         print("unable to output trajectory")
                         return indv_trace, None, frame_info
             
-                    # Extra check so it won't output past first_iter. 
+                    # Extra check such that it won't output past first_iter.
                     if first_iter != 1:
                         max_length = iteration_num - first_iter + 1
                         trace = run.iteration(iteration_num).walker(segment_num).trace(max_length=max_length)
@@ -234,7 +244,7 @@ def main(arguments):
                 MDTraj Trajectory object.
             frame_info : lst of lst
                 A list of list containing the frame number of each iteration. Goes backwards from the last frame.
-                Returns None if does not end in the target state.
+                Returns None if traj does not end in the target state.
             """
             run = wa.Run(new_file)
             indv_trace = []
@@ -295,7 +305,7 @@ def main(arguments):
                                 run.close()
                                 return None, None, None
                             else:
-                                # If haven't been in state A, and not in target iteration... add
+                                # If traj hasn't been in state A, and not in target iteration... add
                                 # the whole iteration into list
                                 # Also making sure it's not a target -> target transition
                                 indv_trace.append(
@@ -379,7 +389,7 @@ def main(arguments):
         """
         Code that goes through an assign file (assign_name) and extracts iteration
         and segment number + its trace into a pickle object. Defaults to just
-        the whole passage but can be override by trace_basis=False
+        the whole passage but can be overridden by trace_basis=False
         to just the transition time (between it last exits source to when
         it first touches target). Can also extract the trajectories along
         the way with out_traj=True.
@@ -437,7 +447,7 @@ def main(arguments):
     
         rewrite_weights : bool, default: False
             Option to zero out the weights of all segments that are not part of
-            the successful trajectories ensemble. Note this generates a new h5
+            the successful trajectory ensemble. Note this generates a new h5
             file with the _succ suffix added. Default name is thus `west_succ.h5`.
 
         use_ray : bool, default: True if ray exists
@@ -449,12 +459,12 @@ def main(arguments):
             CPUs if None.
     
         auxdata : list of strings, default: None
-            Auxiliary data set you would like to include in the output.pickle file.
+            Auxiliary data set you would like to include in the `output.pickle` file.
             None means you don't want any. Only includes the last frame.
     
         pcoord : bool, default: True
             Boolean confirming if you would like to include the progress coordinate
-            of the last frame in the output.pickle file. Default to True.
+            of the last frame in the `output.pickle` file. Default to True.
     
         Notes
         =====
@@ -595,6 +605,9 @@ def main(arguments):
 
 
 def entry_point():
+    """
+    Entry point for this `match` step.
+    """
     import argparse
     from w_pathways import argparser
 
@@ -606,25 +619,28 @@ def entry_point():
 
 
 if __name__ == "__main__":
+    """
+    For calling `extract.py` directly. Note all of the parameters are specified manually here.
+    """
     import argparse
     args = argparse.Namespace(
-        west_name="multi.h5",
-        assign_name="ANALYSIS/C7_EQ/assign.h5",
-        source_state_num=0,
-        target_state_num=1,
-        first_iter=1,
-        last_iter=200,
-        trace_basis=True,
-        out_traj=False,
-        out_traj_ext=".nc",
-        out_state_ext="_img.ncrst",
-        out_top="cat10.prmtop",
-        out_dir="succ_traj",
-        hdf5=False,
-        rewrite_weights=False,
-        pcoord=True,
-        auxdata=['phi', 'psi'],
-        use_ray=False,
-        threads=None,
+        west_name="multi.h5",  # Name of input HDF5 file (e.g., west.h5)
+        assign_name="ANALYSIS/C7_EQ/assign.h5",  # Name of input assign.h5 file
+        source_state_num=0,  # Index of the source state as defined in assign.h5.
+        target_state_num=1,  # Index of the target state as defined in assign.h5.
+        first_iter=1,  # First iteration to analyze. Inclusive
+        last_iter=200,  # Last iteration to analyze. Inclusive. 0 implies it will analyze all labeled iterations.
+        trace_basis=True,  # Option to analyze each successful trajectory up till its basis state.
+        out_traj=False,  # Option to output trajectory files into `out_dir`. Will take much longer.
+        out_traj_ext=".nc",  # Extension of the segment files. Defaults to `seg{out_traj_ext}`.
+        out_state_ext="_img.ncrst",  # Extension of the restart files. Defaults to `seg{out_state_ext}`.
+        out_top="system.prmtop",  # Name of the parameter file. Name relative to `$WEST_SIM_ROOT/common_files`.
+        out_dir="succ_traj",  # Name of directory to output the trajectories.
+        hdf5=False,  # Enable if trajectories are saved with the HDF5 Framework in WESTPA.
+        rewrite_weights=False,  # Option to zero out the weights of all segments that are not a successful trajectory.
+        pcoord=True,  # Option to output the pcoord into the `output.pickle`.
+        auxdata=['phi', 'psi'],  # Additional auxiliary data to save into `output.pickle`.
+        use_ray=False,  # Enable Ray.
+        threads=0,  # How many Ray threads/actors to use. Defaults to 0, which wil use all auto-detected resources.
     )
     main(args)

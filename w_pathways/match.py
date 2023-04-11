@@ -11,14 +11,15 @@ import numpy
 import pickle
 import pylcs
 import logging
+import h5py
 import matplotlib.pyplot as plt
+import scipy.cluster.hierarchy as sch
 from sklearn.metrics import pairwise_distances
 from scipy.spatial.distance import squareform
-import scipy.cluster.hierarchy as sch
 from tqdm.auto import trange
 from shutil import copyfile
 from os.path import exists
-import h5py
+from w_pathways.extloader import *
 
 log = logging.getLogger(__name__)
 
@@ -34,21 +35,6 @@ def tostr(b):
         return b.decode('utf-8')
     else:
         return str(b)
-
-def get_object(object_name, path=None):
-    """Attempt to load the given object, using additional path information if given."""
-
-    try:
-        (modspec, symbol) = object_name.rsplit('.', 1)
-    except ValueError:
-        # no period found
-        raise ValueError("object_name name must be in the form 'module.symbol'")
-
-    log.debug('attempting to load %r from %r' % (symbol, modspec))
-    module = load_module(modspec, path)
-
-    # This will raise AttributeError (as expected) if the symbol is not in the module
-    return getattr(module, symbol)
 
 
 def calc_dist(seq1, seq2):
@@ -67,47 +53,70 @@ def calc_dist(seq1, seq2):
     return 1 - similarity
 
 
-def load_data(file_name, n=0):
+def load_data(file_name):
     """
     Load in the pickle data from step 1.
 
     Parameters
-    ==========
-
+    ----------
     file_name: str
-        File name of the pickle object from step 1
+        File name of the pickle object from `extract`
 
-    n : int
-        The number of extra datasets you would also like to include for
-        later use. The final "pathways" object created has
-        iteration/segment/state_label/weights by default.
+    Returns
+    -------
+    data : list
+        A list with the data necessary to reassign, as extracted from `output.pickle`.
+
+    pathways : numpy.ndarray
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
     """
     with open(file_name, "rb") as f:
         data = pickle.load(f)
 
     npathways = len(data)
     lpathways = max([len(i) for i in data])
+    n = len(data[0][0])
 
-    pathways = numpy.zeros((npathways, lpathways, n + 4), dtype=object)
+    pathways = numpy.zeros((npathways, lpathways, n), dtype=object)
     # This "Pathways" array should be Iter/Seg/State/auxdata_or_pcoord/weight
 
     return data, pathways
 
 
-def reassign_custom(data, pathways, assign_file):
+def reassign_custom(data, pathways, dictionary, assign_file):
     """
     Reclassify/assign frames into different states. This is highly
     specific to the system. If w_assign's definition is already
-    ok, you can proceed with what's made in the previous step.
+    ok, you can proceed with what's made in the previous step
+    using `reassign_identity`.
 
-    In this example, the dictionary maps state idx to its statelabels,
-    as defined in the assign.h5. I suggest using alphabets as states.
+    In this example, the dictionary maps state idx to its corresponding `statelabels`
+    entry as defined in the assign.h5. I suggest using alphabets as states.
+
+    Parameters
+    ----------
+    data : list
+        An array with the data necessary to reassign, as extracted from `output.pickle`.
+
+    pathways : numpy.ndarray
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+
+    dictionary : dict
+        An empty dictionary obj for mapping "state_id" with "state string".
+
+    assign_file : str
+        A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's a MD trajectory.
+
+    Returns
+    -------
+    dictionary : dict
+        A dictionary mapping the assign.h5 frame with assign.h5
     """
     # Other example for grouping multiple states into one.
     for idx, val in enumerate(data):
         flipped_val = numpy.asarray(val, dtype=object)[::-1]
         for idx2, val2 in enumerate(flipped_val):
-            val2[2] = map_dict[val2[2]]
+            val2[2] = dictionary[val2[2]]
             pathways[idx, idx2] = val2
             print(val2)
 
@@ -127,11 +136,12 @@ def reassign_custom(data, pathways, assign_file):
             pathways[idx, idx2] = val2
 
     # Generating a dictionary mapping each state
-    dictionary = {1:'A', 2:'B', -1:'!'}
+    dictionary = {1: 'A', 2: 'B', -1: '!'}
 
     return dictionary
 
-def reassign_statelabel(data, pathways, assign_file):
+
+def reassign_statelabel(data, pathways, dictionary, assign_file):
     """
     Use assign.h5 states as is with statelabels. Does not reclassify/assign frames
     into new states.
@@ -139,53 +149,97 @@ def reassign_statelabel(data, pathways, assign_file):
     In this example, the dictionary maps state idx to its statelabels,
     as defined in the assign.h5. I suggest using alphabets as statelabels
     to allow for more than 9 states.
+
+    Parameters
+    ----------
+    data : list
+        An list with the data necessary to reassign, as extracted from `output.pickle`.
+
+    pathways : numpy.ndarray
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+
+    dictionary : dict
+        An empty dictionary obj for mapping "state_id" with "state string".
+
+    assign_file : str
+        A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's a MD trajectory.
+
+    Returns
+    -------
+    dictionary : dict
+        A dictionary mapping the assign.h5 frame with assign.h5
     """
     for idx, val in enumerate(data):
         flipped_val = numpy.asarray(val)[::-1]
         for idx2, val2 in enumerate(flipped_val):
             pathways[idx, idx2] = val2
 
-    dictionary = {}
     with h5py.File(assign_file) as f:
         for idx, val in enumerate(f['state_labels'][:]):
             dictionary[idx] = tostr(val)
-    dictionary[len(dictionary)] = '!' # Unknown state
+    dictionary[-1] = '!'  # Unknown state
 
     return dictionary
 
-def reassign_identity(data, pathways, assign_file):
+
+def reassign_identity(data, pathways, dictionary, assign_file):
     """
     Use assign.h5 states as is. Does not attempt to map assignment
-    to statelabels.
+    to `statelabels` from assign.h5.
+
+    Parameters
+    ----------
+    data : list
+        An list with the data necessary to reassign, as extracted from `output.pickle`.
+
+    pathways : numpy.ndarray
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+
+    dictionary : dict
+        An empty dictionary obj for mapping "state_id" with "state string".
+
+    assign_file : str
+        A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's a MD trajectory.
+
+    Returns
+    -------
+    dictionary : dict
+        A dictionary mapping the assign.h5 frame with assign.h5
     """
     for idx, val in enumerate(data):
         flipped_val = numpy.asarray(val)[::-1]
         for idx2, val2 in enumerate(flipped_val):
             pathways[idx, idx2] = val2
 
-    dictionary = {}
     with h5py.File(assign_file) as f:
         for idx in range(len(f['state_labels'][:])):
             dictionary[idx] = str(idx)
-    dictionary[len(dictionary)] = str(idx+1) # Unknown state
+
+    dictionary[-1] = '!'  # Unknown state
 
     return dictionary
 
 
-def expand_shorter_traj(pathways):
+def expand_shorter_traj(pathways, dictionary):
     """
     Assigns a non-state to pathways which are shorter than
     the max length.
+
+    Parameters
+    ----------
+    pathways : numpy.ndarray
+        An array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+
+    dictionary: dict
+        Maps each state_id to a corresponding string.
     """
     for pathway in pathways:
         for step in pathway:
             if step[0] == 0:
-                step[2] = -1
+                step[2] = dictionary[-1]  # Mark with the last entry
 
 
-def gen_dist_matrix(
-        pathways, file_name="distmap.npy", out_dir="succ_traj", remake=False
-):
+def gen_dist_matrix(pathways, file_name="distmap.npy", out_dir="succ_traj", remake=False):
     """
     Generate the path_string to path_string similarity distance matrix.
     """
@@ -265,12 +319,13 @@ def export_files(
     """
     if clusters is None:
         clusters = list(range(1, max(cluster_labels) + 1))
-    elif isinstance(clusters) is not list:
+    elif not isinstance(clusters, list):
         try:
             list(clusters)
-        except:
+        except TypeError:
             raise TypeError(
-                "Provided cluster numbers don't work. Provde a list desired of cluster numbers or 'None' to output all clusters."
+                "Provided cluster numbers don't work. Provde a list desired of cluster numbers or 'None' to output \
+                all clusters."
             )
 
     representative_file = f'{out_dir.rsplit("/", 1)[0]}' + '/representative_segments.txt'
@@ -338,13 +393,22 @@ def ask_number_cluster():
             print("Invalid input.\n")
 
 
-
 def main(arguments):
-    # Dealing with the preassign_method
+    """
+    Main function that executes the whole `match` step. Also called by the
+    entry_point() function.
+
+    Parameters
+    ----------
+    arguments : argparse.Namespace
+        A Namespace object will all the necessary parameters.
+
+    """
+    # Dealing with the preset assign_method
     preset_reassign = {
-        'reassign_identity': reassign_identity(),
-        'reassign_statelabel': reassign_statelabel(),
-        'reassign_custom': reassign_custom()
+        'reassign_identity': reassign_identity,
+        'reassign_statelabel': reassign_statelabel,
+        'reassign_custom': reassign_custom,
     }
 
     if arguments.reassign_method in preset_reassign.keys():
@@ -353,22 +417,20 @@ def main(arguments):
         reassign = get_object(arguments.reassign_method)
 
     # Prepping the data + Calculating the distance matrix
-    # Two extra dimensions for Phi/Psi, Iter/seg/state_id/weight are assumed to be present
-    data, pathways = load_data(arguments.input_pickle, n=arguments.n_datasets)
+    data, pathways = load_data(arguments.input_pickle)
 
-
+    dictionary = {}
     # Reassignment... (or not) Make sure `dictionary` is declared globally since calc_distances() requires it.
-    dictionary = reassign(data, pathways, assign_name)  # system-specific reassignment of states
-    # dictionary = reassign(data, pathways, assign_file=arguments.assign_name)  # system-specific reassignment of states
-    # mapping states > 9 states to their statelabels instead.
-    # dictionary = reassign_identity(data, pathways, assign_file=arguments.assign_name) # Use assign.h5 states as is...
+    dictionary = reassign(data, pathways, dictionary, arguments.assign_name)  # system-specific reassignment of states
 
-    expand_shorter_traj(data)  # Necessary if pathways are of variable length
-    dist_matrix, weights = gen_dist_matrix(pathways, out_dir=arguments.out_dir,
-                                           remake=arguments.dmatrix_remake)  # Calculate distance matrix between pathways
+    # Cleanup
+    expand_shorter_traj(data, dictionary)  # Necessary if pathways are of variable length
+    dist_matrix, weights = gen_dist_matrix(pathways, file_name=arguments.dmatrix_save, out_dir=arguments.out_dir,
+                                           remake=arguments.dmatrix_remake)  # Calculate distance matrix
 
     # Visualize the Dendrogram and determine how clusters used to group successful trajectories
-    visualize(dist_matrix, threshold=arguments.dendrogram_threshold, out_dir=arguments.out_dir, show=arguments.dendrogram_show)  # Visualize
+    visualize(dist_matrix, threshold=arguments.dendrogram_threshold,
+              out_dir=arguments.out_dir, show=arguments.dendrogram_show)  # Visualize
     determine_rerun()
     ncluster = ask_number_cluster()
     cluster_labels = hcluster(dist_matrix, ncluster)
@@ -384,11 +446,15 @@ def main(arguments):
         clusters=arguments.clusters,
         out_dir=arguments.out_dir,
         file_pattern=arguments.file_pattern,
-        west_file=arguments.west_file,
+        west_name=arguments.west_name,
         assign_name=arguments.assign_name,
     )
 
+
 def entry_point():
+    """
+    Entry point for this `match` step.
+    """
     import argparse
     from w_pathways import argparser
 
@@ -398,19 +464,23 @@ def entry_point():
     log.debug(f'{args}')
     main(args)
 
+
 if __name__ == "__main__":
+    """
+    For calling `merge.py` directly. Note all of the parameters are specified manually here.
+    """
     import argparse
     args = argparse.Namespace(
-        input_pickle='succ_traj/output.pickle',
-        n_datasets=2, # Two extra dimensions for Phi/Psi, Iter/seg/state_id/weight are assumed to be present
-        west_file="multi.h5",
-        assign_name='ANALYSIS/ALL/assign.h5',
-        dmatrix_remake=True, # Remake the distance Matrix
-        dendrogram_threshold=0.5, # Threshold for the Dendrogram
-        dendrogram_show=True, # Open the file for Dendogram
+        input_pickle='succ_traj/output.pickle',  # Input file name of the pickle from `extract.py`
+        west_name="multi.h5",  # Name of input HDF5 file (e.g., west.h5)
+        assign_name='ANALYSIS/ALL/assign.h5',  # Name of input assign.h5 file
+        dmatrix_remake=True,  # Enable to remake the distance Matrix
+        dmatrix_save='distmap.npy',  # If dmatrix_remake is False, load this file instead. Assumed located in {out_dir}.
+        dendrogram_threshold=0.5,  # Threshold for the Dendrogram
+        dendrogram_show=True,  # Show the Dendrogram using plt.show()
         out_dir="succ_traj",  # Output for the distance Matrix
-        cl_output='succ_traj/cluster_labels.npy', # Output path for cluster labels
-        file_pattern="west_succ_c{}.h5", # Pattern to name cluster files
+        cl_output='succ_traj/cluster_labels.npy',  # Output path for cluster labels
+        file_pattern="west_succ_c{}.h5",  # Pattern to name cluster files
         clusters=None,  # Cluster index to output... otherwise None --> All
     )
 

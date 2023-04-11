@@ -7,6 +7,7 @@ arg_desc = ''' \
            ARG PARSER
            '''
 
+
 def check_non_neg(value):
     try:
         value = int(value)
@@ -16,39 +17,56 @@ def check_non_neg(value):
         raise Exception("{} must be an integer.".format(value))
     return value
 
+
 def add_discretize_args(parser):
     """
-    This block process all the necessary for the "discretize.py" module.
+    This block process all the necessary arguments for the `discretize.py` module.
+
+    Parameters
+    ----------
+    parser : argparse.ArgumentParser
+        A parser passed in from each tool. Separated from each function because the
+        catch-all tool to run everything in succession will only have 1 parser.
 
     Returns
     -------
-    args: NameSpace
-        Object with all the necessary arguments.
-
+    args: argparse.Namespace
+        A Namespace object with all the necessary arguments.
     """
     discrete_io = parser.add_argument_group('Discretize input/output options')
     discrete_io.add_argument('-I', '--input', dest='input_name', default="west.h5",
-        help='''The path to your input file for discretization. If it's a west.h5 file from WESTPA, 
-        this will automatically run w_assign. Else, it would assume it's a text file of "features"''')
+                             help='''The path to your input file for discretization. If it's a west.h5 file from 
+                             WESTPA, this will automatically run w_assign. Else, it would assume it's a text file of 
+                             features.''')
     discrete_io.add_argument('-O', '--output', dest='output_name', default="states.npy",
-        help='''The path to your output numpy file for after discretization. ''')
+                             help='''The path to your output numpy file for after discretization. ''')
+
+    args = parser.parse_args()
+
+    if args.debug is True:
+        logging.basicConfig(level=logging.DEBUG)
 
     return args
 
 
 def add_extract_args(parser):
     """
-    This block process all the necessary for the "extract.py" module.
+    This block process all the necessary arguments for the "extract.py" module.
+
+    Parameters
+    ----------
+    parser : argparse.ArgumentParser
+        A parser passed in from each tool. Separated from each function because the
+        catch-all tool to run everything in succession will only have 1 parser.
 
     Returns
     -------
-    args: NameSpace
-        Object with all the necessary arguments.
-
+    args: argparse.Namespace
+        A Namespace object with all the necessary arguments.
     """
     iogroup = parser.add_argument_group('Extract input/output options')
     iogroup.add_argument('-W', '--west', '--WEST_H5FILE', '--west-h5file', dest='west_name', default="multi.h5",
-        help='''The path to your h5 file. If it's a multi.h5 file from w_multi_west, make sure the \
+                         help='''The path to your h5 file. If it's a multi.h5 file from w_multi_west, make sure the \
         --ibstates option successfully merged your initial and basis states.''')
     iogroup.add_argument('-A', '--assign', '--assign-h5file', '--ASSIGN-H5FILE', dest='assign_name',
                          default='ANALYSIS/TEST/assign.h5', help='')
@@ -63,14 +81,6 @@ def add_extract_args(parser):
     iogroup.add_argument('-od', '--out-dir', '--output-directory', dest='out_dir', default='succ_traj',
                          type=str, help='')
     iogroup.add_argument('-hdf5', '--hdf5', dest='hdf5', action='store_true', help='')
-    iogroup.add_argument('--pcoord', '-p', dest='pcoord', action='store_true',
-                         help='Output progress coordinate into the pickle file')
-    iogroup.add_argument('-a', '--aux', '--AUX', '--auxdata', '--AUXDATA', dest='auxdata', nargs='*',
-                         help='''Names of additional auxiliary datasets to be combined''')
-    iogroup.add_argument('-aa', '--auxall', action='store_true',
-                         help='''Combine all auxiliary datasets. Default: False''')
-    iogroup.add_argument('--rewrite-weights', '-rw', action='store_true',
-                         help='Copy the H5 files and output individual files where  ')
 
     parmgroup = parser.add_argument_group('Extract parameters')
     parmgroup.add_argument('-ss', '--source', '--source-state', '--SOURCE-STATE', dest='source_state_num',
@@ -82,6 +92,14 @@ def add_extract_args(parser):
     parmgroup.add_argument('--last', '--last-iter', '--LAST-ITER', dest='last_iter', type=check_non_neg,
                            default=0, help='')
     parmgroup.add_argument('--trace-basis', '-b', dest='trace_basis', action='store_true', help='')
+    parmgroup.add_argument('--pcoord', '-p', dest='pcoord', action='store_true',
+                           help='Output progress coordinate into the pickle file')
+    parmgroup.add_argument('-a', '--aux', '--AUX', '--auxdata', '--AUXDATA', dest='auxdata', nargs='*',
+                           help='''Names of additional auxiliary datasets to be combined''')
+    parmgroup.add_argument('-aa', '--auxall', action='store_true',
+                           help='''Combine all auxiliary datasets. Default: False''')
+    parmgroup.add_argument('--rewrite-weights', '-rw', action='store_true',
+                           help='Copy the H5 files and output individual files where  ')
 
     opgroup = parser.add_argument_group('Extract runtime options')
     opgroup.add_argument('--use-ray', '-R', '--ray', dest='use_ray', action='store_true', help='Use Ray work manager.')
@@ -91,10 +109,9 @@ def add_extract_args(parser):
      with Ray. Default is 0, which uses all available auto-detected resources.')
     opgroup.add_argument('--debug', action='store_true', help='Enable debug mode.')
 
-
     args = parser.parse_args()
 
-    # Automatically turn on Ray unless
+    # Automatically turn on Ray unless no_ray is specified.
     try:
         import ray
         if args.no_ray is False:
@@ -113,24 +130,24 @@ def add_extract_args(parser):
 
 def add_match_args(parser):
     """
-    This block process all the necessary for the "match.py" module.
+    This block process all the necessary arguments for the "match.py" module.
 
     Parameters
     ----------
-    parser: argparse.ArgumentParser
-        A parser generated by each tool.
+    parser : argparse.ArgumentParser
+        A parser passed in from each tool. Separated from each function because the
+        catch-all tool to run everything in succession will only have 1 parser.
 
     Returns
     -------
-    args: NameSpace
-        Object with all the necessary arguments.
-
+    args: argparse.Namespace
+        A Namespace object with all the necessary arguments.
     """
     iogroup = parser.add_argument_group('Match input/output options')
     iogroup.add_argument('--pickle', '--input-pickle', dest='input_pickle', default='succ_traj/output.pickle',
                          type=str, help='Path to pickle object from `extract`')
     iogroup.add_argument('-W', '--west', '--WEST_H5FILE', '--west-h5file', dest='west_name', default="multi.h5",
-        help='''The path to your h5 file. If it's a multi.h5 file from w_multi_west, make sure the \
+                         help='''The path to your h5 file. If it's a multi.h5 file from w_multi_west, make sure the \
         --ibstates option successfully merged your initial and basis states.''')
     iogroup.add_argument('-A', '--assign', '--assign-h5file', '--ASSIGN-H5FILE', dest='assign_name',
                          default='ANALYSIS/TEST/assign.h5', help='')
@@ -142,12 +159,6 @@ def add_match_args(parser):
                          default="west_succ_c{}.h5", type=str, help='Pattern to name cluster files.')
 
     parmgroup = parser.add_argument_group('Match parameters')
-    parmgroup.add_argument('-nd', '--n-datasets', dest='n_dataset',
-                           type=check_non_neg, default=0,
-                           help='''The number of extra dimensions for pcoord and auxdata. \
-                           Iter/seg/state_id/weight are assumed to be present. Auto-detected if `extract`
-                           and `match` are both run together as part of a suite.
-                           ''')
     parmgroup.add_argument('-dt', '--dendro-threshold', '--dendrogram-threshold', dest='dendrogram_threshold',
                            type=check_non_neg, default=0.5,
                            help='Horizontal threshold line for dendrogram.')
@@ -163,6 +174,8 @@ def add_match_args(parser):
                          help='Reassign Method to use.')
     opgroup.add_argument('--remake', '-dR', dest='dmatrix_remake', action='store_false',
                          help='Remake distance matrix.')
+    opgroup.add_argument('--remake-file', '-dF', dest='dmatrix_save', type=str, default='distmap.npy',
+                         help='Path to pre-calculated distance matrix. Assumed to be in `out_dir`.')
     opgroup.add_argument('--no-remake', '-nR', dest='no_remake', action='store_true',
                          help='Do not remake distance matrix. This overrides `--remake.`')
     opgroup.add_argument('--debug', action='store_true', help='Enable debug mode.')

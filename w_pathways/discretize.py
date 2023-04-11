@@ -55,12 +55,25 @@ def output_file(out_array, output_name):
 
 
 def main(arguments):
+    """
+    Main function that executes the whole `match` step. Also called by the
+    entry_point() function.
+
+    Parameters
+    ----------
+    arguments : argparse.Namespace
+        A Namespace object will all the necessary parameters.
+
+    """
     input_array = load_file(arguments.input_file)
     out_array = assign(input_array)
     output_file(out_array, arguments.output_file)
 
 
 def entry_point():
+    """
+    Entry point for this `match` step.
+    """
     import argparse
     from w_pathways import argparser
 
@@ -72,10 +85,12 @@ def entry_point():
 
 
 if __name__ == "__main__":
-    # If calling discretize.py directly...
+    """
+    For calling `extract.py` directly. Note all of the parameters are specified manually here.
+    """
     import argparse
     args = argparse.Namespace(
-        input_name="dihedral.npy",
-        output_name="discretized.npy",
+        input_name="dihedral.npy",  # Input data for state assignment. Something like 'dihedral.npy'.
+        output_name="discretized.npy",  # Output file name for the state assignment.
     )
     main(args)
