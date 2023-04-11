@@ -37,7 +37,7 @@ def tostr(b):
         return str(b)
 
 
-def calc_dist(seq1, seq2):
+def calc_dist(seq1, seq2, dictionary):
     seq1 = seq1[seq1 > -1]
     seq1_str = "".join(dictionary[x] for x in seq1)
     seq2 = seq2[seq2 > -1]
@@ -125,18 +125,19 @@ def reassign_custom(data, pathways, dictionary, assign_file):
         flipped_val = numpy.asarray(val)[::-1]
         first_contact = numpy.where(flipped_val[:, 3] < 5)[0][0]
         for idx2, val2 in enumerate(flipped_val):
-            # ortho is assigned to state 1
+            # ortho is assigned to state 0
             if val2[2] in [1, 3, 4, 6, 7, 9]:
-                val2[2] = 1
-            # para is assigned to state 2
+                val2[2] = 0
+            # para is assigned to state 1
             elif val2[2] in [2, 5, 8]:
-                val2[2] = 2
+                val2[2] = 1
+            # Unknown state is assigned 2
             if idx2 < first_contact:
-                val2[2] = -1
+                val2[2] = 2
             pathways[idx, idx2] = val2
 
     # Generating a dictionary mapping each state
-    dictionary = {1: 'A', 2: 'B', -1: '!'}
+    dictionary = {1: 'A', 2: 'B', 2: '!'}
 
     return dictionary
 
@@ -177,7 +178,7 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
     with h5py.File(assign_file) as f:
         for idx, val in enumerate(f['state_labels'][:]):
             dictionary[idx] = tostr(val)
-    dictionary[-1] = '!'  # Unknown state
+    dictionary[len(dictionary)] = '!'  # Unknown state
 
     return dictionary
 
@@ -215,7 +216,7 @@ def reassign_identity(data, pathways, dictionary, assign_file):
         for idx in range(len(f['state_labels'][:])):
             dictionary[idx] = str(idx)
 
-    dictionary[-1] = '!'  # Unknown state
+    dictionary[len(dictionary)] = '!'  # Unknown state
 
     return dictionary
 
@@ -236,10 +237,10 @@ def expand_shorter_traj(pathways, dictionary):
     for pathway in pathways:
         for step in pathway:
             if step[0] == 0:
-                step[2] = dictionary[-1]  # Mark with the last entry
+                step[2] = dictionary[len(dictionary)-1]  # Mark with the last entry
 
 
-def gen_dist_matrix(pathways, file_name="distmap.npy", out_dir="succ_traj", remake=False):
+def gen_dist_matrix(pathways, dictionary, file_name="distmap.npy", out_dir="succ_traj", remake=False):
     """
     Generate the path_string to path_string similarity distance matrix.
     """
@@ -259,7 +260,7 @@ def gen_dist_matrix(pathways, file_name="distmap.npy", out_dir="succ_traj", rema
 
     if not exists(new_name) or remake is True:
         distmat = pairwise_distances(
-            X=path_strings, metric=lambda X, Y: calc_dist(X, Y)
+            X=path_strings, metric=lambda X, Y: calc_dist(X, Y, dictionary)
         )
         numpy.save(file_name, distmat)
 
@@ -425,7 +426,7 @@ def main(arguments):
 
     # Cleanup
     expand_shorter_traj(data, dictionary)  # Necessary if pathways are of variable length
-    dist_matrix, weights = gen_dist_matrix(pathways, file_name=arguments.dmatrix_save, out_dir=arguments.out_dir,
+    dist_matrix, weights = gen_dist_matrix(pathways, dictionary, file_name=arguments.dmatrix_save, out_dir=arguments.out_dir,
                                            remake=arguments.dmatrix_remake)  # Calculate distance matrix
 
     # Visualize the Dendrogram and determine how clusters used to group successful trajectories
@@ -460,7 +461,9 @@ def entry_point():
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=argparser.arg_desc)
-    args = argparser.add_match_args(parser)
+    argparser.add_match_args(parser)
+    args = argparser.process_args(parser)
+
     log.debug(f'{args}')
     main(args)
 

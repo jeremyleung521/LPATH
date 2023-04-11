@@ -494,8 +494,8 @@ def main(arguments):
         # Copying the file
         name_root = west_name.rsplit(".h5", maxsplit=1)[0]
         new_file = f"{out_dir}/{name_root}_succ.h5"
-        if not exists(new_file):
-            copyfile(west_name, new_file)
+        #if not exists(new_file): # Always recopy file...
+        copyfile(west_name, new_file)
     
         # Prepping final list to be outputted
         trace_out_list = []
@@ -613,7 +613,9 @@ def entry_point():
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=argparser.arg_desc)
-    args = argparser.add_extract_args(parser)
+    argparser.add_extract_args(parser)
+    args = argparser.process_args(parser)
+
     log.debug(f'{args}')
     main(args)
 

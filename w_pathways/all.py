@@ -3,9 +3,15 @@
 # Basically a convenient function to run everything!
 # Discretize, extract, match, in that order.
 
-import discretize, extract, match
+from w_pathways import discretize, extract, match
+import logging
+
+log = logging.getLogger(__name__)
+
+
 def main(arguments):
     discretize.main(arguments)
+    print(arguments.assign_name)
     extract.main(arguments)
     match.main(arguments)
 
@@ -17,9 +23,15 @@ def entry_point():
     from w_pathways import argparser
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=argparser.arg_desc)
-    args = argparser.add_discretize_args(parser)
+    argparser.add_discretize_args(parser)
+    argparser.add_extract_args(parser)
+    argparser.add_match_args(parser)
 
-    args =
+    args = argparser.process_args(parser)
+
+    discretize.process_assign_args(args)
+
+    log.debug(f'{args}')
     main(args)
 
 if __name__ == "__main__":
@@ -32,7 +44,7 @@ if __name__ == "__main__":
         input_name="dihedral.npy",  # Input data for state assignment. Something like 'dihedral.npy'.
         output_name="discretized.npy",  # Output file name for the state assignment.
         west_name="multi.h5",  # Name of input HDF5 file (e.g., west.h5)
-        assign_name="ANALYSIS/C7_EQ/assign.h5",  # Name of output assign.h5 file
+        assign_name="ANALYSIS/TEST/assign.h5",  # Name of output assign.h5 file
         rcfile="west.cfg",  # west.cfg file
         assign_args=argparse.Namespace(  # These are arguments for w_assign
             verbosity='verbose',  # Verbose or debug
@@ -48,8 +60,7 @@ if __name__ == "__main__":
         ),
 
         # Extract Parameters
-        west_name="multi.h5",  # Name of input HDF5 file (e.g., west.h5)
-        assign_name="ANALYSIS/C7_EQ/assign.h5",  # Name of input assign.h5 file
+        # Note west_name and assign_name are repeated from above
         source_state_num=0,  # Index of the source state as defined in assign.h5.
         target_state_num=1,  # Index of the target state as defined in assign.h5.
         first_iter=1,  # First iteration to analyze. Inclusive
@@ -61,24 +72,24 @@ if __name__ == "__main__":
         out_top="system.prmtop",  # Name of the parameter file. Name relative to `$WEST_SIM_ROOT/common_files`.
         out_dir="succ_traj",  # Name of directory to output the trajectories.
         hdf5=False,  # Enable if trajectories are saved with the HDF5 Framework in WESTPA.
-        rewrite_weights=False,
-        # Option to zero out the weights of all segments that are not a successful trajectory.
+        rewrite_weights=False,  # Option to zero out the weights of all segments that are not a successful trajectory.
         pcoord=True,  # Option to output the pcoord into the `output.pickle`.
         auxdata=['phi', 'psi'],  # Additional auxiliary data to save into `output.pickle`.
         use_ray=False,  # Enable Ray.
         threads=0,  # How many Ray threads/actors to use. Defaults to 0, which wil use all auto-detected resources.
 
         # Match Parameters
+        # Note west_name, assign_name and out_dir are repeated and removed
         input_pickle='succ_traj/output.pickle',  # Input file name of the pickle from `extract.py`
-        west_name="multi.h5",  # Name of input HDF5 file (e.g., west.h5)
-        assign_name='ANALYSIS/ALL/assign.h5',  # Name of input assign.h5 file
         dmatrix_remake=True,  # Enable to remake the distance Matrix
         dmatrix_save='distmap.npy',  # If dmatrix_remake is False, load this file instead. Assumed located in {out_dir}.
         dendrogram_threshold=0.5,  # Threshold for the Dendrogram
         dendrogram_show=True,  # Show the Dendrogram using plt.show()
-        out_dir="succ_traj",  # Output for the distance Matrix
         cl_output='succ_traj/cluster_labels.npy',  # Output path for cluster labels
         file_pattern="west_succ_c{}.h5",  # Pattern to name cluster files
         clusters=None,  # Cluster index to output... otherwise None --> All
+
+        # Others
+        debug=False,
     )
     main(args)

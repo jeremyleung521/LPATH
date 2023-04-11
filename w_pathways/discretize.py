@@ -97,17 +97,8 @@ def main(arguments):
         output_file(out_array, arguments.output_file)
 
 
-def entry_point():
-    """
-    Entry point for this `match` step.
-    """
+def process_assign_args(args):
     import argparse
-    from w_pathways import argparser
-
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=argparser.arg_desc)
-    args = argparser.add_discretize_args(parser)
-
     # Check if any extra w_assign arguments are specified in command line.
     if args.assign_args:
         try:
@@ -134,6 +125,21 @@ def entry_point():
             scheme='C7_EQ',  # Scheme name
         )
         setattr(args, 'assign_args', default_args)
+
+
+def entry_point():
+    """
+    Entry point for this `match` step.
+    """
+    import argparse
+    from w_pathways import argparser
+
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=argparser.arg_desc)
+    argparser.add_discretize_args(parser)
+    args = argparser.process_args(parser)
+
+    process_assign_args(args)
 
     log.debug(f'{args}')
     main(args)
