@@ -143,7 +143,7 @@ def reassign_custom(data, pathways, dictionary, assign_file):
 
 def reassign_statelabel(data, pathways, dictionary, assign_file):
     """
-    Use assign.h5 states as is with statelabels. Does not reclassify/assign frames
+    Use assign.h5 states as is with `statelabels`. Does not reclassify/assign frames
     into new states.
 
     In this example, the dictionary maps state idx to its statelabels,
@@ -196,7 +196,7 @@ def reassign_identity(data, pathways, dictionary, assign_file):
         An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
 
     dictionary : dict
-        An empty dictionary obj for mapping "state_id" with "state string".
+        An empty dictionary obj for mapping `state_id` with "state string".
 
     assign_file : str
         A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's a MD trajectory.

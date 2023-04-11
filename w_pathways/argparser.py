@@ -41,6 +41,17 @@ def add_discretize_args(parser):
     discrete_io.add_argument('-O', '--output', dest='output_name', default="states.npy",
                              help='''The path to your output numpy file for after discretization. ''')
 
+    discrete_io.add_argument('-ar', '--assign-args', '--assign-arguments', dest='assign_args', type=str, default='',
+                             help='''A list of arguments to pass onto w_assign.''')
+    discrete_io.add_argument('-W', '--west', '--WEST_H5FILE', '--west-h5file', dest='west_name', default="multi.h5",
+                         help='''The path to your h5 file. If it's a multi.h5 file from w_multi_west, make sure the \
+        --ibstates option successfully merged your initial and basis states.''')
+    discrete_io.add_argument('-A', '--assign', '--assign-h5file', '--ASSIGN-H5FILE', dest='assign_name',
+                         default='ANALYSIS/TEST/assign.h5', help='')
+    discrete_io.add_argument('-r', '--rcfile', metavar='RCFILE', dest='rcfile', default='west.cfg',
+                       help='use RCFILE as the WEST run-time configuration file (default: %(default)s)')
+
+
     args = parser.parse_args()
 
     if args.debug is True:
