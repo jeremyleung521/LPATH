@@ -50,6 +50,7 @@ def add_discretize_args(parser):
                          default='ANALYSIS/TEST/assign.h5', help='')
     discrete_io.add_argument('-r', '--rcfile', metavar='RCFILE', dest='rcfile', default='west.cfg',
                        help='use RCFILE as the WEST run-time configuration file (default: %(default)s)')
+    discrete_io.add_argument('--debug', action='store_true', help='Enable debug mode.')
 
 
     args = parser.parse_args()

@@ -6,7 +6,7 @@
 
 import logging
 import numpy
-import extloader
+from .extloader import *
 from tqdm.auto import tqdm
 
 log = logging.getLogger(__name__)
@@ -72,14 +72,20 @@ def main(arguments):
         # It needs to be explicitly called like this because the args are captured and set in make_parser_and_process()
         #   which we don't want to call, because we don't want to make a parser.
         #   We just want to process the args that "would've" been captured if called from CLI.
+        try:
+            import westpa
+            from westpa.cli.tools import w_assign
+        except ModuleNotFoundError as e:
+            print(e)
+            raise ModuleNotFoundError("Trying to discretize an HDF5 file but can't import w_assign")
+
         tool = w_assign.WAssign()
 
-        tool.make_parser_and_process(args=arguments.assign_args)
         # Prepare and instantiate work manager
         tool.wm_env.process_wm_args(arguments.assign_args)
         tool.work_manager = tool.wm_env.make_work_manager()
 
-        tool.process_all_args(args)
+        tool.process_all_args(arguments.assign_args)
         with tool.work_manager:
             if tool.work_manager.is_master:
                 tool.go()
@@ -112,7 +118,7 @@ def entry_point():
             raise ModuleNotFoundError("Trying to discretize an HDF5 file but can't import w_assign")
 
         tool = w_assign.WAssign()
-        final_ns = tool.make_parser_and_process(args=args.assign_args)
+        final_ns = tool.make_parser_and_process(args=args.assign_args.split())
         setattr(args, 'assign_args', final_ns)
     else:
         default_args = argparse.Namespace(  # These are arguments for w_assign
@@ -125,7 +131,7 @@ def entry_point():
             output='assign.h5',  # Output file
             subsample=None,
             config_from_file=True,  # Read config from rcfile
-            scheme='TEST',  # Scheme name
+            scheme='C7_EQ',  # Scheme name
         )
         setattr(args, 'assign_args', default_args)
 
