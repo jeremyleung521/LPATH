@@ -1,0 +1,12 @@
+name: westpa-pylcs
+channels:
+    - conda-forge
+    - defaults
+dependencies:
+    - python
+    - westpa>=2022.03
+    - scikit-learn
+    - pip
+    - pip:
+        - pylcs
+        - ray
