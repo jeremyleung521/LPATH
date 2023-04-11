@@ -1,9 +1,9 @@
-.. w_pathways documentation master file, created by
+.. mphat documentation master file, created by
    sphinx-quickstart on Thu Mar 15 13:55:56 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to w_pathways's documentation!
+Welcome to mphat's documentation!
 =========================================================
 
 .. toctree::

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 # Self-descriptive entries which should always be present
 # https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 [project]
-name = "w_pathways"
+name = "mphat"
 description = "A user-friendly, Python tool for clustering pathways from molecular dynamics simulations"
 dynamic = ["version"]
 readme = "README.md"
@@ -30,8 +30,8 @@ dependencies = [
 
 # Update the urls once the hosting is set up.
 #[project.urls]
-#"Source" = "https://github.com/<username>/w_pathways/"
-#"Documentation" = "https://w_pathways.readthedocs.io/"
+#"Source" = "https://github.com/<username>/mphat/"
+#"Documentation" = "https://mphat.readthedocs.io/"
 
 [project.optional-dependencies]
 test = [
@@ -43,7 +43,7 @@ westpa = [
 ]
 
 dev = [
-    "w_pathways[test,westpa]"
+    "mphat[test,westpa]"
 ]
 
 [tool.setuptools]
@@ -73,7 +73,7 @@ where = ["."]
 
 # Ref https://setuptools.pypa.io/en/latest/userguide/datafiles.html#package-data
 [tool.setuptools.package-data]
-w_pathways = [
+mphat = [
     "py.typed"
 ]
 
@@ -93,4 +93,4 @@ match = ["*"]
 default-tag = "1.0.0"
 
 [tool.versioningit.write]
-file = "w_pathways/_version.py"
+file = "mphat/_version.py"

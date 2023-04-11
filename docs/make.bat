@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=w_pathways
+set SPHINXPROJ=mphat
 
 if "%1" == "" goto help
 

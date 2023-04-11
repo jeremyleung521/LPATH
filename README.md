@@ -1,8 +1,8 @@
-w_pathways
+mphat
 ==============================
 [//]: # (Badges)
-[![GitHub Actions Build Status](https://github.com/jeremyleung521/w_pathways/workflows/CI/badge.svg)](https://github.com/jeremyleung521/w_pathways/actions?query=workflow%3ACI)
-[![codecov](https://codecov.io/gh/jeremyleung521/w_pathways/branch/main/graph/badge.svg)](https://codecov.io/gh/jeremyleung521/w_pathways/branch/main)
+[![GitHub Actions Build Status](https://github.com/jeremyleung521/mphat/workflows/CI/badge.svg)](https://github.com/jeremyleung521/mphat/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/jeremyleung521/mphat/branch/main/graph/badge.svg)](https://codecov.io/gh/jeremyleung521/mphat/branch/main)
 
 
 A user-friendly, Python tool for clustering pathways from molecular dynamics simulations

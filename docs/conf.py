@@ -17,12 +17,12 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
-import w_pathways
+import mphat
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'w_pathways'
+project = 'mphat'
 copyright = ("2023, Anthony Bogetti, Jeremy Leung, Lillian Chong. Project structure based on the "
              "Computational Molecular Science Python Cookiecutter version 1.1")
 author = 'Anthony Bogetti, Jeremy Leung, Lillian Chong'
@@ -117,7 +117,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'w_pathwaysdoc'
+htmlhelp_basename = 'mphatdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -144,8 +144,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'w_pathways.tex', 'w_pathways Documentation',
-     'w_pathways', 'manual'),
+    (master_doc, 'mphat.tex', 'mphat Documentation',
+     'mphat', 'manual'),
 ]
 
 
@@ -154,7 +154,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'w_pathways', 'w_pathways Documentation',
+    (master_doc, 'mphat', 'mphat Documentation',
      [author], 1)
 ]
 
@@ -165,8 +165,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'w_pathways', 'w_pathways Documentation',
-     author, 'w_pathways', 'A user-friendly, Python tool for clustering pathways from molecular dynamics simulations',
+    (master_doc, 'mphat', 'mphat Documentation',
+     author, 'mphat', 'A user-friendly, Python tool for clustering pathways from molecular dynamics simulations',
      'Miscellaneous'),
 ]
 
