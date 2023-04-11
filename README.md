@@ -1,4 +1,4 @@
-mphat
+mPHAT
 ==============================
 [//]: # (Badges)
 [![GitHub Actions Build Status](https://github.com/jeremyleung521/mphat/workflows/CI/badge.svg)](https://github.com/jeremyleung521/mphat/actions?query=workflow%3ACI)
