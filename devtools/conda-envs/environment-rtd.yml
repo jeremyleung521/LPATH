@@ -1,0 +1,14 @@
+name: rtd
+channels:
+    - conda-forge
+    - defaults
+dependencies:
+    - python<3.11
+    - westpa>=2022.03
+    - scikit-learn
+    - tqdm
+    - sphinx-argparse
+    - pip
+    - pip:
+        - pylcs
+        - ray

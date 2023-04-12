@@ -12,4 +12,4 @@ python:
       path: .
 
 conda:
-  environment: environment.yml
+  environment: devtools/conda-envs/environment-rtd.yml
