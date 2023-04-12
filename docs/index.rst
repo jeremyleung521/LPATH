@@ -11,6 +11,7 @@ Welcome to mphat's documentation!
    :caption: Contents:
 
    getting_started
+   usage
    api
 
 

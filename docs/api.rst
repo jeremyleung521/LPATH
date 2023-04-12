@@ -2,7 +2,7 @@ API Documentation
 =================
 
 .. autosummary::
-   :toctree: autosummary
+   # :toctree: autosummary
    :recursive:
 
    mphat.discretize
@@ -10,30 +10,61 @@ API Documentation
    mphat.match
    mphat.mphat
 
+
+
 mPHAT
 -----
 
 Discretization
 ______________
-.. automodule:: mphat.discretize
-    :members: main, entry_point, load_file, assign, output_file, process_assign_args
+The discretize step allows you to assign MD trajectories (or WE simulations) into discrete state.
 
 .. argparse::
-    :ref: mphat.discretize
+   :module: mphat.argparser
+   :func: add_discretize_args
+   :prog: mphat
+
+.. automodule:: mphat.discretize
+    :members:
+
 
 Extract
 _______
-.. automodule:: mphat.extract
-    :members: main, entry_point
+The extract step allows you to extract successful trajectories from MD trajectories (or WE simulations).
 
+.. automodule:: mphat.extract
+    :members:
+
+.. argparse::
+   :module: mphat.argparser
+   :func: add_extract_args
+   :prog: mphat
+
+
+.. automodule:: mphat.extract
+    :only-members:
 
 Match
 _____
+The match step allows you to compare and cluster pathways from the extract step.
+
+.. argparse::
+   :module: mphat.argparser
+   :func: add_match_args
+   :prog: mphat
+
+
 .. automodule:: mphat.match
-    :members: main, entry_point, load_data, reassign_identity, reassign_statelabel, reassign_custom, expand_shorter_traj, gen_dist_matrix, visualize, determine_rerun, ask_number_cluster, hcluster, export_files
+    :members:
 
 
-mPHAT_all
+mPHAT
 _________
 .. automodule:: mphat.mphat
-    :members: main, entry_point
+    :members:
+
+
+argparser
+---------
+.. automodule:: mphat.argparser
+    :members:

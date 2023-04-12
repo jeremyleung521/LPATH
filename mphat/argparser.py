@@ -6,10 +6,12 @@ import logging
 
 log = logging.getLogger(__name__)
 
-arg_desc = '''mPHAT: minimal Pathway Analysis Histogram Analysis of Trajectories
+arg_desc = """
+
+           mPHAT: minimal Pathway Analysis Histogram Analysis of Trajectories
            ==================================================================
            
-           '''
+           """
 
 
 def check_non_neg(value):
@@ -248,6 +250,8 @@ def add_match_args(parser=None):
         match_op.add_argument('--debug', action='store_true', help='Enable debug mode.')
     except argparse.ArgumentError as e:
         log.debug(e)
+
+    return parser
 
 
 def process_args(parser):
