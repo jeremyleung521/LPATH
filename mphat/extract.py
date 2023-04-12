@@ -1,5 +1,6 @@
-# extract.py
-#
+"""
+The `extract` step allows you to extract successful trajectories from MD trajectories (or WE simulations).
+"""
 # Code that traces through an assign.h5 to generate a list of lists containing
 #     successful source -> target transitions. 
 #
@@ -606,7 +607,7 @@ def main(arguments):
 
 def entry_point():
     """
-    Entry point for this `match` step.
+    Entry point for this `extract` step.
     """
     import argparse
     from mphat import argparser
@@ -626,7 +627,7 @@ if __name__ == "__main__":
     """
     import argparse
     args = argparse.Namespace(
-        west_name="multi.h5",  # Name of input HDF5 file (e.g., west.h5)
+        west_name="west.h5",  # Name of input HDF5 file (e.g., west.h5)
         assign_name="ANALYSIS/C7_EQ/assign.h5",  # Name of input assign.h5 file
         source_state_num=0,  # Index of the source state as defined in assign.h5.
         target_state_num=1,  # Index of the target state as defined in assign.h5.
@@ -635,7 +636,7 @@ if __name__ == "__main__":
         trace_basis=True,  # Option to analyze each successful trajectory up till its basis state.
         out_traj=False,  # Option to output trajectory files into `out_dir`. Will take much longer.
         out_traj_ext=".nc",  # Extension of the segment files. Defaults to `seg{out_traj_ext}`.
-        out_state_ext="_img.ncrst",  # Extension of the restart files. Defaults to `seg{out_state_ext}`.
+        out_state_ext=".ncrst",  # Extension of the restart files. Defaults to `seg{out_state_ext}`.
         out_top="system.prmtop",  # Name of the parameter file. Name relative to `$WEST_SIM_ROOT/common_files`.
         out_dir="succ_traj",  # Name of directory to output the trajectories.
         hdf5=False,  # Enable if trajectories are saved with the HDF5 Framework in WESTPA.

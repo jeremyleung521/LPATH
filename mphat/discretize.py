@@ -1,9 +1,6 @@
-# discretize.py
-#
-# Code that allows you to discretize MD trajectories and output as
-#
-#
-
+"""
+The `discretize` step allows you to assign MD trajectories (or WE simulations) into discrete state.
+"""
 import logging
 import numpy
 from .extloader import *
@@ -13,6 +10,17 @@ log = logging.getLogger(__name__)
 
 
 def assign(input_array):
+    """
+
+    Parameters
+    ----------
+    input_array : numpy.ndarray
+
+    Returns
+    -------
+    state_list : list
+        A list of
+    """
     state_list = []
     for val in tqdm(input_array):
         if val[0] >= -180 and val[0] <= -45 and val[1] >= -55 and val[1] <= 30:  # Phi/Psi for Alpha Helix
@@ -129,7 +137,7 @@ def process_assign_args(args):
 
 def entry_point():
     """
-    Entry point for this `match` step.
+    Entry point for this `discretize` step.
     """
     import argparse
     from mphat import argparser
@@ -154,7 +162,7 @@ if __name__ == "__main__":
     args = argparse.Namespace(
         input_name="dihedral.npy",  # Input data for state assignment. Something like 'dihedral.npy'.
         output_name="discretized.npy",  # Output file name for the state assignment.
-        west_name="multi.h5",  # Name of input HDF5 file (e.g., west.h5)
+        west_name="west.h5",  # Name of input HDF5 file (e.g., west.h5)
         assign_name="ANALYSIS/C7_EQ/assign.h5",  # Name of output assign.h5 file
         rcfile="west.cfg", # west.cfg file
         assign_args=argparse.Namespace(  # These are arguments for w_assign

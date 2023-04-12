@@ -1,5 +1,6 @@
-# match.py
-#
+'''
+The `match` step allows you to compare and cluster pathways from the `extract` step.
+'''
 # Code that pattern matches states a trajectory has been through
 # and then cluster them into fundamental few pathways.
 #
