@@ -18,6 +18,9 @@ ______________
 .. automodule:: mphat.discretize
     :members: main, entry_point, load_file, assign, output_file, process_assign_args
 
+.. argparse::
+    :ref: mphat.discretize
+
 Extract
 _______
 .. automodule:: mphat.extract
@@ -34,5 +37,3 @@ mPHAT_all
 _________
 .. automodule:: mphat.mphat
     :members: main, entry_point
-
-

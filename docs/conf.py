@@ -22,7 +22,7 @@ import mphat
 
 # -- Project information -----------------------------------------------------
 
-project = 'mphat'
+project = 'mPHAT'
 copyright = ("2023, Anthony Bogetti, Jeremy Leung, Lillian Chong. Project structure based on the "
              "Computational Molecular Science Python Cookiecutter version 1.1")
 author = 'Anthony Bogetti, Jeremy Leung, Lillian Chong'
@@ -50,7 +50,6 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
     'sphinx.ext.extlinks',
-    'sphinxarg.ext',
 ]
 
 autosummary_generate = True

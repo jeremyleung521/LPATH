@@ -37,6 +37,25 @@ def tostr(b):
 
 
 def calc_dist(seq1, seq2, dictionary):
+    """
+
+    Parameters
+    ----------
+    seq1 : str
+        First string to be compared.
+
+    seq2 : str
+        Second string to be compared.
+
+    dictionary : dict
+        Dictionary mapping `state_id` (float/int) to `state string` (characters).
+
+    Returns
+    -------
+    1 - similarity : float
+        Similarity score.
+
+    """
     seq1 = seq1[seq1 > -1]
     seq1_str = "".join(dictionary[x] for x in seq1)
     seq2 = seq2[seq2 > -1]
@@ -101,7 +120,7 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
         An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
 
     dictionary : dict
-        An empty dictionary obj for mapping "state_id" with "state string".
+        An empty dictionary obj for mapping `state_id` with `state string`.
 
     assign_file : str
         A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's a MD trajectory.
@@ -109,7 +128,7 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
     Returns
     -------
     dictionary : dict
-        A dictionary mapping the assign.h5 frame with assign.h5
+        A dictionary mapping each state_id (float/int) with a `state string` (character).
     """
     # Other example for grouping multiple states into one.
     for idx, val in enumerate(data):
@@ -147,7 +166,7 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
     into new states.
 
     In this example, the dictionary maps state idx to its statelabels,
-    as defined in the assign.h5. I suggest using alphabets as statelabels
+    as defined in the assign.h5. I suggest using alphabets as `statelabels`
     to allow for more than 9 states.
 
     Parameters
@@ -159,7 +178,7 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
         An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
 
     dictionary : dict
-        An empty dictionary obj for mapping "state_id" with "state string".
+        An empty dictionary obj for mapping `state_id` with "state string".
 
     assign_file : str
         A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's a MD trajectory.
@@ -167,7 +186,7 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
     Returns
     -------
     dictionary : dict
-        A dictionary mapping the assign.h5 frame with assign.h5
+        A dictionary mapping each `state_id` (float/int) with a state string (character).
     """
     for idx, val in enumerate(data):
         flipped_val = numpy.asarray(val)[::-1]
@@ -196,7 +215,7 @@ def reassign_identity(data, pathways, dictionary, assign_file):
         An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
 
     dictionary : dict
-        An empty dictionary obj for mapping `state_id` with "state string".
+        An empty dictionary obj for mapping `state_id` with `state string`.
 
     assign_file : str
         A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's a MD trajectory.
@@ -204,7 +223,7 @@ def reassign_identity(data, pathways, dictionary, assign_file):
     Returns
     -------
     dictionary : dict
-        A dictionary mapping the assign.h5 frame with assign.h5
+        A dictionary mapping each `state_id` (float/int) with a `state string` (character).
     """
     for idx, val in enumerate(data):
         flipped_val = numpy.asarray(val)[::-1]
