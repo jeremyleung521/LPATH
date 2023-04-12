@@ -12,8 +12,6 @@ import numpy
 import pickle
 import pylcs
 import logging
-import h5py
-import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy as sch
 from sklearn.metrics import pairwise_distances
 from scipy.spatial.distance import squareform
@@ -276,6 +274,8 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
     Visualize the Dendrogram to determine hyper-parameters (n-clusters).
     Theoretically done only once to check.
     """
+    import matplotlib.pyplot as plt
+
     out_dir = f'{out_dir.rsplit("/", 1)[0]}'
 
     distmat_condensed = squareform(distmat, checks=False)
@@ -406,6 +406,7 @@ def main(arguments):
         A Namespace object will all the necessary parameters.
 
     """
+    import h5py
     # Dealing with the preset assign_method
     preset_reassign = {
         'reassign_identity': reassign_identity,
@@ -441,16 +442,17 @@ def main(arguments):
     numpy.save(arguments.cl_output, cluster_labels)
 
     # Following exports each cluster to its own h5 file, all weights of segments not in that group = 0.
-    export_files(
-        data,
-        weights,
-        cluster_labels,
-        clusters=arguments.clusters,
-        out_dir=arguments.out_dir,
-        file_pattern=arguments.file_pattern,
-        west_name=arguments.west_name,
-        assign_name=arguments.assign_name,
-    )
+    if arguments.export_h5 is True:
+        export_files(
+            data,
+            weights,
+            cluster_labels,
+            clusters=arguments.clusters,
+            out_dir=arguments.out_dir,
+            file_pattern=arguments.file_pattern,
+            west_name=arguments.west_name,
+            assign_name=arguments.assign_name,
+        )
 
 
 def entry_point():

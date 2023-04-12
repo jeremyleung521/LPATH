@@ -17,15 +17,13 @@ The `extract` step allows you to extract successful trajectories from MD traject
 #     for all of the above.
 # Make `trace_basis` False to trace only the barrier crossing time.
 
-import westpa.analysis as wa
-import h5py
 import pickle
 import numpy
 import logging
 from tqdm.auto import trange
 from shutil import copyfile
 from os import mkdir
-from os.path import exists
+# from os.path import exists
 
 log = logging.getLogger(__name__)
 
@@ -41,6 +39,9 @@ def main(arguments):
         A Namespace object will all the necessary parameters.
 
     """
+    import westpa.analysis as wa
+    import h5py
+
     if arguments.use_ray is True:
         import ray
 
