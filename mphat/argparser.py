@@ -217,7 +217,7 @@ def add_match_args(parser=None):
                           default='succ_traj', type=str, help='')
     match_io.add_argument('-fp', '--fp', '--file-pattern', dest='file_pattern',
                           default="west_succ_c{}.h5", type=str, help='Pattern to name cluster files.')
-    match_io.add_argument('-ex', '--fp', '--export-h5', dest='export_h5',
+    match_io.add_argument('-ex', '--ex-h5', '--export-h5', dest='export_h5',
                           action='store_true', help='Export each cluster as an independent H5 file.')
 
     match_parm = parser.add_argument_group('Match parameters')
