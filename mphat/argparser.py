@@ -6,9 +6,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
-arg_desc = '''
-           mPHAT: minimal Pathway Analysis Histogram Analysis of Trajectories
+arg_desc = '''mPHAT: minimal Pathway Analysis Histogram Analysis of Trajectories
            ==================================================================
+           
            '''
 
 
@@ -191,9 +191,11 @@ def add_match_args(parser=None):
     parser : argparse.ArgumentParser
         Returns an instance of the parser with all the new arguments added in.
     """
+    print(parser)
     if parser is None:
         parser = create_parser()
 
+    print(parser)
     match_io = parser.add_argument_group('Match input/output options')
     try:
         match_io.add_argument('-W', '--west', '--WEST_H5FILE', '--west-h5file', dest='west_name', default='west.h5',
@@ -216,7 +218,7 @@ def add_match_args(parser=None):
     match_io.add_argument('-cd', '--cl-out-dir', '--cluster-label-output-directory', dest='cl_output',
                           default='succ_traj', type=str, help='')
     match_io.add_argument('-fp', '--fp', '--file-pattern', dest='file_pattern',
-                          default="west_succ_c{}.h5", type=str, help='Pattern to name cluster files.')
+                          default="west_succ_c{}.h5", type=str, help='Pattern to name per-cluster HDF5 files.')
     match_io.add_argument('-ex', '--ex-h5', '--export-h5', dest='export_h5',
                           action='store_true', help='Export each cluster as an independent H5 file.')
 
@@ -247,7 +249,6 @@ def add_match_args(parser=None):
     except argparse.ArgumentError as e:
         log.debug(e)
 
-    return parser
 
 def process_args(parser):
     args = parser.parse_args()

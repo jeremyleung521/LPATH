@@ -82,7 +82,7 @@ def load_data(file_name):
     return data, pathways
 
 
-def reassign_custom(data, pathways, dictionary, assign_file):
+def reassign_custom(data, pathways, dictionary, assign_file=None):
     """
     Reclassify/assign frames into different states. This is highly
     specific to the system. If w_assign's definition is already
