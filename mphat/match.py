@@ -1,5 +1,5 @@
 '''
-The `match` step allows you to compare and cluster pathways from the `extract` step.
+Match your extracted trajectories and cluster pathways classes.
 '''
 # Code that pattern matches states a trajectory has been through
 # and then cluster them into fundamental few pathways.
@@ -38,6 +38,7 @@ def tostr(b):
 
 def calc_dist(seq1, seq2, dictionary):
     """
+    Pattern match and calculate the similarity between two state string sequences.
 
     Parameters
     ----------
@@ -73,7 +74,7 @@ def calc_dist(seq1, seq2, dictionary):
 
 def load_data(file_name):
     """
-    Load in the pickle data from step 1.
+    Load in the pickle data from `extract`.
 
     Parameters
     ----------
@@ -104,12 +105,12 @@ def load_data(file_name):
 def reassign_custom(data, pathways, dictionary, assign_file=None):
     """
     Reclassify/assign frames into different states. This is highly
-    specific to the system. If w_assign's definition is already
-    ok, you can proceed with what's made in the previous step
+    specific to the system. If w_assign's definition is suffcient,
+    you can proceed with what's made in the previous step
     using `reassign_identity`.
 
-    In this example, the dictionary maps state idx to its corresponding `statelabels`
-    entry as defined in the assign.h5. I suggest using alphabets as states.
+    In this example, the dictionary maps state idx to its corresponding `state_string`.
+    I suggest using alphabets as states.
 
     Parameters
     ----------
@@ -122,8 +123,9 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
     dictionary : dict
         An empty dictionary obj for mapping `state_id` with `state string`.
 
-    assign_file : str
-        A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's a MD trajectory.
+    assign_file : str, default : None
+        A string pointing to the assign.h5 file. Needed as a parameter for all functions,
+        but is ignored if it's a MD trajectory.
 
     Returns
     -------

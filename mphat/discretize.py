@@ -1,5 +1,5 @@
 """
-The `discretize` step allows you to assign MD trajectories (or WE simulations) into discrete state.
+Discretize your MD trajectories (or WE simulations) into states.
 """
 import logging
 import numpy

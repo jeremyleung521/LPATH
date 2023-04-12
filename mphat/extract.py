@@ -1,5 +1,5 @@
 """
-The `extract` step allows you to extract successful trajectories from MD trajectories (or WE simulations).
+Extract successful trajectories from MD trajectories (or WE simulations).
 """
 # Code that traces through an assign.h5 to generate a list of lists containing
 #     successful source -> target transitions. 

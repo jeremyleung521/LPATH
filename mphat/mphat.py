@@ -1,5 +1,5 @@
 """
-Basically a convenient function to run everything!
+Main function to run everything!
 Discretize, extract, match, in that order.
 """
 from mphat import discretize, extract, match
