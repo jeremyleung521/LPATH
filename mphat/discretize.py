@@ -5,6 +5,7 @@ import logging
 import numpy
 from .extloader import *
 from tqdm.auto import tqdm
+from mphat.extloader import *
 
 log = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ def assign(input_array):
         elif val[0] >= 25 and val[0] <= 90 and val[1] >= -55 and val[1] <= 0:  # Phi/Psi for C7ax
             state_list.append(2)
         else:
-            state_list.append(-1)
+            state_list.append(3)
 
     return state_list
 
@@ -60,22 +61,32 @@ def load_file(input_file):
 
 
 def output_file(out_array, output_name):
+    """
+    Function to output an array.
+
+    Parameters
+    ----------
+    out_array: numpy.ndarray
+        Array to be outputted.
+
+    output_name: str
+        Name of the output file.
+    """
     n = numpy.asarray(out_array)
     numpy.save(output_name, n)
 
 
 def main(arguments):
     """
-    Main function that executes the whole `match` step. Also called by the
-    entry_point() function.
+    Main function that executes the whole ``match`` step. Also called by the
+    ``entry_point()`` function.
 
-    If it's an HDF5 file, it'll just run w_assign (as ripped from the w_assign west).
+    If it's an HDF5 file, it'll just run ``w_assign`` (as w_assign).
 
     Parameters
     ----------
     arguments : argparse.Namespace
         A Namespace object will all the necessary parameters.
-
     """
     if arguments.input_name.endswith('.h5'):
         # This basically some logic that's wrapped up in WESTTool.main() for convenience.
@@ -88,6 +99,18 @@ def main(arguments):
         except ModuleNotFoundError as e:
             print(e)
             raise ModuleNotFoundError("Trying to discretize an HDF5 file but can't import w_assign")
+
+        if arguments.input_name.endswith('.h5') and arguments.input_name != arguments.west_name:
+            setattr(arguments, 'west_name', arguments.input_name)
+            log.debug("Replacing parameter `west_name` with `input_name`")
+
+        if arguments.output_name.endswith('.h5') and arguments.output_name != arguments.output:
+            setattr(arguments, 'west_name', arguments.output_name)
+            log.debug("Replacing parameter `output_name` with `assign_name`")
+
+        if arguments.rcfile != arguments.assign_args.rcfile:
+            setattr(arguments, 'rcfile', arguments.assign_args.rcfile)
+            log.debug("Replacing parameter `rcfile` with `assign_args.rcfile`")
 
         tool = w_assign.WAssign()
 
@@ -103,6 +126,12 @@ def main(arguments):
                 tool.work_manager.run()
     else:
         input_array = load_file(arguments.input_file)
+
+        # Replacing assign_func with what's given
+        if arguments.assign_func != 'default_assign':
+            assign = get_object(arguments.assign_func)
+            log.debug(f'Replaced assign() with {arguments.reassign_method}')
+
         out_array = assign(input_array)
         output_file(out_array, arguments.output_file)
 
@@ -132,7 +161,7 @@ def process_assign_args(args):
             output='assign.h5',  # Output file
             subsample=None,
             config_from_file=True,  # Read config from rcfile
-            scheme='C7_EQ',  # Scheme name
+            scheme='TEST',  # Scheme name
         )
         setattr(args, 'assign_args', default_args)
 
@@ -162,8 +191,9 @@ if __name__ == "__main__":
     args = argparse.Namespace(
         input_name="dihedral.npy",  # Input data for state assignment. Something like 'dihedral.npy'.
         output_name="discretized.npy",  # Output file name for the state assignment.
+        assign_func="assign.string",
         west_name="west.h5",  # Name of input HDF5 file (e.g., west.h5)
-        assign_name="ANALYSIS/C7_EQ/assign.h5",  # Name of output assign.h5 file
+        assign_name="ANALYSIS/TEST/assign.h5",  # Name of output assign.h5 file
         rcfile="west.cfg", # west.cfg file
         assign_args=argparse.Namespace(  # These are arguments for w_assign
             verbosity='verbose',  # Verbose or debug

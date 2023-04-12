@@ -66,6 +66,10 @@ def add_discretize_args(parser=None):
     discrete_io.add_argument('-O', '--output', dest='output_name', default="states.npy",
                              help='''The path to your output numpy file for after discretization. ''')
 
+    discrete_io.add_argument('-af', '--assign-function', '--assign-func', dest='assign_func', type=str,
+                             default='default_assign', help='''Assign function used to discretize MD trajectories. ''')
+
+
     discrete_io.add_argument('-ar', '--assign-args', '--assign-arguments', dest='assign_args', type=str, default='',
                              help='''A string of arguments to pass onto w_assign as you would imput in the command 
                              line to `w_assign`. Either use the defaults (leave blank) or at a minimum, you need to add 
