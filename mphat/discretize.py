@@ -191,7 +191,7 @@ if __name__ == "__main__":
     args = argparse.Namespace(
         input_name="dihedral.npy",  # Input data for state assignment. Something like 'dihedral.npy'.
         output_name="discretized.npy",  # Output file name for the state assignment.
-        assign_func="assign.string",
+        assign_func="assign_func",  # Assign function that dictates how to assign states
         west_name="west.h5",  # Name of input HDF5 file (e.g., west.h5)
         assign_name="ANALYSIS/TEST/assign.h5",  # Name of output assign.h5 file
         rcfile="west.cfg", # west.cfg file
