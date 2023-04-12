@@ -8,8 +8,6 @@ dependencies:
   - pip
   - scikit-learn
   - tqdm
-  - westpa
-  - westpa>=2022.03
   - pip:
     - pylcs
     - ray
