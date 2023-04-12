@@ -18,13 +18,11 @@ def entry_point():
     """
     Entry point for discretize, extract, match steps
     """
-    import argparse
     from mphat import argparser
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=argparser.arg_desc)
-    argparser.add_discretize_args(parser)
-    argparser.add_extract_args(parser)
-    argparser.add_match_args(parser)
+
+    parser = argparser.add_discretize_args()
+    parser = argparser.add_extract_args(parser)
+    parser = argparser.add_match_args(parser)
 
     args = argparser.process_args(parser)
 

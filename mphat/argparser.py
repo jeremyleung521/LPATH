@@ -22,7 +22,22 @@ def check_non_neg(value):
     return value
 
 
-def add_discretize_args(parser):
+def create_parser():
+    """
+    Quickly create a parser.
+
+    Returns
+    -------
+    parser : argparse.ArgumentParser
+        Returns an instance of the parser.
+    """
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description=arg_desc)
+
+    return parser
+
+
+def add_discretize_args(parser=None):
     """
     This block process all the necessary arguments for the `discretize.py` module.
 
@@ -31,7 +46,16 @@ def add_discretize_args(parser):
     parser : argparse.ArgumentParser
         A parser passed in from each tool. Separated from each function because the
         catch-all tool to run everything in succession will only have 1 parser.
+        This will auto create a parser if None is passed.
+
+    Returns
+    -------
+    parser : argparse.ArgumentParser
+        Returns an instance of the parser with all the new arguments added in.
     """
+    if parser is None:
+        parser = create_parser()
+
     discrete_io = parser.add_argument_group('Discretize input/output options')
     discrete_io.add_argument('-I', '--input', dest='input_name', default="west.h5",
                              help='''The path to your input file for discretization. If it's a west.h5 file from 
@@ -67,8 +91,9 @@ def add_discretize_args(parser):
     except argparse.ArgumentError as e:
         log.debug(e)
 
+    return parser
 
-def add_extract_args(parser):
+def add_extract_args(parser=None):
     """
     This block process all the necessary arguments for the "extract.py" module.
 
@@ -77,7 +102,16 @@ def add_extract_args(parser):
     parser : argparse.ArgumentParser
         A parser passed in from each tool. Separated from each function because the
         catch-all tool to run everything in succession will only have 1 parser.
+        This will auto create a parser if None is passed.
+
+    Returns
+    -------
+    parser : argparse.ArgumentParser
+        Returns an instance of the parser with all the new arguments added in.
     """
+    if parser is None:
+        parser = create_parser()
+
     iogroup = parser.add_argument_group('Extract input/output options')
     try:
         iogroup.add_argument('-W', '--west', '--WEST_H5FILE', '--west-h5file', dest='west_name', default="west.h5",
@@ -139,8 +173,9 @@ def add_extract_args(parser):
     except argparse.ArgumentError as e:
         log.debug(e)
 
+    return parser
 
-def add_match_args(parser):
+def add_match_args(parser=None):
     """
     This block process all the necessary arguments for the "match.py" module.
 
@@ -149,7 +184,16 @@ def add_match_args(parser):
     parser : argparse.ArgumentParser
         A parser passed in from each tool. Separated from each function because the
         catch-all tool to run everything in succession will only have 1 parser.
+        This will auto create a parser if None is passed.
+
+    Returns
+    -------
+    parser : argparse.ArgumentParser
+        Returns an instance of the parser with all the new arguments added in.
     """
+    if parser is None:
+        parser = create_parser()
+
     match_io = parser.add_argument_group('Match input/output options')
     try:
         match_io.add_argument('-W', '--west', '--WEST_H5FILE', '--west-h5file', dest='west_name', default='west.h5',
@@ -188,8 +232,9 @@ def add_match_args(parser):
                             help='Clusters to export. 0-indexed. Default: None')
 
     match_op = parser.add_argument_group('Match runtime options')
-    match_op.add_argument('--reassign', '-ra', dest='reassign_method', default='reassign_identity', type=str,
-                          help='Reassign Method to use.')
+    match_op.add_argument('--reassign', '-ra', '--reassign-method', dest='reassign_method',
+                          default='reassign_identity', type=str, help='''Reassign Method to use. Could be one of the 
+                                                                      defaults or a module to load''')
     match_op.add_argument('--remake', '-dR', dest='dmatrix_remake', action='store_false',
                           help='Remake distance matrix.')
     match_op.add_argument('--remake-file', '-dF', dest='dmatrix_save', type=str, default='distmap.npy',
@@ -202,6 +247,7 @@ def add_match_args(parser):
     except argparse.ArgumentError as e:
         log.debug(e)
 
+    return parser
 
 def process_args(parser):
     args = parser.parse_args()

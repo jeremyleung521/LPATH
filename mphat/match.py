@@ -459,12 +459,9 @@ def entry_point():
     """
     Entry point for this `match` step.
     """
-    import argparse
     from mphat import argparser
 
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=argparser.arg_desc)
-    argparser.add_match_args(parser)
+    parser = argparser.add_match_args()
     args = argparser.process_args(parser)
 
     log.debug(f'{args}')
@@ -488,6 +485,7 @@ if __name__ == "__main__":
         cl_output='succ_traj/cluster_labels.npy',  # Output path for cluster labels
         file_pattern="west_succ_c{}.h5",  # Pattern to name cluster files
         clusters=None,  # Cluster index to output... otherwise None --> All
+        reassign_method='reassign_identity',  # Reassign method. Could be a module to be loaded.
     )
 
     main(args)

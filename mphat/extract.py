@@ -610,12 +610,10 @@ def entry_point():
     """
     Entry point for this `extract` step.
     """
-    import argparse
     from mphat import argparser
 
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=argparser.arg_desc)
-    argparser.add_extract_args(parser)
+    parser = argparser.add_extract_args()
+
     args = argparser.process_args(parser)
 
     log.debug(f'{args}')

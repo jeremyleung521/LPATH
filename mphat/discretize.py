@@ -141,12 +141,10 @@ def entry_point():
     """
     Entry point for this `discretize` step.
     """
-    import argparse
     from mphat import argparser
 
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=argparser.arg_desc)
-    argparser.add_discretize_args(parser)
+    parser = argparser.add_discretize_args()
+
     args = argparser.process_args(parser)
 
     process_assign_args(args)
