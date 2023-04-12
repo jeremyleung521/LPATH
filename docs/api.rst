@@ -1,5 +1,5 @@
-API Documentation
-=================
+mPHAT API Documentation
+=======================
 
 .. autosummary::
    # :toctree: autosummary
@@ -11,12 +11,8 @@ API Documentation
    mphat.mphat
 
 
-
-mPHAT
------
-
 Discretization
-______________
+--------------
 The discretize step allows you to assign MD trajectories (or WE simulations) into discrete state.
 
 .. argparse::
@@ -29,7 +25,7 @@ The discretize step allows you to assign MD trajectories (or WE simulations) int
 
 
 Extract
-_______
+-------
 The extract step allows you to extract successful trajectories from MD trajectories (or WE simulations).
 
 .. automodule:: mphat.extract
@@ -45,7 +41,7 @@ The extract step allows you to extract successful trajectories from MD trajector
     :only-members:
 
 Match
-_____
+-----
 The match step allows you to compare and cluster pathways from the extract step.
 
 .. argparse::
@@ -59,7 +55,7 @@ The match step allows you to compare and cluster pathways from the extract step.
 
 
 mPHAT
-_________
+-----
 .. automodule:: mphat.mphat
     :members:
 
