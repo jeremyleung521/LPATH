@@ -6,6 +6,7 @@ dependencies:
     - python
     - westpa>=2022.03
     - scikit-learn
+    - tqdm
     - pip
     - pip:
         - pylcs

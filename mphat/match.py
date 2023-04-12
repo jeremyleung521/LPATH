@@ -367,7 +367,7 @@ def export_files(
         f.writelines(representative_list)
 
 
-def determine_rerun():
+def determine_rerun(dist_matrix):
     """
     Asks if you want to regenerate the dendrogram.
     """
@@ -433,7 +433,7 @@ def main(arguments):
     # Visualize the Dendrogram and determine how clusters used to group successful trajectories
     visualize(dist_matrix, threshold=arguments.dendrogram_threshold,
               out_dir=arguments.out_dir, show=arguments.dendrogram_show)  # Visualize
-    determine_rerun()
+    determine_rerun(dist_matrix)
     ncluster = ask_number_cluster()
     cluster_labels = hcluster(dist_matrix, ncluster)
 
@@ -471,7 +471,7 @@ def entry_point():
 
 if __name__ == "__main__":
     """
-    For calling `merge.py` directly. Note all of the parameters are specified manually here.
+    For calling `match.py` directly. Note all of the parameters are specified manually here.
     """
     import argparse
     args = argparse.Namespace(

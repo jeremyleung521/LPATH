@@ -25,7 +25,8 @@ requires-python = ">=3.8"
 dependencies = [
     "scikit-learn",
     "pylcs",
-    "ray"
+    "ray",
+    "tqdm"
 ]
 
 # Update the urls once the hosting is set up.

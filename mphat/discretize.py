@@ -11,15 +11,17 @@ log = logging.getLogger(__name__)
 
 def assign(input_array):
     """
+    This is an example function for mapping a list of features to state IDs. This should be subclassed.
 
     Parameters
     ----------
     input_array : numpy.ndarray
+        An array generated from load_file.
 
     Returns
     -------
     state_list : list
-        A list of
+        A list containing
     """
     state_list = []
     for val in tqdm(input_array):
@@ -155,7 +157,7 @@ def entry_point():
 
 if __name__ == "__main__":
     """
-    For calling `extract.py` directly. Note all of the parameters are specified manually here.
+    For calling `discretize.py` directly. Note all of the parameters are specified manually here.
     """
     import argparse
 
