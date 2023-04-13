@@ -22,6 +22,7 @@ def main(arguments):
     extract.main(arguments)
     match.main(arguments)
 
+
 def entry_point():
     """
     Entry point for discretize, extract, match steps
@@ -38,6 +39,7 @@ def entry_point():
 
     log.debug(f'{args}')
     main(args)
+
 
 if __name__ == "__main__":
     """

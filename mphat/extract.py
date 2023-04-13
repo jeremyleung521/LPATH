@@ -27,6 +27,16 @@ from os import mkdir
 
 log = logging.getLogger(__name__)
 
+try:
+    import h5py
+except ModuleNotFoundError:
+    log.debug('Could not import h5py')
+
+try:
+    import westpa.analysis as wa
+except ModuleNotFoundError:
+    log.debug('Could not import westpa.analysis')
+
 
 def main(arguments):
     """
@@ -39,9 +49,6 @@ def main(arguments):
         A Namespace object will all the necessary parameters.
 
     """
-    import westpa.analysis as wa
-    import h5py
-
     if arguments.use_ray is True:
         import ray
 
@@ -496,7 +503,7 @@ def main(arguments):
         # Copying the file
         name_root = west_name.rsplit(".h5", maxsplit=1)[0]
         new_file = f"{out_dir}/{name_root}_succ.h5"
-        #if not exists(new_file): # Always recopy file...
+        # if not exists(new_file): # Always recopy file...
         copyfile(west_name, new_file)
     
         # Prepping final list to be outputted

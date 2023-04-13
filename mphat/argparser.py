@@ -305,6 +305,7 @@ def process_args(parser):
             setattr(args, 'use_ray', False)
             log.debug(f'`no_ray` taking priority, turning ray off.')
     except (ModuleNotFoundError, ImportError, AttributeError) as e:
+        setattr(args, 'use_ray', False)
         log.debug(e)
         log.debug(f'Unable to load ray. Will proceed without using ray.')
 

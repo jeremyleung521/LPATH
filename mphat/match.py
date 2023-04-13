@@ -1,6 +1,6 @@
-'''
+"""
 Pattern match your extracted trajectories and cluster pathways classes.
-'''
+"""
 # Code that pattern matches states a trajectory has been through
 # and then cluster them into fundamental few pathways.
 #
@@ -432,7 +432,6 @@ def main(arguments):
         A Namespace object will all the necessary parameters.
 
     """
-    import h5py
     # Dealing with the preset assign_method
     preset_reassign = {
         'reassign_identity': reassign_identity,
