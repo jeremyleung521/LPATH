@@ -133,7 +133,7 @@ def main(arguments):
             sys.path.append(os.getcwd())
 
             assign = get_object(arguments.assign_func)
-            log.debug(f'Replaced assign() with {arguments.reassign_method}')
+            log.warning(f'Replaced assign() with {arguments.assign_func}')
 
         out_array = assign(input_array)
         output_file(out_array, arguments.output_file)

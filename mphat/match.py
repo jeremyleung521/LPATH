@@ -463,6 +463,7 @@ def main(arguments):
         sys.path.append(os.getcwd())
 
         reassign = get_object(arguments.reassign_method)
+        log.warning(f'Replaced reassign() with {arguments.reassign_method}')
 
     # Prepping the data + Calculating the distance matrix
     data, pathways = load_data(arguments.input_pickle)
