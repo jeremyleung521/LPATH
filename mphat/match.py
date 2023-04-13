@@ -142,12 +142,6 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
     """
     # Other example for grouping multiple states into one.
     for idx, val in enumerate(data):
-        flipped_val = numpy.asarray(val, dtype=object)[::-1]
-        for idx2, val2 in enumerate(flipped_val):
-            val2[2] = dictionary[val2[2]]
-            pathways[idx, idx2] = val2
-            print(val2)
-
         # The following shows how you can "merge" multiple states into
         # a single one.
         flipped_val = numpy.asarray(val)[::-1]
