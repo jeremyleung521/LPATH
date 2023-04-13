@@ -1,6 +1,6 @@
-'''
-This module deals with all the argument parsing.
-'''
+"""
+All argument parsing from commandline is dealt here.
+"""
 import argparse
 import logging
 
@@ -15,6 +15,27 @@ arg_desc = """
 
 
 def check_non_neg(value):
+    """
+    Transform ``value`` into int and make sure it's >= 0.
+
+    Parameters
+    ----------
+    value : str or float or int
+        A value to check to see if it's >= 0.
+
+    Returns
+    -------
+    value : int
+        Only if int is greater or equal to 0. Will transform it to int in the processes.
+
+    Raises
+    ------
+    argparse.ArgumentTypeError
+        If value is < 0.
+
+    ValueError
+        If value is not an integer or float.
+    """
     try:
         value = int(value)
         if value < 0:
@@ -69,7 +90,6 @@ def add_discretize_args(parser=None):
     discrete_io.add_argument('-af', '--assign-function', '--assign-func', dest='assign_func', type=str,
                              default='default_assign', help='''Assign function used to discretize MD trajectories. ''')
 
-
     discrete_io.add_argument('-ar', '--assign-args', '--assign-arguments', dest='assign_args', type=str, default='',
                              help='''A string of arguments to pass onto w_assign as you would imput in the command 
                              line to `w_assign`. Either use the defaults (leave blank) or at a minimum, you need to add 
@@ -98,6 +118,7 @@ def add_discretize_args(parser=None):
         log.debug(e)
 
     return parser
+
 
 def add_extract_args(parser=None):
     """
@@ -181,6 +202,7 @@ def add_extract_args(parser=None):
 
     return parser
 
+
 def add_match_args(parser=None):
     """
     This block process all the necessary arguments for the "match.py" module.
@@ -259,6 +281,19 @@ def add_match_args(parser=None):
 
 
 def process_args(parser):
+    """
+    Actually process whatever passed to the parser.
+
+    Parameters
+    ----------
+    parser : argparse.ArgumentParser
+        An instance of argument parser.
+
+    Returns
+    -------
+    args : argparse.Namespace
+        A Namespace object with all the argument parsed.
+    """
     args = parser.parse_args()
 
     # Automatically turn on Ray unless no_ray is specified.
@@ -268,8 +303,10 @@ def process_args(parser):
             setattr(args, 'use_ray', True)
         elif args.no_ray is True and args.use_ray is True:
             setattr(args, 'use_ray', False)
-    except (ModuleNotFoundError, ImportError, AttributeError):
-        pass
+            log.debug(f'`no_ray` taking priority, turning ray off.')
+    except (ModuleNotFoundError, ImportError, AttributeError) as e:
+        log.debug(e)
+        log.debug(f'Unable to load ray. Will proceed without using ray.')
 
     # Turn Debugging on!
     if args.debug is True:

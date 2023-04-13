@@ -1,5 +1,5 @@
 '''
-Match your extracted trajectories and cluster pathways classes.
+Pattern match your extracted trajectories and cluster pathways classes.
 '''
 # Code that pattern matches states a trajectory has been through
 # and then cluster them into fundamental few pathways.
@@ -22,6 +22,11 @@ from mphat.extloader import *
 
 log = logging.getLogger(__name__)
 
+try:
+    import h5py
+except ModuleNotFoundError:
+    log.debug('Could not import h5py')
+
 
 def tostr(b):
     """
@@ -42,10 +47,10 @@ def calc_dist(seq1, seq2, dictionary):
 
     Parameters
     ----------
-    seq1 : str
+    seq1 : str or int or float
         First string to be compared.
 
-    seq2 : str
+    seq2 : str or int or float
         Second string to be compared.
 
     dictionary : dict
@@ -125,7 +130,7 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
 
     assign_file : str, default : None
         A string pointing to the assign.h5 file. Needed as a parameter for all functions,
-        but is ignored if it's a MD trajectory.
+        but is ignored if it's an MD trajectory.
 
     Returns
     -------
@@ -157,7 +162,7 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
             pathways[idx, idx2] = val2
 
     # Generating a dictionary mapping each state
-    dictionary = {1: 'A', 2: 'B', 2: '!'}
+    dictionary = {0: 'A', 1: 'B', 2: '!'}
 
     return dictionary
 
@@ -183,7 +188,7 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
         An empty dictionary obj for mapping `state_id` with "state string".
 
     assign_file : str
-        A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's a MD trajectory.
+        A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's an MD trajectory.
 
     Returns
     -------
@@ -220,7 +225,7 @@ def reassign_identity(data, pathways, dictionary, assign_file):
         An empty dictionary obj for mapping `state_id` with `state string`.
 
     assign_file : str
-        A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's a MD trajectory.
+        A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's an MD trajectory.
 
     Returns
     -------
@@ -449,7 +454,8 @@ def main(arguments):
 
     # Cleanup
     expand_shorter_traj(data, dictionary)  # Necessary if pathways are of variable length
-    dist_matrix, weights = gen_dist_matrix(pathways, dictionary, file_name=arguments.dmatrix_save, out_dir=arguments.out_dir,
+    dist_matrix, weights = gen_dist_matrix(pathways, dictionary, file_name=arguments.dmatrix_save,
+                                           out_dir=arguments.out_dir,
                                            remake=arguments.dmatrix_remake)  # Calculate distance matrix
 
     # Visualize the Dendrogram and determine how clusters used to group successful trajectories
@@ -496,15 +502,15 @@ if __name__ == "__main__":
     import argparse
     args = argparse.Namespace(
         input_pickle='succ_traj/output.pickle',  # Input file name of the pickle from `extract.py`
-        west_name="multi.h5",  # Name of input HDF5 file (e.g., west.h5)
+        west_name='multi.h5',  # Name of input HDF5 file (e.g., west.h5)
         assign_name='ANALYSIS/ALL/assign.h5',  # Name of input assign.h5 file
         dmatrix_remake=True,  # Enable to remake the distance Matrix
         dmatrix_save='distmap.npy',  # If dmatrix_remake is False, load this file instead. Assumed located in {out_dir}.
         dendrogram_threshold=0.5,  # Threshold for the Dendrogram
         dendrogram_show=True,  # Show the Dendrogram using plt.show()
-        out_dir="succ_traj",  # Output for the distance Matrix
+        out_dir='succ_traj',  # Output for the distance Matrix
         cl_output='succ_traj/cluster_labels.npy',  # Output path for cluster labels
-        file_pattern="west_succ_c{}.h5",  # Pattern to name cluster files
+        file_pattern='west_succ_c{}.h5',  # Pattern to name cluster files
         clusters=None,  # Cluster index to output... otherwise None --> All
         reassign_method='reassign_identity',  # Reassign method. Could be a module to be loaded.
     )

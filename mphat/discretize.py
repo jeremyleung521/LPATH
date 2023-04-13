@@ -3,7 +3,6 @@ Discretize your MD trajectories (or WE simulations) into states.
 """
 import logging
 import numpy
-from .extloader import *
 from tqdm.auto import tqdm
 from mphat.extloader import *
 
@@ -16,7 +15,7 @@ def assign(input_array):
 
     Parameters
     ----------
-    input_array : numpy.ndarray
+    input_array : numpy.ndarray or list
         An array generated from load_file.
 
     Returns
@@ -105,7 +104,7 @@ def main(arguments):
             log.debug("Replacing parameter `west_name` with `input_name`")
 
         if arguments.output_name.endswith('.h5') and arguments.output_name != arguments.output:
-            setattr(arguments, 'west_name', arguments.output_name)
+            setattr(arguments, 'output_name', arguments.output_name)
             log.debug("Replacing parameter `output_name` with `assign_name`")
 
         if arguments.rcfile != arguments.assign_args.rcfile:
@@ -189,15 +188,15 @@ if __name__ == "__main__":
     import argparse
 
     args = argparse.Namespace(
-        input_name="dihedral.npy",  # Input data for state assignment. Something like 'dihedral.npy'.
-        output_name="discretized.npy",  # Output file name for the state assignment.
-        assign_func="assign_func",  # Assign function that dictates how to assign states
-        west_name="west.h5",  # Name of input HDF5 file (e.g., west.h5)
-        assign_name="ANALYSIS/TEST/assign.h5",  # Name of output assign.h5 file
-        rcfile="west.cfg", # west.cfg file
+        input_name='dihedral.npy',  # Input data for state assignment. Something like 'dihedral.npy'.
+        output_name='discretized.npy',  # Output file name for the state assignment.
+        assign_func='assign_func',  # Assign function that dictates how to assign states
+        west_name='west.h5',  # Name of input HDF5 file (e.g., west.h5)
+        assign_name='ANALYSIS/TEST/assign.h5',  # Name of output assign.h5 file
+        rcfile='west.cfg', # west.cfg file
         assign_args=argparse.Namespace(  # These are arguments for w_assign
             verbosity='verbose',  # Verbose or debug
-            rcfile="west.cfg",  # west.cfg
+            rcfile='west.cfg',  # west.cfg
             max_queue_length=None,
             we_h5filename='west.h5',  # west.h5 path
             construct_dataset=None,  # If you need some custom auxiliary dataset
