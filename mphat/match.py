@@ -32,6 +32,7 @@ def tostr(b):
     """
     Convert a nonstandard string object ``b`` to str with the handling of the
     case where ``b`` is bytes.
+
     """
     if b is None:
         return None
@@ -93,6 +94,7 @@ def load_data(file_name):
 
     pathways : numpy.ndarray
         An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+
     """
     with open(file_name, "rb") as f:
         data = pickle.load(f)
@@ -136,6 +138,7 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
     -------
     dictionary : dict
         A dictionary mapping each state_id (float/int) with a `state string` (character).
+
     """
     # Other example for grouping multiple states into one.
     for idx, val in enumerate(data):
@@ -194,6 +197,7 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
     -------
     dictionary : dict
         A dictionary mapping each `state_id` (float/int) with a state string (character).
+
     """
     for idx, val in enumerate(data):
         flipped_val = numpy.asarray(val)[::-1]
@@ -231,6 +235,7 @@ def reassign_identity(data, pathways, dictionary, assign_file):
     -------
     dictionary : dict
         A dictionary mapping each `state_id` (float/int) with a `state string` (character).
+
     """
     for idx, val in enumerate(data):
         flipped_val = numpy.asarray(val)[::-1]
@@ -258,6 +263,7 @@ def expand_shorter_traj(pathways, dictionary):
 
     dictionary: dict
         Maps each state_id to a corresponding string.
+
     """
     for pathway in pathways:
         for step in pathway:
@@ -268,6 +274,7 @@ def expand_shorter_traj(pathways, dictionary):
 def gen_dist_matrix(pathways, dictionary, file_name="distmap.npy", out_dir="succ_traj", remake=False):
     """
     Generate the path_string to path_string similarity distance matrix.
+
     """
     out_dir = f'{out_dir.rsplit("/", 1)[0]}'
     new_name = f"{out_dir}/{file_name}"
@@ -299,8 +306,13 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
     """
     Visualize the Dendrogram to determine hyper-parameters (n-clusters).
     Theoretically done only once to check.
+
     """
-    import matplotlib.pyplot as plt
+    try:
+        import matplotlib.pyplot as plt
+    except (ModuleNotFoundError, ImportError) as e:
+        log.debug(e)
+        log.debug(f"Can not import matplotlib.")
 
     out_dir = f'{out_dir.rsplit("/", 1)[0]}'
 
@@ -321,6 +333,7 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
 def hcluster(distmat, n_clusters):
     """
     Scikit-learn Hierarchical Clustering of the different pathways.
+
     """
     distmat_condensed = squareform(distmat, checks=False)
 
@@ -344,6 +357,7 @@ def export_files(
 ):
     """
     Export each group of successful trajectories into independent west.h5 file.
+
     """
     if clusters is None:
         clusters = list(range(1, max(cluster_labels) + 1))
@@ -352,7 +366,7 @@ def export_files(
             list(clusters)
         except TypeError:
             raise TypeError(
-                "Provided cluster numbers don't work. Provde a list desired of cluster numbers or 'None' to output \
+                "Provided cluster numbers don't work. Provide a list desired of cluster numbers or 'None' to output \
                 all clusters."
             )
 
@@ -396,6 +410,7 @@ def export_files(
 def determine_rerun(dist_matrix):
     """
     Asks if you want to regenerate the dendrogram.
+
     """
     while True:
         ans = input('Do you want to regenerate the graph with a new threshold (y/[n])?\n')
@@ -411,6 +426,7 @@ def determine_rerun(dist_matrix):
 def ask_number_cluster():
     """
     Asks how many clusters you want to separate the trajectories into.
+
     """
     while True:
         ans = input('How many clusters would you like to separate the pathways into?\n')
@@ -442,6 +458,10 @@ def main(arguments):
     if arguments.reassign_method in preset_reassign.keys():
         reassign = preset_reassign[arguments.reassign_method]
     else:
+        import sys
+        import os
+        sys.path.append(os.getcwd())
+
         reassign = get_object(arguments.reassign_method)
 
     # Prepping the data + Calculating the distance matrix
@@ -484,6 +504,7 @@ def main(arguments):
 def entry_point():
     """
     Entry point for this `match` step.
+
     """
     from mphat import argparser
 
@@ -497,6 +518,7 @@ def entry_point():
 if __name__ == "__main__":
     """
     For calling `match.py` directly. Note all of the parameters are specified manually here.
+    
     """
     import argparse
     args = argparse.Namespace(

@@ -128,6 +128,10 @@ def main(arguments):
 
         # Replacing assign_func with what's given
         if arguments.assign_func != 'default_assign':
+            import sys
+            import os
+            sys.path.append(os.getcwd())
+
             assign = get_object(arguments.assign_func)
             log.debug(f'Replaced assign() with {arguments.reassign_method}')
 
