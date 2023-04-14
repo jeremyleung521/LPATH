@@ -49,8 +49,6 @@ def main(arguments):
         A Namespace object will all the necessary parameters.
 
     """
-    if arguments.
-
     if arguments.use_ray is True:
         import ray
 
