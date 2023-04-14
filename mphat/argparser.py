@@ -7,7 +7,6 @@ import logging
 log = logging.getLogger(__name__)
 
 arg_desc = """
-
            mPHAT: minimal Pathway Analysis Histogram Analysis of Trajectories
            ==================================================================
            
@@ -42,6 +41,7 @@ def check_non_neg(value):
             raise argparse.ArgumentTypeError("{} is not a valid iteration number".format(value))
     except ValueError:
         raise Exception("{} must be an integer.".format(value))
+
     return value
 
 
@@ -81,24 +81,24 @@ def add_discretize_args(parser=None):
 
     discrete_io = parser.add_argument_group('Discretize input/output options')
     discrete_io.add_argument('-I', '--input', dest='input_name', default="west.h5",
-                             help='''The path to your input file for discretization. If it's a west.h5 file from 
-                             WESTPA, this will automatically run w_assign. Else, it would assume it's a text file of 
-                             features.''')
+                             help='The path to your input file for discretization. If it\'s a west.h5 file from \
+                             WESTPA, this will automatically run w_assign. Else, it would assume it\'s a text file of \
+                             features.')
     discrete_io.add_argument('-O', '--output', dest='output_name', default="states.npy",
-                             help='''The path to your output numpy file for after discretization. ''')
+                             help='The path to your output numpy file for after discretization.')
 
     discrete_io.add_argument('-af', '--assign-function', '--assign-func', dest='assign_func', type=str,
-                             default='default_assign', help='''Assign function used to discretize MD trajectories. ''')
+                             default='default_assign', help='Assign function used to discretize MD trajectories.')
 
     discrete_io.add_argument('-ar', '--assign-args', '--assign-arguments', dest='assign_args', type=str, default='',
-                             help='''A string of arguments to pass onto w_assign as you would imput in the command 
-                             line to `w_assign`. Either use the defaults (leave blank) or at a minimum, you need to add 
-                             in `--states-from-config --scheme NAME_OF_SCHEME` to read config from your `west.cfg`''')
+                             help='A string of arguments to pass onto w_assign as you would imput in the command \
+                             line to `w_assign`. Either use the defaults (leave blank) or at a minimum, you need to \
+                             add in `--states-from-config --scheme NAME_OF_SCHEME` to read config from your `west.cfg`')
 
     try:
         discrete_io.add_argument('-W', '--west', '--WEST_H5FILE', '--west-h5file', dest='west_name', default="west.h5",
-                                 help='''The path to your h5 file. If it's a multi.h5 file from w_multi_west, make sure 
-                                 the `--ibstates` option successfully merged your initial and basis states.''')
+                                 help='The path to your h5 file. If it\'s a multi.h5 file from w_multi_west, make sure \
+                                 the `--ibstates` option successfully merged your initial and basis states.')
     except argparse.ArgumentError as e:
         log.debug(e)
     try:
@@ -142,8 +142,8 @@ def add_extract_args(parser=None):
     iogroup = parser.add_argument_group('Extract input/output options')
     try:
         iogroup.add_argument('-W', '--west', '--WEST_H5FILE', '--west-h5file', dest='west_name', default="west.h5",
-                             help='''The path to your h5 file. If it's a multi.h5 file from w_multi_west, make sure 
-                             the `--ibstates option successfully merged your initial and basis states.''')
+                             help='The path to your h5 file. If it's a multi.h5 file from w_multi_west, make sure \
+                             the `--ibstates option successfully merged your initial and basis states.')
         iogroup.add_argument('-A', '--assign', '--assign-h5file', '--ASSIGN-H5FILE', dest='assign_name',
                              default='ANALYSIS/TEST/assign.h5', help='')
     except argparse.ArgumentError as e:
@@ -176,16 +176,17 @@ def add_extract_args(parser=None):
     parmgroup.add_argument('-ts', '--target', '--target-state', '--SINK-STATE', dest='target_state_num',
                            type=check_non_neg, default=1, help='')
     parmgroup.add_argument('--first', '--first-iter', '--FIRST-ITER', dest='first_iter', type=check_non_neg,
-                           default=1, help='')
+                           default=1, help='First iteration to look for successful trajectories, inclusive.')
     parmgroup.add_argument('--last', '--last-iter', '--LAST-ITER', dest='last_iter', type=check_non_neg,
-                           default=0, help='')
+                           default=0, help='Last iteration to look for successful trajectories, inclusive. \
+                                            Default is 0, which will use all available iterations.')
     parmgroup.add_argument('--trace-basis', '-b', dest='trace_basis', action='store_true', help='')
     parmgroup.add_argument('--pcoord', '-p', dest='pcoord', action='store_true',
                            help='Output progress coordinate into the pickle file')
     parmgroup.add_argument('-a', '--aux', '--AUX', '--auxdata', '--AUXDATA', dest='auxdata', nargs='*',
-                           help='''Names of additional auxiliary datasets to be combined''')
+                           help='Names of additional auxiliary datasets to be combined')
     parmgroup.add_argument('-aa', '--auxall', action='store_true',
-                           help='''Combine all auxiliary datasets. Default: False''')
+                           help='Combine all auxiliary datasets. Default: False')
     parmgroup.add_argument('--rewrite-weights', '-rw', action='store_true',
                            help='Copy the H5 files and output individual files where  ')
 
@@ -219,11 +220,9 @@ def add_match_args(parser=None):
     parser : argparse.ArgumentParser
         Returns an instance of the parser with all the new arguments added in.
     """
-    print(parser)
     if parser is None:
         parser = create_parser()
 
-    print(parser)
     match_io = parser.add_argument_group('Match input/output options')
     try:
         match_io.add_argument('-W', '--west', '--WEST_H5FILE', '--west-h5file', dest='west_name', default='west.h5',
@@ -243,8 +242,9 @@ def add_match_args(parser=None):
         log.debug(e)
     match_io.add_argument('--pickle', '--input-pickle', dest='input_pickle', default='succ_traj/output.pickle',
                           type=str, help='Path to pickle object from `extract`')
-    match_io.add_argument('-cd', '--cl-out-dir', '--cluster-label-output-directory', dest='cl_output',
-                          default='succ_traj', type=str, help='')
+    match_io.add_argument('-co', '--cl-output', '--cluster-label-output', dest='cl_output',
+                          default='succ_traj/cluster_labels.npy', type=str,
+                          help='Output file location for cluster labels.')
     match_io.add_argument('-fp', '--fp', '--file-pattern', dest='file_pattern',
                           default="west_succ_c{}.h5", type=str, help='Pattern to name per-cluster HDF5 files.')
     match_io.add_argument('-ex', '--ex-h5', '--export-h5', dest='export_h5',

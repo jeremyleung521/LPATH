@@ -10,13 +10,13 @@ Introduction
 ------------
 ``mPHAT`` is made of three separate steps: ``discretize``, ``extract``, and ``match``. All these steps take a variety of different parameters, which are all listed in the `API`_ page.
 
-1. The ``discretize`` step is used to discretize your trajectories into a list of string visited.
+1. The ``discretize`` step is used to discretize your trajectories for the purpose of finding successful transitions.
 2. The ``extract`` step takes what's assigned in ``discretize`` and identifies all instances where there is a successful transition.
-3. The ``match`` step takes what's outputted in ``extract`` and cross pattern match to identify pathway classes.
+3. The ``match`` step takes what's outputted in ``extract`` and cross pattern match to identify pathway classes. It is possible to reassign states in this step.
 
-There are three different ways of running these steps::
+There are three different ways of running these steps. Due to the sheer amount of parameter options, it is recommended that users start with the Jupyter notebook.::
 
-1. Import each step's ``main()`` function and run everything in an interactive python session (e.g., jupyter notebook).  **[RECOMMENDED]**
+1. Import each step's ``main()`` function and run everything in an interactive python session (e.g., Jupyter notebook).  **[RECOMMENDED]**
 2. Run through the command line (e.g., ``w_discretize -I west.h5 --assign-arguments '--config-from-file --scheme TEST'``.
 3. Run each python script directly (e.g., ``python mphat/mphat.py``).
 
@@ -61,7 +61,7 @@ An example ``assign`` function (in a file called ``module.py``) for assigning tw
         return state_list
 
 
-We will subclass this function into ``mPHAT``.
+We will monkey-patch this function into ``mPHAT``.
 
 1. From the command line, run the following::
 

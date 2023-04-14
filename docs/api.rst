@@ -13,7 +13,7 @@ mPHAT API Documentation
 
 Discretization Step
 -------------------
-The discretize step allows you to assign MD trajectories (or WE simulations) into discrete state.
+The ``discretize`` step allows you to assign MD trajectories (or WE simulations) into discrete states.
 
 .. argparse::
    :module: mphat.argparser
@@ -26,10 +26,7 @@ The discretize step allows you to assign MD trajectories (or WE simulations) int
 
 Extract Step
 ------------
-The extract step allows you to extract successful trajectories from MD trajectories (or WE simulations).
-
-.. automodule:: mphat.extract
-    :members:
+The ``extract`` step allows you to extract successful trajectories from MD trajectories (or WE simulations) based on definitions from ``disretize``.
 
 .. argparse::
    :module: mphat.argparser
@@ -38,11 +35,12 @@ The extract step allows you to extract successful trajectories from MD trajector
 
 
 .. automodule:: mphat.extract
-    :only-members:
+    :members:
+
 
 Match Step
 ----------
-The match step allows you to compare and cluster pathways from the extract step.
+The ``match`` step allows you to compare and cluster pathways from the ``extract`` step.
 
 .. argparse::
    :module: mphat.argparser

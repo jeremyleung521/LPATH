@@ -3,8 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to mphat's documentation!
+Welcome to mPHAT's documentation!
 =========================================================
+
+mPHAT: Minimal Pathway Histogram Analysis of Trajectories is a user-friendly, Python tool for clustering pathways from molecular dynamics and weighted ensemble simulations.
+
 
 .. toctree::
    :maxdepth: 2
@@ -13,7 +16,6 @@ Welcome to mphat's documentation!
    getting_started
    usage
    api
-
 
 
 Indices and tables

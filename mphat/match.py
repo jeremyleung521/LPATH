@@ -262,7 +262,7 @@ def expand_shorter_traj(pathways, dictionary):
     for pathway in pathways:
         for step in pathway:
             if step[0] == 0:
-                step[2] = dictionary[len(dictionary)-1]  # Mark with the last entry
+                step[2] = dictionary[-1]  # Mark with the last entry
 
 
 def gen_dist_matrix(pathways, dictionary, file_name="distmap.npy", out_dir="succ_traj", remake=False):
