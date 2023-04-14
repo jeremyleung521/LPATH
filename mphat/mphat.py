@@ -29,7 +29,8 @@ def entry_point():
     """
     from mphat import argparser
 
-    parser = argparser.add_discretize_args()
+    parser = argparser.add_common_args()
+    parser = argparser.add_discretize_args(parser)
     parser = argparser.add_extract_args(parser)
     parser = argparser.add_match_args(parser)
 

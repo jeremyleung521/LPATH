@@ -49,6 +49,8 @@ def main(arguments):
         A Namespace object will all the necessary parameters.
 
     """
+    if arguments.
+
     if arguments.use_ray is True:
         import ray
 
@@ -619,7 +621,8 @@ def entry_point():
     """
     from mphat import argparser
 
-    parser = argparser.add_extract_args()
+    parser = argparser.add_common_args()
+    parser = argparser.add_extract_args(parser)
 
     args = argparser.process_args(parser)
 

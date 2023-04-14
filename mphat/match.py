@@ -503,7 +503,8 @@ def entry_point():
     """
     from mphat import argparser
 
-    parser = argparser.add_match_args()
+    parser = argparser.add_common_args()
+    parser = argparser.add_match_args(parser)
     args = argparser.process_args(parser)
 
     log.debug(f'{args}')
