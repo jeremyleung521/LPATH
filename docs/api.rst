@@ -11,6 +11,16 @@ mPHAT API Documentation
    mphat.mphat
 
 
+Common Parameters
+-----------------
+All steps take the following parameters.
+
+.. argparse::
+   :module: mphat.argparser
+   :func: add_common_args
+   :prog: mphat
+
+
 Discretization Step
 -------------------
 The ``discretize`` step allows you to assign MD trajectories (or WE simulations) into discrete states.
@@ -18,7 +28,7 @@ The ``discretize`` step allows you to assign MD trajectories (or WE simulations)
 .. argparse::
    :module: mphat.argparser
    :func: add_discretize_args
-   :prog: mphat
+   :prog: mphat discretize
 
 .. automodule:: mphat.discretize
     :members:
@@ -31,8 +41,7 @@ The ``extract`` step allows you to extract successful trajectories from MD traje
 .. argparse::
    :module: mphat.argparser
    :func: add_extract_args
-   :prog: mphat
-
+   :prog: mphat extract
 
 .. automodule:: mphat.extract
     :members:
@@ -45,7 +54,7 @@ The ``match`` step allows you to compare and cluster pathways from the ``extract
 .. argparse::
    :module: mphat.argparser
    :func: add_match_args
-   :prog: mphat
+   :prog: mphat match
 
 
 .. automodule:: mphat.match
@@ -54,7 +63,12 @@ The ``match`` step allows you to compare and cluster pathways from the ``extract
 
 All mPHAT Steps
 ---------------
-.. automodule:: mphat.mphat
+.. argparse::
+   :module: mphat.argparser
+   :func: add_all_args
+   :prog: mphat all
+
+.. automodule:: mphat.main
     :members:
 
 

@@ -294,8 +294,35 @@ def add_match_args(parser=None):
 
     return parser
 
+def add_all_args(parser=None):
+    """
+    This block process all the necessary arguments for all steps.
+
+    Parameters
+    ----------
+    parser : argparse.ArgumentParser
+        A parser passed in from each tool. Separated from each function because the
+        catch-all tool to run everything in succession will only have 1 parser.
+        This will auto create a parser if None is passed.
+
+    Returns
+    -------
+    parser : argparse.ArgumentParser
+        Returns an instance of the parser with all the new arguments added in.
+
+    """
+    if parser is None:
+        parser = create_parser()
+
+    parser = add_common_args(parser)
+    parser = add_discretize_args(parser)
+    parser = add_extract_args(parser)
+    parser = add_match_args(parser)
+
+    return parser
 
 def create_subparsers(parser, subparser_list):
+    # Generate all subparsers
     subparser = parser.add_subparsers(dest='step_name', required=True,
                                       help='Specify step(s) to execute')
     discretize = subparser.add_parser('discretize', description='=== Discretize Step ===',
@@ -304,16 +331,20 @@ def create_subparsers(parser, subparser_list):
     match = subparser.add_parser('match', description='=== Match Step ===', help='The pattern matching step')
     all_steps = subparser.add_parser('all', description='=== All Steps ===', help='Run all steps')
 
-    discretize = add_common_args(discretize)
+    # Discretize
+    discretize = add_discretize_args(discretize)
     subparser_list.append(add_discretize_args(discretize))
-    extract = add_common_args(extract)
+
+    # Extract
+    extract = add_extract_args(extract)
     subparser_list.append(add_extract_args(extract))
-    match = add_common_args(match)
+
+    # Match
+    match = add_match_args(match)
     subparser_list.append(add_match_args(match))
-    all_steps = add_common_args(all_steps)
-    all_steps = add_discretize_args(all_steps)
-    all_steps = add_extract_args(all_steps)
-    subparser_list.append(add_match_args(all_steps))
+
+    # All steps
+    subparser_list.append(add_all_args(all_steps))
 
     return parser, subparser_list
 
