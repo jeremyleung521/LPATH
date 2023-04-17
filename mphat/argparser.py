@@ -332,15 +332,15 @@ def create_subparsers(parser, subparser_list):
     all_steps = subparser.add_parser('all', description='=== All Steps ===', help='Run all steps')
 
     # Discretize
-    discretize = add_discretize_args(discretize)
+    discretize = add_common_args(discretize)
     subparser_list.append(add_discretize_args(discretize))
 
     # Extract
-    extract = add_extract_args(extract)
+    extract = add_common_args(extract)
     subparser_list.append(add_extract_args(extract))
 
     # Match
-    match = add_match_args(match)
+    match = add_common_args(match)
     subparser_list.append(add_match_args(match))
 
     # All steps
