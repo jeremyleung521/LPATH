@@ -412,12 +412,12 @@ def main(arguments):
             Name of the `w_assign` output file.
     
         source_state_num : int, default: 0
-            Index of the source state. Should be the first state defined in
-            west.cfg before running `w_assign`.
+            Index of the source state. Should match the state defined in
+            ``west.cfg`` before running ``w_assign``.
     
         target_state_num : int, default: 1
-            Index of the target state. Should be the second state defined in
-            west.cfg before running `w_assign`.
+            Index of the target state. Should match the state defined in
+            ``west.cfg`` before running ``w_assign``.
     
         first_iter : int, default: 1
             First iteration to analyze. Inclusive.
@@ -432,23 +432,23 @@ def main(arguments):
             (i.e. last it exited source until it first touches the target state).
     
         out_traj : bool, default: False
-            Option to output trajectory files into `out_dir`.
+            Option to output trajectory files into ``out_dir``.
     
         out_traj_ext : str, default: ".nc"
             Extension of the segment files. The name of the file is assumed to be
-            `seg`, meaning the default name of the file is `seg.nc`.
+            ``seg``, meaning the default name of the file is ``seg.nc``.
     
-        out_state_ext : str, default: "_nowat.ncrst"
+        out_state_ext : str, default: ".ncrst"
             Extension of the restart files. The name of the file is assumed to be
-            `seg`, meaning the default name the file is `seg_nowat.ncrst`.
+            ``seg``, meaning the default name the file is ``seg_nowat.ncrst``.
     
         out_top : str, default: "system.prmtop"
             Name of the topology file.
-            Name is relative to `$WEST_SIM_ROOT/common_files/`.
+            Name is relative to ``$PWD/common_files/``.
     
         out_dir : str, default: "succ_traj"
             Name of directory to output the trajectories.
-            Name is relative to `$WEST_SIM_ROOT`.
+            Name is relative to ``$PWD``.
     
         hdf5 : bool, default: False
             Option to use the `HDF5MDTrajectory()` object in `westpa.analysis`
@@ -457,7 +457,7 @@ def main(arguments):
         rewrite_weights : bool, default: False
             Option to zero out the weights of all segments that are not part of
             the successful trajectory ensemble. Note this generates a new h5
-            file with the _succ suffix added. Default name is thus `west_succ.h5`.
+            file with the ``_succ`` suffix added. Default name is thus ``west_succ.h5``.
 
         use_ray : bool, default: True if ray exists
             Option to turn ray on. This is assumed to be True if ray could be
@@ -468,7 +468,7 @@ def main(arguments):
             CPUs if None.
     
         auxdata : list of strings, default: None
-            Auxiliary data set you would like to include in the `output.pickle` file.
+            Auxiliary data set you would like to include in the ``output.pickle`` file.
             None means you don't want any. Only includes the last frame.
     
         pcoord : bool, default: True
@@ -611,21 +611,6 @@ def main(arguments):
                             h5file[f"iterations/iter_{n_iter:>08}/seg_index"]["weight", n_seg] = 0
 
     retain_succ()
-
-
-def entry_point():
-    """
-    Entry point for this `extract` step.
-    """
-    from mphat import argparser
-
-    parser = argparser.add_common_args()
-    parser = argparser.add_extract_args(parser)
-
-    args = argparser.process_args(parser)
-
-    log.debug(f'{args}')
-    main(args)
 
 
 if __name__ == "__main__":

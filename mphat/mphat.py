@@ -2,6 +2,7 @@
 Main function to run everything!
 Discretize, extract, match, in that order.
 """
+import mphat
 from mphat import discretize, extract, match
 import logging
 
@@ -16,6 +17,7 @@ def main(arguments):
     ----------
     arguments : argparse.Namespace
         A namespace with all the parameter arguments
+
     """
     discretize.main(arguments)
     print(arguments.assign_name)
@@ -26,45 +28,53 @@ def main(arguments):
 def entry_point():
     """
     Entry point for discretize, extract, match steps
+
     """
     from mphat import argparser
 
-    parser = argparser.add_common_args()
-    parser = argparser.add_discretize_args(parser)
-    parser = argparser.add_extract_args(parser)
-    parser = argparser.add_match_args(parser)
+    # Creating the subparsers for each subcommand
+    subparsers = []
+    parser = argparser.create_parser()
+    parser, subparsers = mphat.argparser.create_subparsers(parser, subparsers)
+
+    # Functions to be mapped to each subparser
+    functions = [discretize.main, extract.main, match.main, main]
+    for subparser, func in zip(subparsers, functions):
+        subparser.set_defaults(func=func)
 
     args = argparser.process_args(parser)
-
-    discretize.process_assign_args(args)
-
     log.debug(f'{args}')
-    main(args)
+
+    # Run whatever function given
+    args.func(args)
 
 
 if __name__ == "__main__":
     """
     For calling all steps directly. Note all of the parameters are specified manually here.
+    
     """
     import argparse
+
     args = argparse.Namespace(
         # Discretize Parameters
-        input_name="dihedral.npy",  # Input data for state assignment. Something like 'dihedral.npy'.
-        output_name="discretized.npy",  # Output file name for the state assignment.
-        west_name="multi.h5",  # Name of input HDF5 file (e.g., west.h5)
-        assign_name="ANALYSIS/TEST/assign.h5",  # Name of output assign.h5 file
-        rcfile="west.cfg",  # west.cfg file
+        input_name='dihedral.npy',  # Input data for state assignment. Something like 'dihedral.npy'.
+        output_name='discretized.npy',  # Output file name for the state assignment.
+        assign_func='assign_func',  # Assign function that dictates how to assign states
+        west_name='west.h5',  # Name of input HDF5 file (e.g., west.h5)
+        assign_name='ANALYSIS/TEST/assign.h5',  # Name of output assign.h5 file
+        rcfile='west.cfg', # west.cfg file
         assign_args=argparse.Namespace(  # These are arguments for w_assign
-            verbosity="verbose",  # Verbose or debug
-            rcfile="west.cfg",  # west.cfg
+            verbosity='verbose',  # Verbose or debug
+            rcfile='west.cfg',  # west.cfg
             max_queue_length=None,
-            we_h5filename="west.h5",  # west.h5 path
+            we_h5filename='west.h5',  # west.h5 path
             construct_dataset=None,  # If you need some custom auxiliary dataset
             dsspecs=None,
-            output="assign.h5",  # Output file
+            output='assign.h5',  # Output file
             subsample=None,
             config_from_file=True,  # Read config from rcfile
-            scheme="TEST",  # Scheme name
+            scheme='TEST',  # Scheme name
         ),
 
         # Extract Parameters
@@ -82,22 +92,24 @@ if __name__ == "__main__":
         hdf5=False,  # Enable if trajectories are saved with the HDF5 Framework in WESTPA.
         rewrite_weights=False,  # Option to zero out the weights of all segments that are not a successful trajectory.
         pcoord=True,  # Option to output the pcoord into the `output.pickle`.
-        auxdata=["phi", "psi"],  # Additional auxiliary data to save into `output.pickle`.
+        auxdata=['phi', 'psi'],  # Additional auxiliary data to save into `output.pickle`.
         use_ray=False,  # Enable Ray.
         threads=0,  # How many Ray threads/actors to use. Defaults to 0, which wil use all auto-detected resources.
 
         # Match Parameters
         # Note west_name, assign_name and out_dir are repeated from above and removed
-        input_pickle="succ_traj/output.pickle",  # Input file name of the pickle from `extract.py`
+        input_pickle='succ_traj/output.pickle',  # Input file name of the pickle from `extract.py`
         dmatrix_remake=True,  # Enable to remake the distance Matrix
-        dmatrix_save="distmap.npy",  # If dmatrix_remake is False, load this file instead. Assumed located in {out_dir}.
+        dmatrix_save='distmap.npy',  # If dmatrix_remake is False, load this file instead. Assumed located in {out_dir}.
         dendrogram_threshold=0.5,  # Threshold for the Dendrogram
         dendrogram_show=True,  # Show the Dendrogram using plt.show()
-        cl_output="succ_traj/cluster_labels.npy",  # Output path for cluster labels
-        file_pattern="west_succ_c{}.h5",  # Pattern to name cluster files
+        cl_output='succ_traj/cluster_labels.npy',  # Output path for cluster labels
+        file_pattern='west_succ_c{}.h5',  # Pattern to name cluster files
         clusters=None,  # Cluster index to output... otherwise None --> All
+        reassign_method='reassign_identity',  # Reassign method. Could be a module to be loaded.
 
         # Others
         debug=False,
     )
+
     main(args)

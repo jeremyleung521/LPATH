@@ -496,21 +496,6 @@ def main(arguments):
         )
 
 
-def entry_point():
-    """
-    Entry point for this `match` step.
-
-    """
-    from mphat import argparser
-
-    parser = argparser.add_common_args()
-    parser = argparser.add_match_args(parser)
-    args = argparser.process_args(parser)
-
-    log.debug(f'{args}')
-    main(args)
-
-
 if __name__ == "__main__":
     """
     For calling `match.py` directly. Note all of the parameters are specified manually here.

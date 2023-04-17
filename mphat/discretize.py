@@ -75,6 +75,7 @@ def output_file(out_array, output_name):
     numpy.save(output_name, n)
 
 
+
 def main(arguments):
     """
     Main function that executes the whole ``match`` step. Also called by the
@@ -87,6 +88,9 @@ def main(arguments):
     arguments : argparse.Namespace
         A Namespace object will all the necessary parameters.
     """
+    if arguments.assign_args:
+        process_assign_args(arguments)
+
     if arguments.input_name.endswith('.h5'):
         # This basically some logic that's wrapped up in WESTTool.main() for convenience.
         # It needs to be explicitly called like this because the args are captured and set in make_parser_and_process()
@@ -137,53 +141,6 @@ def main(arguments):
 
         out_array = assign(input_array)
         output_file(out_array, arguments.output_file)
-
-
-def process_assign_args(args):
-    import argparse
-    # Check if any extra w_assign arguments are specified in command line.
-    if args.assign_args:
-        try:
-            import westpa
-            from westpa.cli.tools import w_assign
-        except ModuleNotFoundError as e:
-            print(e)
-            raise ModuleNotFoundError("Trying to discretize an HDF5 file but can't import w_assign")
-
-        tool = w_assign.WAssign()
-        final_ns = tool.make_parser_and_process(args=args.assign_args.split())
-        setattr(args, 'assign_args', final_ns)
-    else:
-        default_args = argparse.Namespace(  # These are arguments for w_assign
-            verbosity='verbose',  # Verbose or debug
-            rcfile='west.cfg',  # west.cfg
-            max_queue_length=None,
-            we_h5filename='west.h5',  # west.h5 path
-            construct_dataset=None,  # If you need some custom auxiliary dataset
-            dsspecs=None,
-            output='assign.h5',  # Output file
-            subsample=None,
-            config_from_file=True,  # Read config from rcfile
-            scheme='TEST',  # Scheme name
-        )
-        setattr(args, 'assign_args', default_args)
-
-
-def entry_point():
-    """
-    Entry point for this `discretize` step.
-    """
-    from mphat import argparser
-
-    parser = argparser.add_common_args()
-    parser = argparser.add_discretize_args(parser)
-
-    args = argparser.process_args(parser)
-
-    process_assign_args(args)
-
-    log.debug(f'{args}')
-    main(args)
 
 
 if __name__ == "__main__":
