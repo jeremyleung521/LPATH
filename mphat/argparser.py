@@ -7,8 +7,8 @@ import logging
 log = logging.getLogger(__name__)
 
 arg_desc = """
-           mPHAT: minimal Pathway Analysis Histogram Analysis of Trajectories
-           =================================================================="""
+mPHAT: minimal Pathway Analysis Histogram Analysis of Trajectories
+=================================================================="""
 
 
 def check_non_neg(value):
@@ -90,7 +90,7 @@ def add_common_args(parser=None):
     wegroup.add_argument('-we', '-WE', '--weighted-ensemble', '--WEIGHTED-ENSEMBLE', dest='we',
                          action='store_true', help='Run analysis on a weight ensemble simulation.')
     wegroup.add_argument('-W', '--west', '--WEST_H5FILE', '--west-h5file', dest='west_name', default='west.h5',
-                         help='The path to your h5 file. If it\'s a multi.h5 file from w_multi_west, make sure \
+                         help='The path to your h5 file. If it\'s a ``multi.h5`` file from ``w_multi_west``, make sure \
                                the ``--ibstates`` option successfully merged your initial and basis states. If you\'re \
                                analyzing regular MD trajectories, ignore.')
     wegroup.add_argument('-A', '--assign', '--assign-h5file', '--ASSIGN-H5FILE', dest='assign_name',

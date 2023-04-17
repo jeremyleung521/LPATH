@@ -18,7 +18,7 @@ All steps take the following parameters.
 .. argparse::
    :module: mphat.argparser
    :func: add_common_args
-   :prog: mphat
+   :prog: mphat {discretize,extract,match,all}
 
 
 Discretization Step
