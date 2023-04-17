@@ -3,7 +3,6 @@ Discretize your MD trajectories (or WE simulations) into states.
 """
 import logging
 import numpy
-from tqdm.auto import tqdm
 from mphat.extloader import *
 
 log = logging.getLogger(__name__)
@@ -24,7 +23,7 @@ def assign(input_array):
         A list containing
     """
     state_list = []
-    for val in tqdm(input_array):
+    for val in input_array:
         if val[0] >= -180 and val[0] <= -45 and val[1] >= -55 and val[1] <= 30:  # Phi/Psi for Alpha Helix
             state_list.append(0)
         elif val[0] >= 165 and val[0] <= 180 and val[1] >= -55 and val[1] <= 30:

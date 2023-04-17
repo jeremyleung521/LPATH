@@ -48,7 +48,7 @@ An example ``assign`` function (in a file called ``module.py``) for assigning tw
             A list containing
         """
         state_list = []
-        for val in tqdm(input_array):
+        for val in input_array:
             if val[0] >= -180 and val[0] <= -45 and val[1] >= -55 and val[1] <= 30:  # Phi/Psi for Alpha Helix
                 state_list.append(0)
             elif val[0] >= 165 and val[0] <= 180 and val[1] >= -55 and val[1] <= 30:
@@ -67,7 +67,7 @@ We will monkey-patch this function into ``mPHAT``.
 
 1. From the command line, run the following::
 
-    w_discretize -I dihedral.npy -O states.npy -af module.assign_dih
+    mphat discretize -I dihedral.npy -O states.npy -af module.assign_dih
 
 2. This will generate a ``states.npy`` file to be used in the ``extract`` step.
 
@@ -101,7 +101,7 @@ We'll try to discretize a ``multi.h5`` (generated with ``w_multi_west --ibstates
 
 1. Run the following in the command line to run ``w_assign``::
 
-    w_discretize -I multi.h5 -O ANALYSIS/TEST/assign.h5 \
+    mphat discretize -I multi.h5 -O ANALYSIS/TEST/assign.h5 \
         --assign-args "-W multi.h5 -r west.cfg --states-from-config --scheme TEST"
 
 

@@ -483,7 +483,7 @@ def main(arguments):
     numpy.save(arguments.cl_output, cluster_labels)
 
     # Following exports each cluster to its own h5 file, all weights of segments not in that group = 0.
-    if arguments.export_h5 is True:
+    if arguments.we and arguments.export_h5:
         export_files(
             data,
             weights,
