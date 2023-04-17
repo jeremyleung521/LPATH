@@ -43,10 +43,10 @@ def calc_dist(seq1, seq2, dictionary):
 
     Parameters
     ----------
-    seq1 : str or int or float
+    seq1 : numpy.ndarray
         First string to be compared.
 
-    seq2 : str or int or float
+    seq2 : numpy.ndarray
         Second string to be compared.
 
     dictionary : dict
@@ -58,7 +58,7 @@ def calc_dist(seq1, seq2, dictionary):
         Similarity score.
 
     """
-    # Remove sequences of "unknown" states, which is always the last entry in the dictionary
+    # Remove all instances of "unknown" state, which is always the last entry in the dictionary.
     seq1 = seq1[seq1 < len(dictionary)]
     seq1_str = "".join(dictionary[x] for x in seq1)
     seq2 = seq2[seq2 < len(dictionary)]
@@ -137,6 +137,7 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
         # The following shows how you can "merge" multiple states into
         # a single one.
         flipped_val = numpy.asarray(val)[::-1]
+        # Further downsizing... to if pcoord is less than 5
         first_contact = numpy.where(flipped_val[:, 3] < 5)[0][0]
         for idx2, val2 in enumerate(flipped_val):
             # ortho is assigned to state 0
