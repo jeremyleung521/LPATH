@@ -18,7 +18,7 @@ Introduction
 There are three different ways of running these steps. Due to the sheer amount of parameter options, it is recommended that users start with the Jupyter notebook.
 
 1. Import each step's ``main()`` function and run everything in an interactive python session (e.g., Jupyter notebook).  **[RECOMMENDED]**
-2. Run through the command line (e.g., ``w_discretize -I west.h5 --assign-arguments '--config-from-file --scheme TEST'``.
+2. Run through the command line (e.g., ``mphat discretize -I west.h5 --assign-arguments '--config-from-file --scheme TEST'``.
 3. Run each python script directly (e.g., ``python mphat/mphat.py``).
 
 

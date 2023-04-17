@@ -11,6 +11,7 @@ This page details how to get started with ``mPHAT``.
 2. In the cloned directory, install the program with ``pip``. Specify ``westpa`` if you are analyzing a weighted ensemble simulation. Specify ``dev`` if you need to install all dependencies::
 
     cd mphat
+
     pip install -e .  # for essentials OR
     pip install -e .[westpa]  # with WESTPA OR
     pip install -e .[dev]  # all dependencies
