@@ -42,6 +42,7 @@ def entry_point():
     for subparser, func in zip(subparsers, functions):
         subparser.set_defaults(func=func)
 
+    # print(parser.__dict__)
     args = argparser.process_args(parser)
     log.debug(f'{args}')
 
@@ -57,13 +58,18 @@ if __name__ == "__main__":
     import argparse
 
     args = argparse.Namespace(
+        # Common Parameters
+        out_dir="succ_traj",  # Name of directory to output the trajectories.
+        debug=False,  # Debug mode
+        west_name='west.h5',  # Name of input HDF5 file (e.g., west.h5)
+        assign_name='ANALYSIS/TEST/assign.h5',  # Name of output assign.h5 file
+        rcfile='west.cfg',  # west.cfg file
+        we=True,  # Analyzing a WE simulation.
+
         # Discretize Parameters
         input_name='dihedral.npy',  # Input data for state assignment. Something like 'dihedral.npy'.
         output_name='discretized.npy',  # Output file name for the state assignment.
         assign_func='assign_func',  # Assign function that dictates how to assign states
-        west_name='west.h5',  # Name of input HDF5 file (e.g., west.h5)
-        assign_name='ANALYSIS/TEST/assign.h5',  # Name of output assign.h5 file
-        rcfile='west.cfg', # west.cfg file
         assign_args=argparse.Namespace(  # These are arguments for w_assign
             verbosity='verbose',  # Verbose or debug
             rcfile='west.cfg',  # west.cfg
@@ -88,7 +94,6 @@ if __name__ == "__main__":
         out_traj_ext=".nc",  # Extension of the segment files. Defaults to `seg{out_traj_ext}`.
         out_state_ext=".ncrst",  # Extension of the restart files. Defaults to `seg{out_state_ext}`.
         out_top="system.prmtop",  # Name of the parameter file. Name relative to `$WEST_SIM_ROOT/common_files`.
-        out_dir="succ_traj",  # Name of directory to output the trajectories.
         hdf5=False,  # Enable if trajectories are saved with the HDF5 Framework in WESTPA.
         rewrite_weights=False,  # Option to zero out the weights of all segments that are not a successful trajectory.
         pcoord=True,  # Option to output the pcoord into the `output.pickle`.
@@ -107,9 +112,6 @@ if __name__ == "__main__":
         file_pattern='west_succ_c{}.h5',  # Pattern to name cluster files
         clusters=None,  # Cluster index to output... otherwise None --> All
         reassign_method='reassign_identity',  # Reassign method. Could be a module to be loaded.
-
-        # Others
-        debug=False,
     )
 
     main(args)

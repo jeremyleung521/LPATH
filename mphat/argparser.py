@@ -8,9 +8,7 @@ log = logging.getLogger(__name__)
 
 arg_desc = """
            mPHAT: minimal Pathway Analysis Histogram Analysis of Trajectories
-           ==================================================================
-           
-           """
+           =================================================================="""
 
 
 def check_non_neg(value):
@@ -169,7 +167,7 @@ def add_extract_args(parser):
                             help='The path to your output numpy file from ``discretize`` step. If the ``-WE`` flag is \
                                   specified, this will be ignored as ``--west-h5file`` and ``--assign-h5file`` will be \
                                   used instead.')
-    extract_io.add_argument('-eo', '-EO', 'extract-output', dest='extract_output', default='output.pickle',
+    extract_io.add_argument('-eo', '-EO', '--extract-output', dest='extract_output', default='output.pickle',
                             help='Name of the output pickle object file. This will be saved in ``--out-dir``.')
     extract_io.add_argument('-ss', '--source', '--source-state', '--SOURCE-STATE', dest='source_state_num',
                             type=check_non_neg, default=0, help='Index of the source state. If the ``-WE`` flag is \
@@ -288,11 +286,12 @@ def add_match_args(parser):
 
 def create_subparsers(parser, subparser_list):
     subparser = parser.add_subparsers(dest='step_name', required=True,
-                                      help='Specify ``discretize``, ``extract``, ``match``, or ``all`` steps')
-    discretize = subparser.add_parser('discretize', help='The discretization step')
-    extract = subparser.add_parser('extract', help='The extract step')
-    match = subparser.add_parser('match', help='The pattern matching step')
-    all_steps = subparser.add_parser('all', help='Run all steps')
+                                      help='Specify step(s) to execute')
+    discretize = subparser.add_parser('discretize', description='=== Discretize Step ===',
+                                      help='The discretization step')
+    extract = subparser.add_parser('extract', description='=== Extract Step ===', help='The extract step')
+    match = subparser.add_parser('match', description='=== Match Step ===', help='The pattern matching step')
+    all_steps = subparser.add_parser('all', description='=== All Steps ===', help='Run all steps')
 
     discretize = add_common_args(discretize)
     subparser_list.append(add_discretize_args(discretize))
@@ -352,6 +351,7 @@ def process_assign_args(arguments):
     else:
         log.debug('Not using w_assign.')
 
+    return arguments
 
 def process_args(parser):
     """
@@ -368,13 +368,13 @@ def process_args(parser):
         A Namespace object with all the argument parsed.
 
     """
+    #print(parser)
     args = parser.parse_args()
-
     # Automatically parse arguments for w_assign
     args = process_assign_args(args)
 
     # Automatically turn on Ray unless no_ray is specified.
-    if args.use_ray and (args.step_name in ['extract', 'all']) and args.use_ray:
+    if (args.step_name in ['extract', 'all']) and args.use_ray:
         try:
             import ray
             if args.no_ray is False:

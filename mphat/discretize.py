@@ -88,10 +88,7 @@ def main(arguments):
     arguments : argparse.Namespace
         A Namespace object will all the necessary parameters.
     """
-    if arguments.assign_args:
-        process_assign_args(arguments)
-
-    if arguments.input_name.endswith('.h5'):
+    if arguments.we:
         # This basically some logic that's wrapped up in WESTTool.main() for convenience.
         # It needs to be explicitly called like this because the args are captured and set in make_parser_and_process()
         #   which we don't want to call, because we don't want to make a parser.
@@ -128,7 +125,7 @@ def main(arguments):
             else:
                 tool.work_manager.run()
     else:
-        input_array = load_file(arguments.input_file)
+        input_array = load_file(arguments.input_name)
 
         # Replacing assign_func with what's given
         if arguments.assign_func != 'default_assign':
@@ -150,6 +147,7 @@ if __name__ == "__main__":
     import argparse
 
     args = argparse.Namespace(
+        we=True,  # Analyzing a WE simulation
         input_name='dihedral.npy',  # Input data for state assignment. Something like 'dihedral.npy'.
         output_name='discretized.npy',  # Output file name for the state assignment.
         assign_func='assign_func',  # Assign function that dictates how to assign states

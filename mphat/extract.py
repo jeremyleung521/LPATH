@@ -619,6 +619,7 @@ if __name__ == "__main__":
     """
     import argparse
     args = argparse.Namespace(
+        we=True,  # Analyzing a WE simulation
         west_name="west.h5",  # Name of input HDF5 file (e.g., west.h5)
         assign_name="ANALYSIS/C7_EQ/assign.h5",  # Name of input assign.h5 file
         source_state_num=0,  # Index of the source state as defined in assign.h5.
