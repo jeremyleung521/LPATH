@@ -51,6 +51,7 @@ def create_parser():
     -------
     parser : argparse.ArgumentParser
         Returns an instance of the parser.
+
     """
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description=arg_desc)
@@ -102,7 +103,7 @@ def add_common_args(parser=None):
     return parser
 
 
-def add_discretize_args(parser):
+def add_discretize_args(parser=None):
     """
     This block process all the necessary arguments for the `discretize.py` module.
 
@@ -118,6 +119,9 @@ def add_discretize_args(parser):
         Returns an instance of the parser with all the new arguments added in.
 
     """
+    if parser is None:
+        parser = create_parser()
+
     discretize_io = parser.add_argument_group('Discretize Specific Parameters')
 
     discretize_io.add_argument('-i', '-I', '-di', '-DI', '--input', dest='input_name', default='input.dat',
@@ -144,7 +148,7 @@ def add_discretize_args(parser):
     return parser
 
 
-def add_extract_args(parser):
+def add_extract_args(parser=None):
     """
     This block process all the necessary arguments for the "extract.py" module.
 
@@ -161,6 +165,9 @@ def add_extract_args(parser):
         Returns an instance of the parser with all the new arguments added in.
 
     """
+    if parser is None:
+        parser = create_parser()
+
     extract_io = parser.add_argument_group('Extract Specific Parameters')
 
     extract_io.add_argument('-ei', '-EI', '--extract-input', dest='extract_input', default='states.npy',
@@ -228,7 +235,7 @@ def add_extract_args(parser):
     return parser
 
 
-def add_match_args(parser):
+def add_match_args(parser=None):
     """
     This block process all the necessary arguments for the "match.py" module.
 
@@ -243,7 +250,11 @@ def add_match_args(parser):
     -------
     parser : argparse.ArgumentParser
         Returns an instance of the parser with all the new arguments added in.
+
     """
+    if parser is None:
+        parser = create_parser()
+
     match_io = parser.add_argument_group('Match Specific Parameters')
 
     match_io.add_argument('-ip', '--IP', '--pickle', '--input-pickle', dest='input_pickle',

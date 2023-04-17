@@ -12,7 +12,7 @@ This page details how to get started with ``mPHAT``.
 
     cd mphat
     pip install -e .  # for essentials OR
-    pip install -e .[westpa]  #  with WESTPA OR
+    pip install -e .[westpa]  # with WESTPA OR
     pip install -e .[dev]  # all dependencies
 
 3. Run all or parts of the program. See `Usage`_ for more information.
