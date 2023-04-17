@@ -11,6 +11,8 @@ mPHAT: minimal Pathway Analysis Histogram Analysis of Trajectories
 =================================================================="""
 
 
+all_options = ['discretize', 'extract', 'match', 'all']
+
 def check_non_neg(value):
     """
     Transform ``value`` into int and make sure it's >= 0.
@@ -294,6 +296,7 @@ def add_match_args(parser=None):
 
     return parser
 
+
 def add_all_args(parser=None):
     """
     This block process all the necessary arguments for all steps.
@@ -320,6 +323,7 @@ def add_all_args(parser=None):
     parser = add_match_args(parser)
 
     return parser
+
 
 def create_subparsers(parser, subparser_list):
     # Generate all subparsers
@@ -395,6 +399,7 @@ def process_assign_args(arguments):
 
     return arguments
 
+
 def process_args(parser):
     """
     Actually process whatever passed to the parser.
@@ -410,7 +415,6 @@ def process_args(parser):
         A Namespace object with all the argument parsed.
 
     """
-    #print(parser)
     args = parser.parse_args()
     # Automatically parse arguments for w_assign
     args = process_assign_args(args)
@@ -434,3 +438,15 @@ def process_args(parser):
         logging.basicConfig(level=logging.DEBUG)
 
     return args
+
+def check_argv():
+    """
+    Check to see if argv is empty. Print warning if so.
+    
+    Returns
+    -------
+
+    """
+    import sys
+    if len(sys.argv) < 3 and sys.argv[1] in all_options:
+        log.warning(f'WARNING: Running {sys.argv[1]} with all default values. Make sure you\'re sure of this!')

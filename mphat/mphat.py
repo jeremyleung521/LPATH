@@ -42,6 +42,8 @@ def entry_point():
     for subparser, func in zip(subparsers, functions):
         subparser.set_defaults(func=func)
 
+    argparser.check_argv()
+
     # print(parser.__dict__)
     args = argparser.process_args(parser)
     log.debug(f'{args}')

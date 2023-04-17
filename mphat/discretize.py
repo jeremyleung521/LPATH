@@ -99,15 +99,15 @@ def main(arguments):
             print(e)
             raise ModuleNotFoundError("Trying to discretize an HDF5 file but can't import w_assign")
 
-        if arguments.input_name.endswith('.h5') and arguments.input_name != arguments.west_name:
+        if arguments.we and arguments.input_name != arguments.west_name:
             setattr(arguments, 'west_name', arguments.input_name)
             log.debug("Replacing parameter `west_name` with `input_name`")
 
-        if arguments.output_name.endswith('.h5') and arguments.output_name != arguments.output:
+        if arguments.we and arguments.output_name != arguments.output:
             setattr(arguments, 'output_name', arguments.output_name)
             log.debug("Replacing parameter `output_name` with `assign_name`")
 
-        if arguments.rcfile != arguments.assign_args.rcfile:
+        if arguments.we and arguments.rcfile != arguments.assign_args.rcfile:
             setattr(arguments, 'rcfile', arguments.assign_args.rcfile)
             log.debug("Replacing parameter `rcfile` with `assign_args.rcfile`")
 

@@ -22,11 +22,6 @@ from mphat.extloader import *
 
 log = logging.getLogger(__name__)
 
-try:
-    import h5py
-except ModuleNotFoundError:
-    log.debug('Could not import h5py')
-
 
 def tostr(b):
     """
@@ -44,7 +39,7 @@ def tostr(b):
 
 def calc_dist(seq1, seq2, dictionary):
     """
-    Pattern match and calculate the similarity between two state string sequences.
+    Pattern match and calculate the similarity between two ``state string`` sequences.
 
     Parameters
     ----------
@@ -55,7 +50,7 @@ def calc_dist(seq1, seq2, dictionary):
         Second string to be compared.
 
     dictionary : dict
-        Dictionary mapping `state_id` (float/int) to `state string` (characters).
+        Dictionary mapping ``state_id`` (float/int) to ``state string`` (characters).
 
     Returns
     -------
@@ -63,34 +58,31 @@ def calc_dist(seq1, seq2, dictionary):
         Similarity score.
 
     """
-    seq1 = seq1[seq1 > -1]
+    # Remove sequences of "unknown" states, which is always the last entry in the dictionary
+    seq1 = seq1[seq1 < len(dictionary)]
     seq1_str = "".join(dictionary[x] for x in seq1)
-    seq2 = seq2[seq2 > -1]
+    seq2 = seq2[seq2 < len(dictionary)]
     seq2_str = "".join(dictionary[x] for x in seq2)
 
-    len_seq1 = len(seq1_str)
-    len_seq2 = len(seq2_str)
-
-    lcsstr = pylcs.lcs_sequence_length(seq1_str, seq2_str)
-    km = int(lcsstr)
-    similarity = (2 * km) / (int(len_seq1) + int(len_seq2))
+    km = int(pylcs.lcs_sequence_length(seq1_str, seq2_str))
+    similarity = (2 * km) / (int(seq1_str) + int(seq2_str))
 
     return 1 - similarity
 
 
 def load_data(file_name):
     """
-    Load in the pickle data from `extract`.
+    Load in the pickle data from ``extract``.
 
     Parameters
     ----------
     file_name: str
-        File name of the pickle object from `extract`
+        File name of the pickle object from ``extract``
 
     Returns
     -------
     data : list
-        A list with the data necessary to reassign, as extracted from `output.pickle`.
+        A list with the data necessary to reassign, as extracted from ``output.pickle``.
 
     pathways : numpy.ndarray
         An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
@@ -112,32 +104,32 @@ def load_data(file_name):
 def reassign_custom(data, pathways, dictionary, assign_file=None):
     """
     Reclassify/assign frames into different states. This is highly
-    specific to the system. If w_assign's definition is suffcient,
+    specific to the system. If w_assign's definition is sufficient,
     you can proceed with what's made in the previous step
-    using `reassign_identity`.
+    using ``reassign_identity``.
 
-    In this example, the dictionary maps state idx to its corresponding `state_string`.
+    In this example, the dictionary maps state idx to its corresponding ``state_string``.
     I suggest using alphabets as states.
 
     Parameters
     ----------
     data : list
-        An array with the data necessary to reassign, as extracted from `output.pickle`.
+        An array with the data necessary to reassign, as extracted from ``output.pickle``.
 
     pathways : numpy.ndarray
         An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
 
     dictionary : dict
-        An empty dictionary obj for mapping `state_id` with `state string`.
+        An empty dictionary obj for mapping ``state_id`` with ``state string``.
 
     assign_file : str, default : None
-        A string pointing to the assign.h5 file. Needed as a parameter for all functions,
+        A string pointing to the ``assign.h5`` file. Needed as a parameter for all functions,
         but is ignored if it's an MD trajectory.
 
     Returns
     -------
     dictionary : dict
-        A dictionary mapping each state_id (float/int) with a `state string` (character).
+        A dictionary mapping each ``state_id`` (float/int) with a ``state string`` (character).
 
     """
     # Other example for grouping multiple states into one.
@@ -166,37 +158,42 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
 
 def reassign_statelabel(data, pathways, dictionary, assign_file):
     """
-    Use assign.h5 states as is with `statelabels`. Does not reclassify/assign frames
+    Use ``assign.h5`` states as is with ``statelabels``. Does not reclassify/assign frames
     into new states.
 
-    In this example, the dictionary maps state idx to its statelabels,
-    as defined in the assign.h5. I suggest using alphabets as `statelabels`
+    In this example, the dictionary maps state idx to its ``statelabels``,
+    as defined in the assign.h5. I suggest using alphabets as ``statelabels``
     to allow for more than 9 states.
 
     Parameters
     ----------
     data : list
-        An list with the data necessary to reassign, as extracted from `output.pickle`.
+        An list with the data necessary to reassign, as extracted from ``output.pickle``.
 
     pathways : numpy.ndarray
         An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
 
     dictionary : dict
-        An empty dictionary obj for mapping `state_id` with "state string".
+        An empty dictionary obj for mapping ``state_id`` with "state string".
 
     assign_file : str
-        A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's an MD trajectory.
+        A string pointing to the ``assign.h5`` file. Needed as a parameter, but ignored if it's an MD trajectory.
 
     Returns
     -------
     dictionary : dict
-        A dictionary mapping each `state_id` (float/int) with a state string (character).
+        A dictionary mapping each ``state_id`` (float/int) with a state string (character).
 
     """
     for idx, val in enumerate(data):
         flipped_val = numpy.asarray(val)[::-1]
         for idx2, val2 in enumerate(flipped_val):
             pathways[idx, idx2] = val2
+
+    try:
+        import h5py
+    except ModuleNotFoundError:
+        log.debug('Could not import h5py')
 
     with h5py.File(assign_file) as f:
         for idx, val in enumerate(f['state_labels'][:]):
@@ -206,29 +203,29 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
     return dictionary
 
 
-def reassign_identity(data, pathways, dictionary, assign_file):
+def reassign_identity(data, pathways, dictionary, assign_file=None):
     """
     Use assign.h5 states as is. Does not attempt to map assignment
-    to `statelabels` from assign.h5.
+    to ``statelabels`` from assign.h5.
 
     Parameters
     ----------
     data : list
-        An list with the data necessary to reassign, as extracted from `output.pickle`.
+        An list with the data necessary to reassign, as extracted from ``output.pickle``.
 
     pathways : numpy.ndarray
         An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
 
     dictionary : dict
-        An empty dictionary obj for mapping `state_id` with `state string`.
+        An empty dictionary obj for mapping ``state_id`` with ``state string``.
 
     assign_file : str
-        A string pointing to the assign.h5 file. Needed as a parameter, but ignored if it's an MD trajectory.
+        A string pointing to the ``assign.h5`` file. Needed as a parameter, but ignored if it's an MD trajectory.
 
     Returns
     -------
     dictionary : dict
-        A dictionary mapping each `state_id` (float/int) with a `state string` (character).
+        A dictionary mapping each ``state_id`` (float/int) with a `state string` (character).
 
     """
     for idx, val in enumerate(data):
@@ -236,11 +233,11 @@ def reassign_identity(data, pathways, dictionary, assign_file):
         for idx2, val2 in enumerate(flipped_val):
             pathways[idx, idx2] = val2
 
-    with h5py.File(assign_file) as f:
-        for idx in range(len(f['state_labels'][:])):
-            dictionary[idx] = str(idx)
+    n_states = int(max([seg[2] for traj in pathways for seg in traj]))
+    for idx in range(n_states):
+        dictionary[idx] = str(idx)
 
-    dictionary[len(dictionary)] = '!'  # Unknown state
+    dictionary[n_states] = '!'  # Unknown state
 
     return dictionary
 
@@ -261,7 +258,7 @@ def expand_shorter_traj(pathways, dictionary):
     """
     for pathway in pathways:
         for step in pathway:
-            if step[0] == 0:
+            if step[0] == 0:  # If no iteration number (i.e., a dummy frame)
                 step[2] = dictionary[-1]  # Mark with the last entry
 
 
@@ -277,7 +274,7 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmap.npy", out_dir="succ
     path_strings = []
     for pathway in pathways:
         # weights for non-existent iters
-        nonzero = pathway[pathway[:, 2] > -1]
+        nonzero = pathway[pathway[:, 2] < len(dictionary)]
         weights.append(nonzero[-1][-1])
         # Create path_strings
         path_strings.append(pathway[:, 2])
@@ -302,12 +299,6 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
     Theoretically done only once to check.
 
     """
-    try:
-        import matplotlib.pyplot as plt
-    except (ModuleNotFoundError, ImportError) as e:
-        log.debug(e)
-        log.debug(f"Can not import matplotlib.")
-
     out_dir = f'{out_dir.rsplit("/", 1)[0]}'
 
     distmat_condensed = squareform(distmat, checks=False)
@@ -315,6 +306,13 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
     Z = sch.linkage(distmat_condensed, method="ward")
 
     sch.dendrogram(Z, no_labels=True, color_threshold=threshold)
+
+    try:
+        import matplotlib.pyplot as plt
+    except (ModuleNotFoundError, ImportError) as e:
+        log.debug(e)
+        log.debug(f"Can not import matplotlib.")
+        return
 
     plt.axhline(y=threshold, c="k")
     plt.ylabel("distance")
@@ -353,6 +351,11 @@ def export_files(
     Export each group of successful trajectories into independent west.h5 file.
 
     """
+    try:
+        import h5py
+    except ModuleNotFoundError:
+        log.debug('Could not import h5py')
+
     if clusters is None:
         clusters = list(range(1, max(cluster_labels) + 1))
     elif not isinstance(clusters, list):
@@ -433,8 +436,7 @@ def ask_number_cluster():
 
 def main(arguments):
     """
-    Main function that executes the whole `match` step. Also called by the
-    entry_point() function.
+    Main function that executes the whole `match` step.
 
     Parameters
     ----------
