@@ -4,6 +4,7 @@ Discretize your MD trajectories (or WE simulations) into states.
 import logging
 import numpy
 from mphat.extloader import *
+from mphat.io import load_file, output_file
 
 log = logging.getLogger(__name__)
 
@@ -36,43 +37,6 @@ def assign(input_array):
             state_list.append(3)
 
     return state_list
-
-
-def load_file(input_file):
-    """
-    Parameters
-    ----------
-    input_file: str
-        Path of the data file to be used to assign states.
-
-    Returns
-    -------
-    data: numpy.array
-        A numpy array of data used to assign states.
-    """
-    if input_file.endswith('.npy'):
-        data = numpy.load(input_file)
-    else:
-        data = numpy.loadtxt(input_file)
-        # data = numpy.loadtxt(input_file, usecols=(1,2), skiprows=1)
-    return data
-
-
-def output_file(out_array, output_name):
-    """
-    Function to output an array.
-
-    Parameters
-    ----------
-    out_array: numpy.ndarray
-        Array to be outputted.
-
-    output_name: str
-        Name of the output file.
-    """
-    n = numpy.asarray(out_array)
-    numpy.save(output_name, n)
-
 
 
 def main(arguments):

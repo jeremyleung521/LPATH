@@ -23,13 +23,199 @@ import logging
 from tqdm.auto import trange
 from shutil import copyfile
 from os import mkdir
-# from os.path import exists
+from copy import deepcopy
+from collections import Counter
+from mphat.io import load_file
 
 log = logging.getLogger(__name__)
 
+
+# Here are functions for standard MD.
+def find_min_distance(ref_value, indices):
+    """
+    Search for the closest value in indices that is >= to ref_value.
+
+    Parameters
+    ----------
+    ref_value : int or float
+        Reference point you want to anchor the search.
+
+    indices : list or numpy.ndarray
+        A list or array of potential values you want to search for.
+
+    Returns
+    -------
+    minimum value : float, int
+        The closest value to ref_value in indices.
+
+    """
+    return min([v for v in indices if v >= ref_value] or [None])
+
+
+def clean_self_to_self(input_array):
+    """
+    Clean up duplicates which might contain self to self transitions.
+
+    Parameters
+    ----------
+    input_array : list
+        A list or numpy array of the shape (n_transitions, 2).
+
+    Returns
+    -------
+    output_array : numpy.ndarray
+        A reduced list or numpy array of the shape (n_transitions, 2).
+
+    """
+    output_array = numpy.asarray(input_array)
+    full_count = Counter(output_array[:, 1])
+
+    reduced_keys = [key for (key, count) in full_count.items() if count > 1]
+
+    # Running backwards so indices are maintained.
+    for delete in reduced_keys[::-1]:
+        # Determine indices of where the duplicates happen
+        pop_list = numpy.argwhere(output_array[:, 1] == delete).flatten().sort()
+        # Remove them except for the last instance
+        for j in pop_list[::-1][1:]:
+            input_array.pop(j)
+
+    output_array = numpy.asarray(input_array)
+
+    return output_array
+
+def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num):
+    """
+    Generate the source --> states row for the weights. Needed to
+    calculate the weights of each successful trajectory.
+
+    Parameters
+    ----------
+    source_index : numpy.ndarray
+        An array of indices where it last visited the source state.
+
+    trajectory : numpy.ndarray
+        A list of the states as inputted.
+
+    n_states : int
+        Number of total states defined. Does not include the Unknown State.
+
+    source_num : int
+        Index of the source state as defined in ``discretize``.
+
+    target_num : int
+        Index of the target state as defined in ``discretize``.
+
+    Returns
+    -------
+    st_weight : float
+        Total weight of all the source --> target transitions.
+    """
+    count_row = numpy.zeros(n_states)
+    for istate in source_index:
+        for jstate in trajectory[istate:]:
+            # If it isn't in the Unknown State.
+            if jstate != n_states:
+                count_row[source_num, jstate] += 1
+                break
+
+    # Row Normalize for the probability
+    count_row /= sum(count_row)
+
+    st_weight = count_row[source_num, target_num]
+
+    return st_weight
+
+
+def create_pickle_obj(transitions, trajectories, weight, features=None):
+    """
+    Main function that transforms a list of frame transitions into
+
+    Parameters
+    ----------
+    transitions : list
+        A list of shape (successful transitions, 2). Indicates the start/end frame a transition
+        has been made.
+
+    trajectories : list
+        A list of the states as inputted.
+
+    weight : float
+        Weight of each successful transition.
+
+    features : list or numpy.ndarray or None
+        If specified by the user, you can save extra information in to the pickle object.
+
+    Returns
+    -------
+    output_list : list
+        An list to be outputted, prepared for the ``output.pickle``.
+
+    """
+    if features is None:
+        ad_arr = []
+    else:
+        ad_arr = list(features)
+
+    output_list = []
+
+    #Going through each transition
+    for idx, transition in enumerate(transitions):
+        indv_trace = []
+        # Add all the frames between target + source. This is controlled by stride, which dictates how often you load.
+        for j in range(int(transition[0]),int(transition[1]+1)):
+            indv_trace.append([1, idx, trajectories[j], *ad_arr, weight])
+        output_list.append(deepcopy(indv_trace))
+
+    return output_list
+
+def standard(arguments):
+    """
+    Main function that executes the whole standard `extract` procedure.
+
+    Parameters
+    ----------
+    arguments : argparse.Namespace
+        A Namespace object will all the necessary parameters.
+
+    """
+    input_array = load_file(arguments.extract_input, arguments.stride)
+    n_states = max(input_array)
+
+    if arguments.pcoord is True:
+        features = numpy.load(arguments.featurization_name, arguments.stride)
+
+    source_index = numpy.argwhere(input_array == arguments.source_state_num).flatten()
+    target_index = numpy.argwhere(input_array == arguments.target_state_num).flatten()
+
+    log.debug(f'source_index: {source_index}')
+    log.debug(f'target_index: {target_index}')
+
+    transitions = []
+
+    for val in source_index:
+        transitions.append([val, find_min_distance(val, target_index)])
+
+    log.debug(f'transitions: {transitions}')
+
+    new_transitions = clean_self_to_self(transitions)
+
+    weight = count_tmatrix_row(source_index, input_array, n_states,
+                               arguments.source_state_num, arguments.target_state_num)
+
+    # Generate and write pickle object.
+    final_obj = create_pickle_obj(transitions, trajectories, weight/len(transitions), arguments.features)
+
+    with open(f"{out_dir}/{output_name}", "wb") as fo:
+        pickle.dump(final_obj, fo)
+
+    with open(f"{out_dir}/frame_info.pickle", "wb") as fo:
+        pickle.dump(new_transitions, fo)
+
+
 def we(arguments):
     """
-    Main function that executes the whole WE `match` procedure.
+    Main function that executes the whole WE `extract` procedure.
 
     Parameters
     ----------
@@ -383,6 +569,7 @@ def we(arguments):
         threads=arguments.threads,
         pcoord=arguments.pcoord,
         auxdata=arguments.auxdata,
+        output_name=arguments.extract_output,
     ):
         """
         Code that goes through an assign file (assign_name) and extracts iteration
@@ -456,19 +643,22 @@ def we(arguments):
             Number of actors/workers for ray to initialize. It will take over all
             CPUs if None.
 
+        pcoord : bool, default: True
+            Boolean confirming if you would like to include the progress coordinate
+            of the last frame in the ``output.pickle`` file. Default to True.
+
         auxdata : list of strings, default: None
             Auxiliary data set you would like to include in the ``output.pickle`` file.
             None means you don't want any. Only includes the last frame.
 
-        pcoord : bool, default: True
-            Boolean confirming if you would like to include the progress coordinate
-            of the last frame in the `output.pickle` file. Default to True.
+        output_name : str, default: output.pickle
+            Name of the output pickle file.
 
         Notes
         =====
         The following files are saved/outputted to disk.
 
-        'output.pickle': pickle obj
+        'output.pickle' : pickle obj
             A list of the form [n_traj, n_frame, [n_iter, n_seg, state_id, [pcoord/auxdata], weight]]. Note that each
             list runs backwards from the target iteration.
 
@@ -584,7 +774,8 @@ def we(arguments):
 
         # Output list
         trace_out_list = sorted(trace_out_list, key=lambda x: (-x[0][0], x[0][1]))
-        with open(f"{out_dir}/output.pickle", "wb") as fo:
+
+        with open(f"{out_dir}/{output_name}", "wb") as fo:
             pickle.dump(trace_out_list, fo)
 
         with open(f"{out_dir}/frame_info.pickle", "wb") as fo:
@@ -601,18 +792,6 @@ def we(arguments):
 
     retain_succ()
 
-
-def standard(arguments):
-    """
-    Main function that executes the whole standard `match` procedure.
-
-    Parameters
-    ----------
-    arguments : argparse.Namespace
-        A Namespace object will all the necessary parameters.
-
-    """
-    pass
 
 def main(arguments):
     """
@@ -642,8 +821,8 @@ if __name__ == "__main__":
         we=True,  # Analyzing a WE simulation
         west_name="west.h5",  # Name of input HDF5 file (e.g., west.h5)
         assign_name="ANALYSIS/C7_EQ/assign.h5",  # Name of input assign.h5 file
-        source_state_num=0,  # Index of the source state as defined in assign.h5.
-        target_state_num=1,  # Index of the target state as defined in assign.h5.
+        source_state_num=0,  # Index of the source state as defined in discretize.
+        target_state_num=1,  # Index of the target state as defined in discretize.
         first_iter=1,  # First iteration to analyze. Inclusive
         last_iter=200,  # Last iteration to analyze. Inclusive. 0 implies it will analyze all labeled iterations.
         trace_basis=True,  # Option to analyze each successful trajectory up till its basis state.
@@ -652,10 +831,11 @@ if __name__ == "__main__":
         out_state_ext=".ncrst",  # Extension of the restart files. Defaults to `seg{out_state_ext}`.
         out_top="system.prmtop",  # Name of the parameter file. Name relative to `$WEST_SIM_ROOT/common_files`.
         out_dir="succ_traj",  # Name of directory to output the trajectories.
+        extract_output="output.pickle",  # Name of the pickle file to be outputted.
         hdf5=False,  # Enable if trajectories are saved with the HDF5 Framework in WESTPA.
         rewrite_weights=False,  # Option to zero out the weights of all segments that are not a successful trajectory.
         pcoord=True,  # Option to output the pcoord into the `output.pickle`.
-        auxdata=['phi', 'psi'],  # Additional auxiliary data to save into `output.pickle`.
+        auxdata=["phi", "psi"],  # Additional auxiliary data to save into `output.pickle`.
         use_ray=True,  # Enable Ray.
         threads=0,  # How many Ray threads/actors to use. Defaults to 0, which wil use all auto-detected resources.
     )

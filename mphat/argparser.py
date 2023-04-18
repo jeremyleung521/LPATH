@@ -86,7 +86,11 @@ def add_common_args(parser=None):
 
     commongroup.add_argument('-od', '--out-dir', '--output-directory', dest='out_dir', default='succ_traj',
                              type=str, help='Directory to save your output files. Path relative to ``$PWD``.')
+    commongroup.add_argument('-st', '--stride', dest='stride', default=1,
+                             type=int, help='Dictates how often to load in the data. Only used in standard MD.')
+
     commongroup.add_argument('--debug', action='store_true', help='Enable debug mode.')
+
 
     wegroup = parser.add_argument_group('WE-specific Shared Parameters')
 
@@ -444,9 +448,6 @@ def process_args(parser):
 def check_argv():
     """
     Check to see if argv > 2 is empty. Print warning if so.
-    
-    Returns
-    -------
 
     """
     import sys

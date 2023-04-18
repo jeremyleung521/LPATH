@@ -102,6 +102,7 @@ if __name__ == "__main__":
         auxdata=['phi', 'psi'],  # Additional auxiliary data to save into `output.pickle`.
         use_ray=False,  # Enable Ray.
         threads=0,  # How many Ray threads/actors to use. Defaults to 0, which wil use all auto-detected resources.
+        extract_output="output.pickle",  # Name of the pickle file to be outputted.
 
         # Match Parameters
         # Note west_name, assign_name and out_dir are repeated from above and removed
