@@ -193,13 +193,12 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
 
     try:
         import h5py
+        with h5py.File(assign_file) as f:
+            for idx, val in enumerate(f['state_labels'][:]):
+                dictionary[idx] = tostr(val)
+        dictionary[len(dictionary)] = '!'  # Unknown state
     except ModuleNotFoundError:
-        log.debug('Could not import h5py')
-
-    with h5py.File(assign_file) as f:
-        for idx, val in enumerate(f['state_labels'][:]):
-            dictionary[idx] = tostr(val)
-    dictionary[len(dictionary)] = '!'  # Unknown state
+        raise ModuleNotFoundError('Could not import h5py. Exiting out.')
 
     return dictionary
 
@@ -250,7 +249,7 @@ def expand_shorter_traj(pathways, dictionary):
 
     Parameters
     ----------
-    pathways : numpy.ndarray
+    pathways : numpy.ndarray or list
         An array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
 
     dictionary: dict
@@ -355,7 +354,7 @@ def export_files(
     try:
         import h5py
     except ModuleNotFoundError:
-        log.debug('Could not import h5py')
+        raise ModuleNotFoundError('Could not import h5py. Exiting out.')
 
     if clusters is None:
         clusters = list(range(1, max(cluster_labels) + 1))
@@ -409,6 +408,10 @@ def determine_rerun(dist_matrix):
     """
     Asks if you want to regenerate the dendrogram.
 
+    Parameters
+    ----------
+    dist_matrix : numpy.ndarray
+        A Numpy array of the distance matrix.
     """
     while True:
         ans = input('Do you want to regenerate the graph with a new threshold (y/[n])?\n')
@@ -470,14 +473,14 @@ def main(arguments):
     dictionary = reassign(data, pathways, dictionary, arguments.assign_name)  # system-specific reassignment of states
 
     # Cleanup
-    expand_shorter_traj(data, dictionary)  # Necessary if pathways are of variable length
+    expand_shorter_traj(pathways, dictionary)  # Necessary if pathways are of variable length
     dist_matrix, weights = gen_dist_matrix(pathways, dictionary, file_name=arguments.dmatrix_save,
                                            out_dir=arguments.out_dir,
                                            remake=arguments.dmatrix_remake)  # Calculate distance matrix
 
     # Visualize the Dendrogram and determine how clusters used to group successful trajectories
-    visualize(dist_matrix, threshold=arguments.dendrogram_threshold,
-              out_dir=arguments.out_dir, show=arguments.dendrogram_show)  # Visualize
+    visualize(dist_matrix, threshold=arguments.dendrogram_threshold, out_dir=arguments.out_dir,
+              show=arguments.dendrogram_show)  # Visualize
     determine_rerun(dist_matrix)
     ncluster = ask_number_cluster()
     cluster_labels = hcluster(dist_matrix, ncluster)

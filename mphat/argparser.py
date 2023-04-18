@@ -13,6 +13,7 @@ mPHAT: minimal Pathway Analysis Histogram Analysis of Trajectories
 
 all_options = ['discretize', 'extract', 'match', 'all']
 
+
 def check_non_neg(value):
     """
     Transform ``value`` into int and make sure it's >= 0.
@@ -439,9 +440,10 @@ def process_args(parser):
 
     return args
 
+
 def check_argv():
     """
-    Check to see if argv is empty. Print warning if so.
+    Check to see if argv > 2 is empty. Print warning if so.
     
     Returns
     -------
