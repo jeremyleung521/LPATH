@@ -35,11 +35,45 @@ def check_non_neg(value):
 
     ValueError
         If value is not an integer or float.
+
     """
     try:
         value = int(value)
         if value < 0:
-            raise argparse.ArgumentTypeError("{} is not a valid iteration number".format(value))
+            raise argparse.ArgumentTypeError("{} is not a valid input.".format(value))
+    except ValueError:
+        raise Exception("{} must be an integer.".format(value))
+
+    return value
+
+
+def check_positive(value):
+    """
+    Transform ``value`` into int and make sure it's > 0 (positive number).
+
+    Parameters
+    ----------
+    value : str or float or int
+        A value to check to see if it's > 0.
+
+    Returns
+    -------
+    value : int
+        Only if int is greater than 0. Will transform it to int in the processes.
+
+    Raises
+    ------
+    argparse.ArgumentTypeError
+        If value is <= 0.
+
+    ValueError
+        If value is not an integer or float.
+
+    """
+    try:
+        value = int(value)
+        if value <= 0:
+            raise argparse.ArgumentTypeError("{} is not a valid positive number.".format(value))
     except ValueError:
         raise Exception("{} must be an integer.".format(value))
 
@@ -86,8 +120,11 @@ def add_common_args(parser=None):
 
     commongroup.add_argument('-od', '--out-dir', '--output-directory', dest='out_dir', default='succ_traj',
                              type=str, help='Directory to save your output files. Path relative to ``$PWD``.')
-    commongroup.add_argument('-st', '--stride', dest='stride', default=1,
-                             type=int, help='Dictates how often to load in the data. Only used in standard MD.')
+    commongroup.add_argument('-st', '--stride', dest='stride', default=1, type=check_positive,
+                             help='Dictates how much data to load. If used in standard MD, this will \
+                                   be the step size (at a per file basis during load time). For a WE simulation, \
+                                   this will be how many sub-tau frames to be exported from each segment, starting \
+                                   from the last frame then counting backwards.')
 
     commongroup.add_argument('--debug', action='store_true', help='Enable debug mode.')
 
@@ -194,9 +231,12 @@ def add_extract_args(parser=None):
                             help='Output progress coordinate (or featurization) into the pickle file. If the \
                                   ``-WE`` flag is specified, the data will be obtained from the H5 file. Otherwise, \
                                   do specify a file name using the ``--extract-featurization`` flag.')
-    extract_io.add_argument('-ef', '-EF', '--extract-featurization', dest='featurization_name', default='input.dat',
+    extract_io.add_argument('-ef', '-EF', '--extract-pcoord', '--extract-featurization', dest='featurization_name',
+                            default=None,
                             help='The path to your feature dataset to be saved in the output pickle file. For most \
-                                  people, this would be the input file used for the ``discretize`` step.')
+                                  people, this would be the input used for the ``discretize`` step. This option \
+                                  is only for standard simulations. You MUST manually specify the ``--pcoord`` flag \
+                                  for this to work.')
 
     raygroup = parser.add_argument_group('Extract Ray options')
 

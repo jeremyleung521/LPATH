@@ -12,10 +12,11 @@ A user-friendly, Python tool for clustering pathways from molecular dynamics and
 Copyright (c) 2023, Anthony Bogetti, Jeremy Leung, Lillian Chong
 
 ### TODO
-- [ ] EXTRACT step only does WE right now, need to extend to plain MD (i.e. a states.npy)
+- [x] EXTRACT step only does WE right now, need to extend to plain MD (i.e. a states.npy)
 - [ ] Usage.rst page
-- [ ] example ipynbs are barebones, need sample files
+- [ ] example ipynbs are bare bones, need sample files
 - [ ] unit testing
+- [ ] extract defaults to last frame of iteration. Implement stride and actually give state to correct frame.
 - [x] command line interface/argparser
 - [x] Sphinx/Read the Docs autodoc
 - [x] Run each tool directly

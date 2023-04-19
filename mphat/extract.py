@@ -25,7 +25,7 @@ from shutil import copyfile
 from os import mkdir
 from copy import deepcopy
 from collections import Counter
-from mphat.io import load_file
+from mphat.io import load_file, expanded_load
 
 log = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ def clean_self_to_self(input_array):
 
 def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num):
     """
-    Generate the source --> states row for the weights. Needed to
+    Count transitions for the source --> states row for the weights. Used to
     calculate the weights of each successful trajectory.
 
     Parameters
@@ -111,6 +111,7 @@ def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num
     -------
     st_weight : float
         Total weight of all the source --> target transitions.
+
     """
     count_row = numpy.zeros(n_states)
     for istate in source_index:
@@ -130,7 +131,7 @@ def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num
 
 def create_pickle_obj(transitions, states, weight, features=None):
     """
-    Main function that transforms a list of frame transitions into
+    Main function that transforms a list of frame transitions into the pickle object. For standard simulations only.
 
     Parameters
     ----------
@@ -164,7 +165,7 @@ def create_pickle_obj(transitions, states, weight, features=None):
     for idx, transition in enumerate(transitions):
         indv_trace = []
         # Add all the frames between target + source. This is controlled by stride, which dictates how often you load.
-        for j in range(int(transition[0]), int(transition[1]+1)):
+        for j in range(int(transition[0]), int(transition[1] + 1)):
             indv_trace.append([1, idx, states[j], *ad_arr, weight])
         output_list.append(deepcopy(indv_trace))
 
@@ -185,7 +186,12 @@ def standard(arguments):
     n_states = max(input_array)
 
     if arguments.pcoord is True:
-        features = numpy.load(arguments.featurization_name, arguments.stride)
+        if arguments.featurization_name is None:
+            log.warning('WARNING: The --pcoord flag is specified but no file is \
+                         specified with --extract-pcoord.')
+            features = None
+        else:
+            features = expanded_load(arguments.featurization_name, arguments.stride)
     else:
         features = None
 
@@ -208,7 +214,7 @@ def standard(arguments):
                                arguments.source_state_num, arguments.target_state_num)
 
     # Generate and write pickle object.
-    final_obj = create_pickle_obj(transitions, input_array, weight/len(transitions), features)
+    final_obj = create_pickle_obj(transitions, input_array, weight / len(transitions), features)
 
     with open(f"{arguments.out_dir}/{arguments.output_name}", "wb") as fo:
         pickle.dump(final_obj, fo)
@@ -217,6 +223,7 @@ def standard(arguments):
         pickle.dump(new_transitions, fo)
 
 
+# Here are functions for WE.
 def we(arguments):
     """
     Main function that executes the whole WE `extract` procedure.
@@ -230,6 +237,46 @@ def we(arguments):
     import h5py
     import westpa.analysis as wa
 
+    def process_ad_arr(pcoord, auxdata, stride, iwalker):
+        """
+        Inner function that deals for preparing ad_arr
+
+        Parameters
+        ----------
+        pcoord : bool
+            Marks whether to add progress coordinate in ad_arr or not.
+
+        auxdata : list or None
+            A list of auxiliary datasets to add or None
+
+        iwalker : westpa.analysis.core.Walker
+            A walker object from ``westpa.analysis`` of relevant segment.
+
+        Returns
+        -------
+        ad_arr : list
+            A list of relevant data to be outputted.
+
+        """
+        ad_arr = []
+        if pcoord is True:
+            if len(iwalker.pcoords.shape) > 1:
+                for item in iwalker.pcoords[-1]:
+                    ad_arr.append(item)
+            else:
+                ad_arr.append(iwalker.pcoords[-1])
+
+        if auxdata is not None:
+            for dataset_name in auxdata:
+                if len(iwalker.auxiliary_data[dataset_name].shape) > 1:
+                    for item in iwalker.auxiliary_data[dataset_name][-1]:
+                        ad_arr.append(item)
+                else:
+                    ad_arr.append(iwalker.auxiliary_data[dataset_name][-1])
+
+        return ad_arr
+
+    # Defining functions if we're using ray...
     if arguments.use_ray:
         import ray
 
@@ -244,21 +291,21 @@ def we(arguments):
                 self.h5run = wa.Run(run_name)
 
             def trace_seg_to_last_state(
-                self,
-                source_state_num,
-                target_state_num,
-                iteration_num,
-                segment_num,
-                first_iter,
-                trace_basis,
-                out_traj,
-                out_traj_ext,
-                out_state_ext,
-                out_top,
-                hdf5,
-                pcoord,
-                auxdata,
-                # tqdm_bar,
+                    self,
+                    source_state_num,
+                    target_state_num,
+                    iteration_num,
+                    segment_num,
+                    first_iter,
+                    trace_basis,
+                    out_traj,
+                    out_traj_ext,
+                    out_state_ext,
+                    out_top,
+                    hdf5,
+                    pcoord,
+                    auxdata,
+                    stride,
             ):
                 """
                 Code that traces a seg to frame it leaves source state. Can run to export trajectories too!
@@ -284,28 +331,14 @@ def we(arguments):
                 indv_trace = []
                 trace = run.iteration(iteration_num).walker(segment_num).trace()
                 traj_len = (
-                    len(run.iteration(iteration_num).walker(segment_num).pcoords) - 1
+                        len(run.iteration(iteration_num).walker(segment_num).pcoords) - 1
                 )  # Length is number of frames in traj + 1 (parent); only caring about the number of frames
 
                 # Going through segs in reverse order
                 for iwalker in reversed(trace):
-                    ad_arr = []
+                    ad_arr = process_ad_arr(pcoord, auxdata, stride, iwalker)
 
-                    if pcoord is True:
-                        if len(iwalker.pcoords.shape) > 1:
-                            for item in iwalker.pcoords[-1]:
-                                ad_arr.append(item)
-                        else:
-                            ad_arr.append(iwalker.pcoords[-1])
-
-                    if auxdata is not None:
-                        for dataset_name in auxdata:
-                            if len(iwalker.auxiliary_data[dataset_name].shape) > 1:
-                                for item in iwalker.auxiliary_data[dataset_name][-1]:
-                                    ad_arr.append(item)
-                            else:
-                                ad_arr.append(iwalker.auxiliary_data[dataset_name][-1])
-
+                    # Test Functions...
                     # ad_arr = numpy.array(list(iwalker.auxiliary_data.values())[:-2])[:,-1]
                     # ad_arr = numpy.insert(ad_arr, 0, iwalker.pcoords[:,0][-1], axis=0)
                     # ad_arr = numpy.array(list(iwalker.auxiliary_data.values())[-2:])[:,-1]
@@ -318,7 +351,7 @@ def we(arguments):
                     ]
                     if iwalker.iteration.summary.name == iteration_num:
                         # Dealing with cases where we're in the first iteration looked at
-                        # Taking only the # first instance in tstate
+                        # Taking only the first instance in tstate
                         term_frame_num = numpy.where(corr_assign == target_state_num)[0][0]
                         if trace_basis is False:
                             if source_state_num in corr_assign[: term_frame_num + 1]:
@@ -339,8 +372,8 @@ def we(arguments):
                                     # Breaking out...
                                     return None, None, None
                                 else:
-                                    # If traj hasn't been in state A, and not in target iteration... add the whole
-                                    # iteration into list
+                                    # If traj hasn't been in state A, and not in target iteration...
+                                    # add the whole iteration into list.
                                     # Also making sure it's not a target -> target transition
                                     indv_trace.append(
                                         [iwalker.iteration.summary.name, iwalker.segment_summary.name, corr_assign[-1],
@@ -403,22 +436,23 @@ def we(arguments):
 
                 return indv_trace, indv_traj, frame_info
     else:
+        # Or the case where we won't!
         def trace_seg_to_last_state(
-            source_state_num,
-            target_state_num,
-            new_file,
-            assign_file,
-            iteration_num,
-            segment_num,
-            trace_basis,
-            out_traj,
-            out_traj_ext,
-            out_state_ext,
-            out_top,
-            hdf5,
-            tqdm_bar,
-            pcoord,
-            auxdata,
+                source_state_num,
+                target_state_num,
+                new_file,
+                assign_file,
+                iteration_num,
+                segment_num,
+                trace_basis,
+                out_traj,
+                out_traj_ext,
+                out_state_ext,
+                out_top,
+                hdf5,
+                tqdm_bar,
+                pcoord,
+                auxdata,
         ):
             """
             Code that traces a seg to frame it leaves source state. Can run to export trajectories too!
@@ -438,28 +472,15 @@ def we(arguments):
             indv_trace = []
             trace = run.iteration(iteration_num).walker(segment_num).trace()
             traj_len = (
-                len(run.iteration(iteration_num).walker(segment_num).pcoords) - 1
+                    len(run.iteration(iteration_num).walker(segment_num).pcoords) - 1
             )  # Length is number of frames in traj + 1 (parent); only caring about the number of frames
 
             tqdm_bar.set_description(f"tracing {iteration_num}.{segment_num}")
             # Going through segs in reverse order
             for iwalker in reversed(trace):
-                ad_arr = []
-                if pcoord is True:
-                    if len(iwalker.pcoords.shape) > 1:
-                        for item in iwalker.pcoords[-1]:
-                            ad_arr.append(item)
-                    else:
-                        ad_arr.append(iwalker.pcoords[-1])
+                ad_arr = process_ad_arr(pcoord, auxdata, stride, iwalker)
 
-                if auxdata is not None:
-                    for dataset_name in auxdata:
-                        if len(iwalker.auxiliary_data[dataset_name].shape) > 1:
-                            for item in iwalker.auxiliary_data[dataset_name][-1]:
-                                ad_arr.append(item)
-                        else:
-                            ad_arr.append(iwalker.auxiliary_data[dataset_name][-1])
-
+                # Test Functions... to be deleted...
                 # ad_arr = numpy.array(list(iwalker.auxiliary_data[dataset])[:-2])[:,-1]
                 # ad_arr = numpy.insert(ad_arr, 0, iwalker.pcoords[:,0][-1], axis=0)
 
@@ -493,8 +514,8 @@ def we(arguments):
                                 run.close()
                                 return None, None, None
                             else:
-                                # If traj hasn't been in state A, and not in target iteration... add
-                                # the whole iteration into list
+                                # If traj hasn't been in state A, and not in target iteration...
+                                # add the whole iteration into list.
                                 # Also making sure it's not a target -> target transition
                                 indv_trace.append(
                                     [iwalker.iteration.summary.name, iwalker.segment_summary.name, corr_assign[-1],
@@ -540,7 +561,7 @@ def we(arguments):
                 elif hdf5 is True:
                     trajectory = wa.HDF5MDTrajectory()
                 else:
-                    print("unable to output trajectory")
+                    log.warning("unable to output trajectory")
                     return indv_trace, None, frame_info
 
                 indv_traj = trajectory(trace)
@@ -549,31 +570,32 @@ def we(arguments):
             else:
                 indv_traj = None
 
-            print(indv_trace)
+            # print(indv_trace)
 
             run.close()
             return indv_trace, indv_traj, frame_info
 
     def retain_succ(
-        west_name=arguments.west_name,
-        assign_name=arguments.assign_name,
-        source_state_num=arguments.source_state_num,
-        target_state_num=arguments.target_state_num,
-        first_iter=arguments.first_iter,
-        last_iter=arguments.last_iter,
-        trace_basis=arguments.trace_basis,
-        out_traj=arguments.out_traj,
-        out_traj_ext=arguments.out_traj_ext,
-        out_state_ext=arguments.out_state_ext,
-        out_top=arguments.out_state_ext,
-        out_dir=arguments.out_dir,
-        hdf5=arguments.hdf5,
-        rewrite_weights=arguments.rewrite_weights,
-        use_ray=arguments.use_ray,
-        threads=arguments.threads,
-        pcoord=arguments.pcoord,
-        auxdata=arguments.auxdata,
-        output_name=arguments.extract_output,
+            west_name=arguments.west_name,
+            assign_name=arguments.assign_name,
+            source_state_num=arguments.source_state_num,
+            target_state_num=arguments.target_state_num,
+            first_iter=arguments.first_iter,
+            last_iter=arguments.last_iter,
+            trace_basis=arguments.trace_basis,
+            out_traj=arguments.out_traj,
+            out_traj_ext=arguments.out_traj_ext,
+            out_state_ext=arguments.out_state_ext,
+            out_top=arguments.out_state_ext,
+            out_dir=arguments.out_dir,
+            hdf5=arguments.hdf5,
+            rewrite_weights=arguments.rewrite_weights,
+            use_ray=arguments.use_ray,
+            threads=arguments.threads,
+            pcoord=arguments.pcoord,
+            auxdata=arguments.auxdata,
+            output_name=arguments.extract_output,
+            stride=arguments.stride,
     ):
         """
         Code that goes through an assign file (assign_name) and extracts iteration
@@ -658,6 +680,9 @@ def we(arguments):
         output_name : str, default: output.pickle
             Name of the output pickle file.
 
+        stride : int, default: 1
+            The number of frames to output per segment.
+
         Notes
         =====
         The following files are saved/outputted to disk.
@@ -726,10 +751,10 @@ def we(arguments):
                                 hdf5,
                                 pcoord,
                                 auxdata,
-                                ))
+                            ))
 
                     while all_ray_tasks:
-                        finished, all_ray_tasks = ray.wait(all_ray_tasks, num_returns=min(n_actors*5,
+                        finished, all_ray_tasks = ray.wait(all_ray_tasks, num_returns=min(n_actors * 5,
                                                                                           len(all_ray_tasks)))
                         results = ray.get(finished)
                         for each_return in results:
@@ -820,6 +845,7 @@ if __name__ == "__main__":
     For calling `extract.py` directly. Note all of the parameters are specified manually here.
     """
     import argparse
+
     args = argparse.Namespace(
         we=True,  # Analyzing a WE simulation
         west_name="west.h5",  # Name of input HDF5 file (e.g., west.h5)

@@ -4,7 +4,7 @@ Discretize your MD trajectories (or WE simulations) into states.
 import logging
 import numpy
 from mphat.extloader import *
-from mphat.io import load_file, output_file
+from mphat.io import expanded_load, output_file
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ def assign(input_array):
     Parameters
     ----------
     input_array : numpy.ndarray or list
-        An array generated from load_file.
+        An array generated from expanded_load.
 
     Returns
     -------
@@ -50,12 +50,9 @@ def main(arguments):
     ----------
     arguments : argparse.Namespace
         A Namespace object will all the necessary parameters.
+
     """
     if arguments.we:
-        # This basically some logic that's wrapped up in WESTTool.main() for convenience.
-        # It needs to be explicitly called like this because the args are captured and set in make_parser_and_process()
-        #   which we don't want to call, because we don't want to make a parser.
-        #   We just want to process the args that "would've" been captured if called from CLI.
         try:
             import westpa
             from westpa.cli.tools import w_assign
@@ -75,6 +72,11 @@ def main(arguments):
             setattr(arguments, 'rcfile', arguments.assign_args.rcfile)
             log.debug("Replacing parameter `rcfile` with `assign_args.rcfile`")
 
+        # This basically some logic that's wrapped up in WESTTool.main() for convenience.
+        # It needs to be explicitly called like this because the args are captured and set in make_parser_and_process()
+        #   which we don't want to call, because we don't want to make a parser.
+        #   We just want to process the args that "would've" been captured if called from CLI.
+
         tool = w_assign.WAssign()
 
         # Prepare and instantiate work manager
@@ -88,7 +90,7 @@ def main(arguments):
             else:
                 tool.work_manager.run()
     else:
-        input_array = load_file(arguments.input_name)
+        input_array = expanded_load(arguments.input_name, arguments.stride)
 
         # Replacing assign_func with what's given
         if arguments.assign_func != 'default_assign':
@@ -97,7 +99,7 @@ def main(arguments):
             sys.path.append(os.getcwd())
 
             assign = get_object(arguments.assign_func)
-            log.warning(f'Replaced assign() with {arguments.assign_func}')
+            log.warning(f'WARNING: Replaced assign() with {arguments.assign_func}')
 
         out_array = assign(input_array)
         output_file(out_array, arguments.output_file)
