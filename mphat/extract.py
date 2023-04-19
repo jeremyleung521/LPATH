@@ -84,6 +84,7 @@ def clean_self_to_self(input_array):
 
     return output_array
 
+
 def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num):
     """
     Generate the source --> states row for the weights. Needed to
@@ -127,7 +128,7 @@ def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num
     return st_weight
 
 
-def create_pickle_obj(transitions, trajectories, weight, features=None):
+def create_pickle_obj(transitions, states, weight, features=None):
     """
     Main function that transforms a list of frame transitions into
 
@@ -137,7 +138,7 @@ def create_pickle_obj(transitions, trajectories, weight, features=None):
         A list of shape (successful transitions, 2). Indicates the start/end frame a transition
         has been made.
 
-    trajectories : list
+    states : list
         A list of the states as inputted.
 
     weight : float
@@ -159,15 +160,16 @@ def create_pickle_obj(transitions, trajectories, weight, features=None):
 
     output_list = []
 
-    #Going through each transition
+    # Going through each transition
     for idx, transition in enumerate(transitions):
         indv_trace = []
         # Add all the frames between target + source. This is controlled by stride, which dictates how often you load.
-        for j in range(int(transition[0]),int(transition[1]+1)):
-            indv_trace.append([1, idx, trajectories[j], *ad_arr, weight])
+        for j in range(int(transition[0]), int(transition[1]+1)):
+            indv_trace.append([1, idx, states[j], *ad_arr, weight])
         output_list.append(deepcopy(indv_trace))
 
     return output_list
+
 
 def standard(arguments):
     """
@@ -184,6 +186,8 @@ def standard(arguments):
 
     if arguments.pcoord is True:
         features = numpy.load(arguments.featurization_name, arguments.stride)
+    else:
+        features = None
 
     source_index = numpy.argwhere(input_array == arguments.source_state_num).flatten()
     target_index = numpy.argwhere(input_array == arguments.target_state_num).flatten()
@@ -204,12 +208,12 @@ def standard(arguments):
                                arguments.source_state_num, arguments.target_state_num)
 
     # Generate and write pickle object.
-    final_obj = create_pickle_obj(transitions, trajectories, weight/len(transitions), arguments.features)
+    final_obj = create_pickle_obj(transitions, input_array, weight/len(transitions), features)
 
-    with open(f"{out_dir}/{output_name}", "wb") as fo:
+    with open(f"{arguments.out_dir}/{arguments.output_name}", "wb") as fo:
         pickle.dump(final_obj, fo)
 
-    with open(f"{out_dir}/frame_info.pickle", "wb") as fo:
+    with open(f"{arguments.out_dir}/frame_info.pickle", "wb") as fo:
         pickle.dump(new_transitions, fo)
 
 
@@ -809,7 +813,6 @@ def main(arguments):
     else:
         log.debug('Running Extract Standard mode.')
         standard(arguments)
-
 
 
 if __name__ == "__main__":

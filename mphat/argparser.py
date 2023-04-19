@@ -91,7 +91,6 @@ def add_common_args(parser=None):
 
     commongroup.add_argument('--debug', action='store_true', help='Enable debug mode.')
 
-
     wegroup = parser.add_argument_group('WE-specific Shared Parameters')
 
     wegroup.add_argument('-we', '-WE', '--weighted-ensemble', '--WEIGHTED-ENSEMBLE', dest='we',
