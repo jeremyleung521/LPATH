@@ -121,10 +121,10 @@ def add_common_args(parser=None):
     commongroup.add_argument('-od', '--out-dir', '--output-directory', dest='out_dir', default='succ_traj',
                              type=str, help='Directory to save your output files. Path relative to ``$PWD``.')
     commongroup.add_argument('-st', '--stride', dest='stride', default=1, type=check_positive,
-                             help='Dictates how much data to load. If used in standard MD, this will \
+                             help='Dictates how much data 33to use in analysis. If used in standard MD, this will \
                                    be the step size (at a per file basis during load time). For a WE simulation, \
-                                   this will be how many sub-tau frames to be exported from each segment, starting \
-                                   from the last frame then counting backwards.')
+                                   this will be how many sub-tau frames used from each segment, starting \
+                                   from the last frame and then counting backwards.')
 
     commongroup.add_argument('--debug', action='store_true', help='Enable debug mode.')
 

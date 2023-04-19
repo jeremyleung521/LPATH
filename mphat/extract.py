@@ -239,7 +239,7 @@ def we(arguments):
 
     def process_ad_arr(pcoord, auxdata, stride, iwalker):
         """
-        Inner function that deals for preparing ad_arr
+        Inner function that deals with preparing ad_arr
 
         Parameters
         ----------
@@ -261,18 +261,18 @@ def we(arguments):
         ad_arr = []
         if pcoord is True:
             if len(iwalker.pcoords.shape) > 1:
-                for item in iwalker.pcoords[-1]:
+                for item in iwalker.pcoords[-1::stride]:
                     ad_arr.append(item)
             else:
-                ad_arr.append(iwalker.pcoords[-1])
+                ad_arr.append(iwalker.pcoords[-1::stride])
 
         if auxdata is not None:
             for dataset_name in auxdata:
                 if len(iwalker.auxiliary_data[dataset_name].shape) > 1:
-                    for item in iwalker.auxiliary_data[dataset_name][-1]:
+                    for item in iwalker.auxiliary_data[dataset_name][-1::stride]:
                         ad_arr.append(item)
                 else:
-                    ad_arr.append(iwalker.auxiliary_data[dataset_name][-1])
+                    ad_arr.append(iwalker.auxiliary_data[dataset_name][-1::stride])
 
         return ad_arr
 
@@ -338,13 +338,6 @@ def we(arguments):
                 for iwalker in reversed(trace):
                     ad_arr = process_ad_arr(pcoord, auxdata, stride, iwalker)
 
-                    # Test Functions...
-                    # ad_arr = numpy.array(list(iwalker.auxiliary_data.values())[:-2])[:,-1]
-                    # ad_arr = numpy.insert(ad_arr, 0, iwalker.pcoords[:,0][-1], axis=0)
-                    # ad_arr = numpy.array(list(iwalker.auxiliary_data.values())[-2:])[:,-1]
-
-                    # pc_arr = iwalker.pcoords[:,1][-1]
-                    # closest_c = numpy.argmin(ad_arr)
                     weight = iwalker.weight
                     corr_assign = assign_file["statelabels"][
                         iwalker.iteration.summary.name - 1, iwalker.segment_summary.name
@@ -368,7 +361,7 @@ def we(arguments):
                             # The segment did not visit the source this iteration.
                             if iwalker.iteration.summary.name != iteration_num:
                                 if target_state_num in corr_assign:
-                                    # Hey, there is a target > target transition.
+                                    # Hey, this is a target > target transition.
                                     # Breaking out...
                                     return None, None, None
                                 else:
@@ -509,7 +502,7 @@ def we(arguments):
                         # The segment did not visit the source this iteration.
                         if iwalker.iteration.summary.name != iteration_num:
                             if target_state_num in corr_assign:
-                                # Hey, there is a target > target transition.
+                                # Hey, this is a target > target transition.
                                 # Breaking out...
                                 run.close()
                                 return None, None, None
