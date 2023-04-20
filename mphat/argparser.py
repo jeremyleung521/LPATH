@@ -256,7 +256,7 @@ def add_extract_args(parser=None):
     extract_we.add_argument('-hdf5', '--hdf5', dest='hdf5', action='store_true', help='')
 
     extract_we.add_argument('--trace-basis', '-b', dest='trace_basis', action='store_true', help='')
-    extract_we.add_argument('-a', '--aux', '--AUX', '--auxdata', '--AUXDATA', dest='auxdata', nargs='*',
+    extract_we.add_argument('-a', '--aux', '--AUX', '--auxdata', '--AUXDATA', dest='auxdata', nargs='*', default=None,
                             action='extend', help='Names of additional auxiliary datasets to be combined.')
     extract_we.add_argument('-aa', '--auxall', action='store_true', dest='auxall',
                             help='Combine all auxiliary datasets.')
@@ -464,18 +464,21 @@ def process_args(parser):
     args = process_assign_args(args)
 
     # Automatically turn on Ray unless no_ray is specified.
-    if (args.step_name in ['extract', 'all']) and args.use_ray:
-        try:
-            import ray
-            if args.no_ray is False:
-                setattr(args, 'use_ray', True)
-            elif args.no_ray is True:
+    if (args.step_name in ['extract', 'all']):
+        if args.use_ray:
+            try:
+                import ray
+                if args.no_ray is False:
+                    setattr(args, 'use_ray', True)
+                elif args.no_ray is True:
+                    setattr(args, 'use_ray', False)
+                    log.debug(f'`no_ray` taking priority, turning ray off.')
+            except (ModuleNotFoundError, ImportError, AttributeError) as e:
                 setattr(args, 'use_ray', False)
-                log.debug(f'`no_ray` taking priority, turning ray off.')
-        except (ModuleNotFoundError, ImportError, AttributeError) as e:
-            setattr(args, 'use_ray', False)
-            log.debug(e)
-            log.debug(f'Unable to load ray. Will proceed without using ray.')
+                log.debug(e)
+                log.debug(f'Unable to load ray. Will proceed without using ray.')
+        if args.auxall:
+            setattr(args, 'aux', [])
 
     # Turn Debugging on!
     if args.debug is True:

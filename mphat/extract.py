@@ -261,18 +261,21 @@ def we(arguments):
         ad_arr = []
         if pcoord is True:
             if len(iwalker.pcoords.shape) > 1:
-                for item in iwalker.pcoords[-1::stride]:
+                for item in iwalker.pcoords[-1]:
                     ad_arr.append(item)
             else:
-                ad_arr.append(iwalker.pcoords[-1::stride])
+                ad_arr.append(iwalker.pcoords[-1])
 
         if auxdata is not None:
+            if len(auxdata) == 0:
+                # auxdata is set to 0 when auxall is called, so grabbing all the aux datasets.
+                auxdata = list(iwalker.auxiliary_data.keys())
             for dataset_name in auxdata:
                 if len(iwalker.auxiliary_data[dataset_name].shape) > 1:
-                    for item in iwalker.auxiliary_data[dataset_name][-1::stride]:
+                    for item in iwalker.auxiliary_data[dataset_name][-1]:
                         ad_arr.append(item)
                 else:
-                    ad_arr.append(iwalker.auxiliary_data[dataset_name][-1::stride])
+                    ad_arr.append(iwalker.auxiliary_data[dataset_name][-1])
 
         return ad_arr
 
