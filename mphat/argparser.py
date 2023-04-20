@@ -256,7 +256,7 @@ def add_extract_args(parser=None):
     extract_we.add_argument('-hdf5', '--hdf5', dest='hdf5', action='store_true', help='')
 
     extract_we.add_argument('--trace-basis', '-b', dest='trace_basis', action='store_true', help='')
-    extract_we.add_argument('-a', '--aux', '--AUX', '--auxdata', '--AUXDATA', dest='auxdata', nargs='*', default=None,
+    extract_we.add_argument('-a', '--aux', '--AUX', '--auxdata', '--AUXDATA', dest='auxdata', nargs='*',
                             action='extend', help='Names of additional auxiliary datasets to be combined.')
     extract_we.add_argument('-aa', '--auxall', action='store_true', dest='auxall',
                             help='Combine all auxiliary datasets.')
