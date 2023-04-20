@@ -305,7 +305,15 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
 
     Z = sch.linkage(distmat_condensed, method="ward")
 
-    sch.dendrogram(Z, no_labels=True, color_threshold=threshold)
+    try:
+        sch.dendrogram(Z, no_labels=True, color_threshold=threshold)
+    except RecursionError as e:
+        # Catch cases where are too many branches in the dendrogram for default recursion to work.
+        import sys
+        sys.setrecursionlimit(100000)
+        log.warning(e)
+        log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
+        sch.dendrogram(Z, no_labels=True, color_threshold=threshold)
 
     try:
         import matplotlib.pyplot as plt
@@ -351,6 +359,7 @@ def export_files(
     Export each group of successful trajectories into independent west.h5 file.
 
     """
+    # TODO: Add option to output pathways object, with might be different from output.pickle after reassignment.
     try:
         import h5py
     except ModuleNotFoundError:

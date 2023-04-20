@@ -240,8 +240,9 @@ def add_extract_args(parser=None):
 
     raygroup = parser.add_argument_group('Extract Ray options')
 
-    raygroup.add_argument('--use-ray', '-R', '--ray', dest='use_ray', action='store_true', help='Use Ray work manager.')
-    raygroup.add_argument('--no-ray', '-NR', dest='no_ray', action='store_true',
+    raygroup.add_argument('--use-ray', '-R', '--ray', dest='use_ray', default=True, action='store_true',
+                          help='Use Ray work manager. On by default.')
+    raygroup.add_argument('--no-ray', '-NR', dest='use_ray', action='store_false',
                           help='Do not use Ray. This overrides ``--use-ray``.')
     raygroup.add_argument('-t', '--threads', type=check_non_neg, default=0, help='Number of threads to use \
                           with Ray. The default of ``0`` uses all available resources detected.')
@@ -258,7 +259,7 @@ def add_extract_args(parser=None):
     extract_we.add_argument('--trace-basis', '-b', dest='trace_basis', action='store_true', help='')
     extract_we.add_argument('-a', '--aux', '--AUX', '--auxdata', '--AUXDATA', dest='auxdata', nargs='*',
                             action='extend', help='Names of additional auxiliary datasets to be combined.')
-    extract_we.add_argument('-aa', '--auxall', action='store_true', dest='auxall',
+    extract_we.add_argument('-aa', '--auxall', nargs='?', dest='auxdata', const=[],
                             help='Combine all auxiliary datasets.')
     extract_we.add_argument('--rewrite-weights', '-rw', action='store_true',
                             help='Option to zero out the weights of all segments that are not part of the successful \
@@ -314,9 +315,9 @@ def add_match_args(parser=None):
                           help='Reassign Method to use. Could be one of the defaults or a module to load. Defaults are \
                                 ``reassign_identity``, ``reassign_statelabel``, and ``reassign_custom``.')
 
-    match_io.add_argument('--remake', '-dR', dest='dmatrix_remake', action='store_false',
-                          help='Remake distance matrix.')
-    match_io.add_argument('--no-remake', '-nd', dest='no_remake', action='store_true',
+    match_io.add_argument('--remake', '-dR', dest='dmatrix_remake', default=True, action='store_true',
+                          help=argparse.SUPPRESS)
+    match_io.add_argument('--no-remake', '-nd', dest='dmatrix_remake', action='store_false',
                           help='Do not remake distance matrix. This overrides `--remake.`')
     match_io.add_argument('--remade-file', '-dF', dest='dmatrix_save', type=str, default='distmat.npy',
                           help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
@@ -469,22 +470,11 @@ def process_args(parser):
         if args.use_ray:
             try:
                 import ray
-                if args.no_ray is False:
-                    setattr(args, 'use_ray', True)
-                elif args.no_ray is True:
-                    setattr(args, 'use_ray', False)
-                    log.debug(f'`no_ray` taking priority, turning ray off.')
+                setattr(args, 'use_ray', True)
             except (ModuleNotFoundError, ImportError, AttributeError) as e:
                 setattr(args, 'use_ray', False)
                 log.debug(e)
                 log.warning(f'WARNING: Unable to load Ray. Will proceed without using Ray.')
-        if args.auxall:
-            setattr(args, 'aux', [])
-
-    # Process match arguments
-    if args.step_name in ['match', 'all']:
-        if args.no_remake and args.dist_remake:
-            setattr(args, 'dist_remake', False)
 
     # Turn Debugging on!
     if args.debug is True:
