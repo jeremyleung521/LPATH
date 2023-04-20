@@ -318,7 +318,7 @@ def add_match_args(parser=None):
                           help='Remake distance matrix.')
     match_io.add_argument('--no-remake', '-nd', dest='no_remake', action='store_true',
                           help='Do not remake distance matrix. This overrides `--remake.`')
-    match_io.add_argument('--remade-file', '-dF', dest='dmatrix_save', type=str, default='distmap.npy',
+    match_io.add_argument('--remade-file', '-dF', dest='dmatrix_save', type=str, default='distmat.npy',
                           help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
                                 specified. Assumed to be in ``out-dir``.')
 
@@ -463,8 +463,9 @@ def process_args(parser):
     # Automatically parse arguments for w_assign
     args = process_assign_args(args)
 
-    # Automatically turn on Ray unless no_ray is specified.
-    if (args.step_name in ['extract', 'all']):
+    # Process extract arguments
+    if args.step_name in ['extract', 'all']:
+        # Automatically turn on Ray unless no_ray is specified. A
         if args.use_ray:
             try:
                 import ray
@@ -476,9 +477,14 @@ def process_args(parser):
             except (ModuleNotFoundError, ImportError, AttributeError) as e:
                 setattr(args, 'use_ray', False)
                 log.debug(e)
-                log.debug(f'Unable to load ray. Will proceed without using ray.')
+                log.warning(f'WARNING: Unable to load Ray. Will proceed without using Ray.')
         if args.auxall:
             setattr(args, 'aux', [])
+
+    # Process match arguments
+    if args.step_name in ['match', 'all']:
+        if args.no_remake and args.dist_remake:
+            setattr(args, 'dist_remake', False)
 
     # Turn Debugging on!
     if args.debug is True:
