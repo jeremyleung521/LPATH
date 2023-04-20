@@ -257,8 +257,8 @@ def add_extract_args(parser=None):
 
     extract_we.add_argument('--trace-basis', '-b', dest='trace_basis', action='store_true', help='')
     extract_we.add_argument('-a', '--aux', '--AUX', '--auxdata', '--AUXDATA', dest='auxdata', nargs='*',
-                            help='Names of additional auxiliary datasets to be combined.')
-    extract_we.add_argument('-aa', '--auxall', action='store_true',
+                            action='extend', help='Names of additional auxiliary datasets to be combined.')
+    extract_we.add_argument('-aa', '--auxall', action='store_true', dest='auxall',
                             help='Combine all auxiliary datasets.')
     extract_we.add_argument('--rewrite-weights', '-rw', action='store_true',
                             help='Option to zero out the weights of all segments that are not part of the successful \
