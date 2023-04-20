@@ -259,11 +259,15 @@ def we(arguments):
 
         """
         ad_arr = []
+        total_frames = iwalker.pcoords.shape[0]
+        stride_step = total_frames // stride
         if pcoord is True:
             if len(iwalker.pcoords.shape) > 1:
+                #for item in iwalker.pcoords[::-stride_step]:
                 for item in iwalker.pcoords[-1]:
                     ad_arr.append(item)
             else:
+                # ad_arr.append(iwalker.pcoords[::-stride_step])
                 ad_arr.append(iwalker.pcoords[-1])
 
         if auxdata is not None:
@@ -272,12 +276,14 @@ def we(arguments):
                 auxdata = list(iwalker.auxiliary_data.keys())
             for dataset_name in auxdata:
                 if len(iwalker.auxiliary_data[dataset_name].shape) > 1:
+                    # for item in iwalker.auxiliary_data[dataset_name][::-stride_step]:
                     for item in iwalker.auxiliary_data[dataset_name][-1]:
                         ad_arr.append(item)
                 else:
+                    # ad_arr.append(iwalker.auxiliary_data[dataset_name][::-stride_step])
                     ad_arr.append(iwalker.auxiliary_data[dataset_name][-1])
 
-        return ad_arr
+        return ad_arr, range(total_frames, -1, stride_step)
 
     # Defining functions if we're using ray...
     if arguments.use_ray:
@@ -317,7 +323,7 @@ def we(arguments):
                 =======
 
                 indv_trace : lst of lst
-                    A list of list containing the iteration and segment numbers of the trace. None if the
+                    A list of lists containing the iteration and segment numbers of the trace. None if the
                     trajectory does not end in the target state.
 
                 indv_traj : obj
@@ -339,18 +345,19 @@ def we(arguments):
 
                 # Going through segs in reverse order
                 for iwalker in reversed(trace):
-                    ad_arr = process_ad_arr(pcoord, auxdata, stride, iwalker)
+                    ad_arr, stride_steps = process_ad_arr(pcoord, auxdata, stride, iwalker)
+                    ad_arr = numpy.asarray(ad_arr)
 
                     weight = iwalker.weight
                     corr_assign = assign_file["statelabels"][
                         iwalker.iteration.summary.name - 1, iwalker.segment_summary.name
                     ]
                     if iwalker.iteration.summary.name == iteration_num:
-                        # Dealing with cases where we're in the first iteration looked at
-                        # Taking only the first instance in tstate
+                        # Dealing with cases where this is the first iteration we're looking at
+                        # If multiple, taking only the first instance we reached tstate
                         term_frame_num = numpy.where(corr_assign == target_state_num)[0][0]
                         if trace_basis is False:
-                            if source_state_num in corr_assign[: term_frame_num + 1]:
+                            if source_state_num in corr_assign[:term_frame_num + 1]:
                                 # Went from source to target in one iteration. neat.
                                 source_frame_num = numpy.where(corr_assign == source_state_num)[0][-1]
                                 indv_trace.append([iteration_num, segment_num, corr_assign[-1], *ad_arr, weight])
@@ -449,6 +456,7 @@ def we(arguments):
                 tqdm_bar,
                 pcoord,
                 auxdata,
+                stride,
         ):
             """
             Code that traces a seg to frame it leaves source state. Can run to export trajectories too!
@@ -474,7 +482,8 @@ def we(arguments):
             tqdm_bar.set_description(f"tracing {iteration_num}.{segment_num}")
             # Going through segs in reverse order
             for iwalker in reversed(trace):
-                ad_arr = process_ad_arr(pcoord, auxdata, stride, iwalker)
+                ad_arr, stride_steps = process_ad_arr(pcoord, auxdata, stride, iwalker)
+                ad_arr = numpy.asarray(ad_arr)
 
                 # Test Functions... to be deleted...
                 # ad_arr = numpy.array(list(iwalker.auxiliary_data[dataset])[:-2])[:,-1]
@@ -487,7 +496,7 @@ def we(arguments):
                     iwalker.iteration.summary.name - 1, iwalker.segment_summary.name
                 ]
                 if iwalker.iteration.summary.name == iteration_num:
-                    # Dealing with cases where we're in the first iteration looked at
+                    # Dealing with cases where this is the first iteration we're looking at
                     # Taking only the first instance in tstate
                     term_frame_num = numpy.where(corr_assign == target_state_num)[0][0]
                     if trace_basis is False:
@@ -747,6 +756,7 @@ def we(arguments):
                                 hdf5,
                                 pcoord,
                                 auxdata,
+                                stride,
                             ))
 
                     while all_ray_tasks:
@@ -788,6 +798,7 @@ def we(arguments):
                                 tqdm_iter,
                                 pcoord,
                                 auxdata,
+                                stride,
                             )
 
                             if trace_output is not None:
