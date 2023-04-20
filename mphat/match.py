@@ -65,7 +65,7 @@ def calc_dist(seq1, seq2, dictionary):
     seq2_str = "".join(dictionary[x] for x in seq2)
 
     km = int(pylcs.lcs_sequence_length(seq1_str, seq2_str))
-    similarity = (2 * km) / (int(seq1_str) + int(seq2_str))
+    similarity = (2 * km) / (int(len(seq1_str)) + int(len(seq2_str)))
 
     return 1 - similarity
 
