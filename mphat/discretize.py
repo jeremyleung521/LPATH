@@ -102,7 +102,7 @@ def main(arguments):
             log.warning(f'WARNING: Replaced assign() with {arguments.assign_func}')
 
         out_array = assign(input_array)
-        output_file(out_array, arguments.output_file)
+        output_file(out_array, arguments.output_name)
 
 
 if __name__ == "__main__":
