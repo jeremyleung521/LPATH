@@ -32,6 +32,69 @@ from mphat.io import load_file, expanded_load
 log = logging.getLogger(__name__)
 
 
+# Here are functions for standard MD.
+def find_min_distance(ref_value, indices):
+    """
+    Search for the closest value in indices that is >= to ref_value.
+
+    Parameters
+    ----------
+    ref_value : int or float
+        Reference point you want to anchor the search.
+
+    indices : list or numpy.ndarray
+        A list or array of potential values you want to search for.
+
+    Returns
+    -------
+    minimum value : float, int
+        The closest value to ref_value in indices.
+
+    """
+    # TODO: SPEED THIS UP
+    # THIS ACTUALLY TAKES QUITE SOME TIME.
+    return min([v for v in indices if v >= ref_value] or [None])
+
+
+def clean_self_to_self(input_array):
+    """
+    Clean up duplicates which might contain self to self transitions.
+
+    Parameters
+    ----------
+    input_array : list
+        A list or numpy array of the shape (n_transitions, 2).
+
+    Returns
+    -------
+    output_array : numpy.ndarray
+        A reduced list or numpy array of the shape (n_transitions, 2).
+
+    """
+    output_array = numpy.asarray(input_array)
+    full_count = Counter(output_array[:, 1])
+
+    # Excluding those that appear only once
+    reduced_keys = [key for (key, count) in full_count.items() if count > 1]
+
+    # For debugging purposes.
+    log.debug(f"Full Count: {full_count}")
+    log.debug(f"Reduced Keys: {reduced_keys}")
+    # Running backwards so indices are maintained.
+    for delete in reduced_keys[::-1]:
+        # Determine indices of where the duplicates happen
+        pop_list = numpy.argwhere(output_array[:, 1] == delete).flatten()
+        pop_list.sort()
+        log.debug(f"All indices where these occur: {pop_list}")
+        # Remove them except for the last instance
+        for j in pop_list[::-1][1:]:
+            input_array.pop(j)
+
+    output_array = numpy.asarray(input_array)
+
+    return output_array
+
+
 def find_transitions(input_array, source_index, target_index):
     """
     Find all successful transitions in standard MD simulations.
@@ -81,67 +144,6 @@ def find_transitions(input_array, source_index, target_index):
     log.debug(f'Indices of all successful transitions: {transitions}')
 
     return source_indices, target_indices, transitions
-
-
-# Here are functions for standard MD.
-def find_min_distance(ref_value, indices):
-    """
-    Search for the closest value in indices that is >= to ref_value.
-
-    Parameters
-    ----------
-    ref_value : int or float
-        Reference point you want to anchor the search.
-
-    indices : list or numpy.ndarray
-        A list or array of potential values you want to search for.
-
-    Returns
-    -------
-    minimum value : float, int
-        The closest value to ref_value in indices.
-
-    """
-    return min([v for v in indices if v >= ref_value] or [None])
-
-
-def clean_self_to_self(input_array):
-    """
-    Clean up duplicates which might contain self to self transitions.
-
-    Parameters
-    ----------
-    input_array : list
-        A list or numpy array of the shape (n_transitions, 2).
-
-    Returns
-    -------
-    output_array : numpy.ndarray
-        A reduced list or numpy array of the shape (n_transitions, 2).
-
-    """
-    output_array = numpy.asarray(input_array)
-    full_count = Counter(output_array[:, 1])
-
-    # Excluding those that appear only once
-    reduced_keys = [key for (key, count) in full_count.items() if count > 1]
-
-    # For debugging purposes.
-    log.debug(f"Full Count: {full_count}")
-    log.debug(f"Reduced Keys: {reduced_keys}")
-    # Running backwards so indices are maintained.
-    for delete in reduced_keys[::-1]:
-        # Determine indices of where the duplicates happen
-        pop_list = numpy.argwhere(output_array[:, 1] == delete).flatten()
-        pop_list.sort()
-        log.debug(f"All indices where these occur: {pop_list}")
-        # Remove them except for the last instance
-        for j in pop_list[::-1][1:]:
-            input_array.pop(j)
-
-    output_array = numpy.asarray(input_array)
-
-    return output_array
 
 
 def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num):
@@ -242,7 +244,9 @@ def standard(arguments):
 
     """
     input_array = load_file(arguments.extract_input, arguments.stride)
-    n_states = max(input_array)
+    # print(f'shape: {input_array.shape}')
+    n_states = len(input_array)
+    # print(n_states)
 
     if arguments.pcoord is True:
         if arguments.featurization_name is None:
@@ -753,7 +757,7 @@ def we(arguments):
         # Variables validation
         if last_iter == 0:
             with h5py.File(assign_name, "r") as assign_file:
-                last_iter = len(assign_file["nsegs"])
+                last_iter = len(assign_file["nsegs"]) - 1
         else:
             assert type(last_iter) is int, "last_iter is not legal and must be int."
 
@@ -924,5 +928,6 @@ if __name__ == "__main__":
         auxdata=["phi", "psi"],  # Additional auxiliary data to save into `output.pickle`.
         use_ray=True,  # Enable Ray.
         threads=0,  # How many Ray threads/actors to use. Defaults to 0, which wil use all auto-detected resources.
+        stride=1,  # How much to stride the dataset
     )
     main(args)
