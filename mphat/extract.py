@@ -246,7 +246,7 @@ def standard(arguments):
         A Namespace object will all the necessary parameters.
 
     """
-    input_array = load_file(arguments.extract_input, 1)
+    input_array = load_file(arguments.extract_input, arguments.stride)
     n_states = len(input_array)
 
     if arguments.pcoord is True:
