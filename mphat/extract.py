@@ -188,7 +188,7 @@ def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num
     # Row Normalize for the probability
     count_row /= sum(count_row)
 
-    st_weight = count_row[source_num, target_num]
+    st_weight = count_row[target_num]
 
     return st_weight
 
