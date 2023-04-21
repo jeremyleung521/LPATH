@@ -64,8 +64,8 @@ def main(arguments):
             setattr(arguments, 'west_name', arguments.input_name)
             log.debug("Replacing parameter `west_name` with `input_name`")
 
-        if arguments.we and arguments.output_name != arguments.output:
-            setattr(arguments, 'output_name', arguments.output_name)
+        if arguments.we and arguments.output_name != arguments.assign_name:
+            setattr(arguments, 'output_name', arguments.assign_name)
             log.debug("Replacing parameter `output_name` with `assign_name`")
 
         if arguments.we and arguments.rcfile != arguments.assign_args.rcfile:
