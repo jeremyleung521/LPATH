@@ -182,7 +182,7 @@ def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num
         for jstate in trajectory[istate:]:
             # If it isn't in the Unknown State.
             if jstate != n_states:
-                count_row[source_num, jstate] += 1
+                count_row[jstate] += 1
                 break
 
     # Row Normalize for the probability
