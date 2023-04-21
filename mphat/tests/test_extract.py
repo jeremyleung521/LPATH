@@ -24,7 +24,7 @@ def test_find_transitions():
     transitions from standard MD actually works as expected.
 
     """
-    test_array = numpy.asarray([0, 2, 2, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 0, 2, 0, 2, 1, 2, 1])
+    test_array = numpy.asarray([0, 2, 2, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 0, 2, 0, 2, 1, 2, 1, 0])
     test_output = (numpy.array([0, 19, 21]), numpy.array([6, 8, 10, 11, 12, 13, 23, 25]), [[0, 6], [19, 23], [21, 23]])
 
     output_array = mphat.extract.find_transitions(test_array, 0, 1)

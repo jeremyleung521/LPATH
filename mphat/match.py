@@ -93,6 +93,7 @@ def load_data(file_name):
         data = pickle.load(f)
 
     npathways = len(data)
+    assert npathways, "Pickle object is empty. As"
     lpathways = max([len(i) for i in data])
     n = len(data[0][0])
 

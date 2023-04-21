@@ -53,6 +53,7 @@ def find_min_distance(ref_value, indices):
     """
     # TODO: SPEED THIS UP
     # THIS ACTUALLY TAKES QUITE SOME TIME.
+
     return min([v for v in indices if v >= ref_value] or [None])
 
 
@@ -139,7 +140,9 @@ def find_transitions(input_array, source_index, target_index):
     # Now do the calculations
     transitions = []
     for val in source_indices:
-        transitions.append([val, find_min_distance(val, target_indices)])
+        check = find_min_distance(val, target_indices)
+        if check is not None:
+            transitions.append([val, check])
 
     log.debug(f'Indices of all successful transitions: {transitions}')
 
@@ -243,10 +246,8 @@ def standard(arguments):
         A Namespace object will all the necessary parameters.
 
     """
-    input_array = load_file(arguments.extract_input, arguments.stride)
-    # print(f'shape: {input_array.shape}')
+    input_array = load_file(arguments.extract_input, 1)
     n_states = len(input_array)
-    # print(n_states)
 
     if arguments.pcoord is True:
         if arguments.featurization_name is None:
@@ -301,6 +302,10 @@ def we(arguments):
 
         auxdata : list or None
             A list of auxiliary datasets to add or None
+
+        stride : int
+            How much to stride the current data.
+
 
         iwalker : westpa.analysis.core.Walker
             A walker object from ``westpa.analysis`` of relevant segment.
@@ -474,7 +479,7 @@ def we(arguments):
                     elif hdf5 is True:
                         trajectory = wa.HDF5MDTrajectory()
                     else:
-                        print("unable to output trajectory")
+                        log.warning("unable to output trajectory")
                         return indv_trace, None, frame_info
 
                     # Extra check such that it won't output past first_iter.
@@ -757,7 +762,7 @@ def we(arguments):
         # Variables validation
         if last_iter == 0:
             with h5py.File(assign_name, "r") as assign_file:
-                last_iter = len(assign_file["nsegs"]) - 1
+                last_iter = len(assign_file["nsegs"])
         else:
             assert type(last_iter) is int, "last_iter is not legal and must be int."
 
@@ -905,6 +910,7 @@ if __name__ == "__main__":
     """
     For calling `extract.py` directly. Note all of the parameters are specified manually here.
     """
+    # TODO: This is broken at the moment.
     import argparse
 
     args = argparse.Namespace(
