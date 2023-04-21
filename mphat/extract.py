@@ -17,17 +17,69 @@ Extract successful trajectories from MD trajectories (or WE simulations).
 #     for all of the above.
 # Make `trace_basis` False to trace only the barrier crossing time.
 
-import pickle
-import numpy
 import logging
-from tqdm.auto import trange
-from shutil import copyfile
-from os import mkdir
-from copy import deepcopy
+import pickle
 from collections import Counter
+from copy import deepcopy
+from os import mkdir
+from shutil import copyfile
+
+import numpy
+from tqdm.auto import trange
+
 from mphat.io import load_file, expanded_load
 
 log = logging.getLogger(__name__)
+
+
+def find_transitions(input_array, source_index, target_index):
+    """
+    Find all successful transitions in standard MD simulations.
+
+    Parameters
+    ----------
+    input_array : numpy.ndarray
+        An array of states assignments. Should be of shape (n_frames).
+
+    source_index : int or float
+        The assignment of the source state.
+
+    target_index : int or float
+        The assignment of the target state.
+
+    Returns
+    -------
+    source_indices : numpy.ndarray
+        An array of all indices where the input data visited the source state.
+
+    target_indices : numpy.ndarray
+        An array of all indices where the input data visited the target state.
+
+    transitions : numpy.ndarray
+        An array of shape (n_transitions, 2) showing all steps.
+
+    """
+    source_indices = numpy.argwhere(input_array == source_index).flatten()
+    target_indices = numpy.argwhere(input_array == target_index).flatten()
+
+    log.debug(f'Indices of source state {source_index}: {source_indices}')
+    log.debug(f'Indices of target state {target_index}: {target_indices}')
+
+    # Doing some sanity checks...
+    assert len(source_indices) > 0, f"None of your frames were assigned to the source state {source_index}."
+    assert len(target_indices) > 0, f"None of your frames were assigned to the target state {target_index}."
+    assert any(target > source for target in target_indices for source in source_indices), \
+        f"None of your target state assignments {target_index} occur after the \
+           last visit to the source state {source_index}."
+
+    # Now do the calculations
+    transitions = []
+    for val in source_indices:
+        transitions.append([val, find_min_distance(val, target_indices)])
+
+    log.debug(f'Indices of all successful transitions: {transitions}')
+
+    return source_indices, target_indices, transitions
 
 
 # Here are functions for standard MD.
@@ -70,12 +122,18 @@ def clean_self_to_self(input_array):
     output_array = numpy.asarray(input_array)
     full_count = Counter(output_array[:, 1])
 
+    # Excluding those that appear only once
     reduced_keys = [key for (key, count) in full_count.items() if count > 1]
 
+    # For debugging purposes.
+    log.debug(f"Full Count: {full_count}")
+    log.debug(f"Reduced Keys: {reduced_keys}")
     # Running backwards so indices are maintained.
     for delete in reduced_keys[::-1]:
         # Determine indices of where the duplicates happen
-        pop_list = numpy.argwhere(output_array[:, 1] == delete).flatten().sort()
+        pop_list = numpy.argwhere(output_array[:, 1] == delete).flatten()
+        pop_list.sort()
+        log.debug(f"All indices where these occur: {pop_list}")
         # Remove them except for the last instance
         for j in pop_list[::-1][1:]:
             input_array.pop(j)
@@ -195,18 +253,8 @@ def standard(arguments):
     else:
         features = None
 
-    source_index = numpy.argwhere(input_array == arguments.source_state_num).flatten()
-    target_index = numpy.argwhere(input_array == arguments.target_state_num).flatten()
-
-    log.debug(f'source_index: {source_index}')
-    log.debug(f'target_index: {target_index}')
-
-    transitions = []
-
-    for val in source_index:
-        transitions.append([val, find_min_distance(val, target_index)])
-
-    log.debug(f'transitions: {transitions}')
+    source_index, target_index, transitions = find_transitions(input_array, arguments.source_state_num,
+                                                               arguments.target_state_num)
 
     new_transitions = clean_self_to_self(transitions)
 
@@ -263,7 +311,7 @@ def we(arguments):
         stride_step = total_frames // stride
         if pcoord is True:
             if len(iwalker.pcoords.shape) > 1:
-                #for item in iwalker.pcoords[::-stride_step]:
+                # for item in iwalker.pcoords[::-stride_step]:
                 for item in iwalker.pcoords[-1]:
                     ad_arr.append(item)
             else:
@@ -548,6 +596,7 @@ def we(arguments):
                 source_frame_num
             except NameError:
                 source_frame_num = 0
+
             # Total number of frames necessary
             start_trace = (traj_len - source_frame_num) + ((len(indv_trace) - 1) * traj_len)
             end_trace = traj_len - term_frame_num
