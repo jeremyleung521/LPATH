@@ -68,9 +68,10 @@ def find_transitions(input_array, source_index, target_index):
     # Doing some sanity checks...
     assert len(source_indices) > 0, f"None of your frames were assigned to the source state {source_index}."
     assert len(target_indices) > 0, f"None of your frames were assigned to the target state {target_index}."
-    assert any(target > source for target in target_indices for source in source_indices), \
-        f"None of your target state assignments {target_index} occur after the \
-           last visit to the source state {source_index}."
+    # This following check is taking too long.
+    # assert any(target > source for target in target_indices for source in source_indices), \
+    #     f"None of your target state assignments {target_index} occur after the \
+    #        last visit to the source state {source_index}."
 
     # Now do the calculations
     transitions = []
