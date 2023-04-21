@@ -270,7 +270,7 @@ def standard(arguments):
     # Generate and write pickle object.
     final_obj = create_pickle_obj(transitions, input_array, weight / len(transitions), features)
 
-    with open(f"{arguments.out_dir}/{arguments.output_name}", "wb") as fo:
+    with open(f"{arguments.out_dir}/{arguments.extract_output}", "wb") as fo:
         pickle.dump(final_obj, fo)
 
     with open(f"{arguments.out_dir}/frame_info.pickle", "wb") as fo:
