@@ -8,16 +8,17 @@ Pattern match your extracted trajectories and cluster pathways classes.
 # allows for > 9 states.
 #
 
-import numpy
 import pickle
-import pylcs
-import logging
-import scipy.cluster.hierarchy as sch
-from sklearn.metrics import pairwise_distances
-from scipy.spatial.distance import squareform
-from tqdm.auto import trange
-from shutil import copyfile
 from os.path import exists
+from shutil import copyfile
+
+import numpy
+import pylcs
+import scipy.cluster.hierarchy as sch
+from scipy.spatial.distance import squareform
+from sklearn.metrics import pairwise_distances
+from tqdm.auto import trange
+
 from mphat.extloader import *
 
 log = logging.getLogger(__name__)
@@ -472,7 +473,7 @@ def main(arguments):
         sys.path.append(os.getcwd())
 
         reassign = get_object(arguments.reassign_method)
-        log.warning(f'Replaced reassign() with {arguments.reassign_method}')
+        log.info(f'INFO: Replaced reassign() with {arguments.reassign_method}')
 
     # Prepping the data + Calculating the distance matrix
     data, pathways = load_data(arguments.input_pickle)

@@ -1,8 +1,8 @@
 """
 Discretize your MD trajectories (or WE simulations) into states.
 """
-import logging
 import numpy
+
 from mphat.extloader import *
 from mphat.io import expanded_load, output_file
 
@@ -99,7 +99,7 @@ def main(arguments):
             sys.path.append(os.getcwd())
 
             assign = get_object(arguments.assign_func)
-            log.warning(f'WARNING: Replaced assign() with {arguments.assign_func}')
+            log.info(f'INFO: Replaced assign() with {arguments.assign_func}')
 
         out_array = assign(input_array)
         output_file(out_array, arguments.output_name)
