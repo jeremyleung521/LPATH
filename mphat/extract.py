@@ -79,14 +79,14 @@ def clean_self_to_self(input_array):
     reduced_keys = [key for (key, count) in full_count.items() if count > 1]
 
     # For debugging purposes.
-    log.debug(f"Full Count: {full_count}")
-    log.debug(f"Reduced Keys: {reduced_keys}")
+    # log.debug(f"Full Count: {full_count}")
+    # log.debug(f"Reduced Keys: {reduced_keys}")
     # Running backwards so indices are maintained.
     for delete in reduced_keys[::-1]:
         # Determine indices of where the duplicates happen
         pop_list = numpy.argwhere(output_array[:, 1] == delete).flatten()
         pop_list.sort()
-        log.debug(f"All indices where these occur: {pop_list}")
+        # log.debug(f"All indices where {delete} occur: {pop_list}")
         # Remove them except for the last instance
         for j in pop_list[::-1][1:]:
             input_array.pop(j)
@@ -165,9 +165,6 @@ def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num
     n_states : int
         Number of total states defined. Does not include the Unknown State.
 
-    source_num : int
-        Index of the source state as defined in ``discretize``.
-
     target_num : int
         Index of the target state as defined in ``discretize``.
 
@@ -181,13 +178,15 @@ def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num
     for istate in source_index:
         for jstate in trajectory[istate:]:
             # If it isn't in the Unknown State.
-            if jstate != n_states:
+            if jstate == source_num:
+                pass
+            elif jstate != n_states:
                 count_row[jstate] += 1
                 break
 
     # Row Normalize for the probability
     count_row /= sum(count_row)
-
+    log.debug(f'Source row for T-matrix: {count_row}')
     st_weight = count_row[target_num]
 
     return st_weight
@@ -265,7 +264,7 @@ def standard(arguments):
     new_transitions = clean_self_to_self(transitions)
 
     weight = count_tmatrix_row(source_index, input_array, n_states,
-                               arguments.source_state_num, arguments.target_state_num)
+                               arguments.target_state_num)
 
     # Generate and write pickle object.
     final_obj = create_pickle_obj(transitions, input_array, weight / len(transitions), features)

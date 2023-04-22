@@ -45,3 +45,17 @@ def test_clean_self_to_self():
     output_array = mphat.extract.clean_self_to_self(test_array)
 
     assert numpy.array_equal(output_array, test_output)
+
+
+def test_count_tmatrix_row():
+    """
+    Tests whether the ``mphat.extract`` ``count_tmatrix_row()` function that calculates
+    weights for standard MD successful trajectories actually works as expected.
+
+    """
+    test_array = numpy.asarray([0, 1, 2, 3, 1, 2, 0, 2, 1, 2, 0, 3, 3, 1, 2, 0, 2, 1, 2, 1, 0])
+    test_output = 0.5
+
+    output_array = mphat.extract.count_tmatrix_row()
+
+    assert output_array == test_output
