@@ -251,7 +251,7 @@ def standard(arguments):
     if arguments.pcoord is True:
         if arguments.featurization_name is None:
             log.warning('WARNING: The --pcoord flag is specified but no file is \
-                         specified with --extract-pcoord.')
+                         specified with --extract-pcoord. Skipping output.')
             features = None
         else:
             features = expanded_load(arguments.featurization_name, arguments.stride)
