@@ -101,7 +101,7 @@ We'll try to discretize a ``multi.h5`` (generated with ``w_multi_west --ibstates
 
 1. Run the following in the command line to run ``w_assign``::
 
-    mphat discretize -I multi.h5 -O ANALYSIS/TEST/assign.h5 \
+    mphat discretize -we -W multi.h5 -A ANALYSIS/TEST/assign.h5 \
         --assign-args "-W multi.h5 -r west.cfg --states-from-config --scheme TEST"
 
 

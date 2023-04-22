@@ -249,9 +249,6 @@ def we(arguments):
         auxdata : list or None
             A list of auxiliary datasets to add or None
 
-        stride : int , default : 1
-            An integer dictating what frames to load.
-
         iwalker : westpa.analysis.core.Walker
             A walker object from ``westpa.analysis`` of relevant segment.
 
@@ -262,14 +259,13 @@ def we(arguments):
 
         """
         ad_arr = []
-        #total_frames = iwalker.pcoords.shape[0]
-        #stride_step = total_frames // stride
+        total_frames = iwalker.pcoords.shape[0]
+        stride_step = total_frames // stride
         if pcoord is True:
-            ad_arr = iwalker.pcoords
             if len(iwalker.pcoords.shape) > 1:
-                # for item in iwalker.pcoords[::-stride_step]:
+                #for item in iwalker.pcoords[::-stride_step]:
                 for item in iwalker.pcoords[-1]:
-                    numpy.append(append(item))
+                    ad_arr.append(item)
             else:
                 # ad_arr.append(iwalker.pcoords[::-stride_step])
                 ad_arr.append(iwalker.pcoords[-1])

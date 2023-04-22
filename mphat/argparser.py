@@ -474,7 +474,7 @@ def process_args(parser):
             except (ModuleNotFoundError, ImportError, AttributeError) as e:
                 setattr(args, 'use_ray', False)
                 log.debug(e)
-                log.warning(f'WARNING: Unable to load Ray. Will proceed without using Ray.')
+                log.info(f'INFO: Unable to load Ray. Will proceed without using Ray.')
 
     # Turn Debugging on!
     if args.debug is True:
