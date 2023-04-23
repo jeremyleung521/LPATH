@@ -122,11 +122,9 @@ def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num
     """
     count_row = numpy.zeros(n_states)
     for istate in source_index:
-        for jstate in trajectory[istate:]:
+        for jstate in trajectory[istate + 1:]:
             # If it isn't in the Unknown State.
-            if jstate == source_num:
-                pass
-            elif jstate != n_states:
+            if jstate != n_states:
                 count_row[jstate] += 1
                 break
 
@@ -220,7 +218,7 @@ def create_pickle_obj(transitions, states, weight, features=None):
         ad_arr = []
     else:
         if isinstance(features, numpy.ndarray):
-            ad_arr = ad_arr.tolist()
+            ad_arr = features.tolist()
         else:
             ad_arr = list(features)
 
