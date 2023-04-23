@@ -27,7 +27,7 @@ from shutil import copyfile
 import numpy
 from tqdm.auto import trange
 
-from mphat.io import load_file, expanded_load
+from mphat.io import load_file, expanded_load, EmptyOutputError
 
 log = logging.getLogger(__name__)
 
@@ -847,6 +847,9 @@ def we(arguments):
 
         # Output list
         trace_out_list = sorted(trace_out_list, key=lambda x: (-x[0][0], x[0][1]))
+
+        if len(trace_out_list) == 0:
+            raise EmptyOutputError
 
         with open(f"{out_dir}/{output_name}", "wb") as fo:
             pickle.dump(trace_out_list, fo)
