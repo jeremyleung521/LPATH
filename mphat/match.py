@@ -98,7 +98,7 @@ def load_data(file_name):
     n = len(data[0][0])
 
     pathways = numpy.zeros((npathways, lpathways, n), dtype=object)
-    # This "Pathways" array should be Iter/Seg/State/auxdata_or_pcoord/weight
+    # This "Pathways" array should be Iter/Seg/State/auxdata_or_pcoord/frame#/weight
 
     return data, pathways
 
@@ -119,7 +119,7 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
         An array with the data necessary to reassign, as extracted from ``output.pickle``.
 
     pathways : numpy.ndarray
-        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
     dictionary : dict
         An empty dictionary obj for mapping ``state_id`` with ``state string``.
@@ -174,7 +174,7 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
         An list with the data necessary to reassign, as extracted from ``output.pickle``.
 
     pathways : numpy.ndarray
-        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
     dictionary : dict
         An empty dictionary obj for mapping ``state_id`` with "state string".
@@ -216,7 +216,7 @@ def reassign_identity(data, pathways, dictionary, assign_file=None):
         An list with the data necessary to reassign, as extracted from ``output.pickle``.
 
     pathways : numpy.ndarray
-        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
     dictionary : dict
         An empty dictionary obj for mapping ``state_id`` with ``state string``.
@@ -252,7 +252,7 @@ def expand_shorter_traj(pathways, dictionary):
     Parameters
     ----------
     pathways : numpy.ndarray or list
-        An array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+        An array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
     dictionary: dict
         Maps each state_id to a corresponding string.
