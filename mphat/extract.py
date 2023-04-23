@@ -229,7 +229,7 @@ def create_pickle_obj(transitions, states, weight, features=None):
         indv_trace = []
         # Add all the frames between target + source. This is controlled by stride, which dictates how often you load.
         for j in range(int(transition[0]), int(transition[1] + 1)):
-            indv_trace.append([1, idx, states[j], *ad_arr[j], weight])
+            indv_trace.append([1, idx, states[j], *ad_arr[j], j, weight])
         output_list.append(deepcopy(indv_trace))
 
     return output_list
@@ -244,7 +244,7 @@ def standard(arguments):
         A Namespace object will all the necessary parameters.
     """
     input_array = load_file(arguments.extract_input, arguments.stride)
-    n_states = len(input_array)
+    n_states = len(input_array) - 1
 
     if arguments.pcoord is True:
         if arguments.featurization_name is None:
