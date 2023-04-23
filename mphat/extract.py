@@ -215,7 +215,7 @@ def create_pickle_obj(transitions, states, weight, features=None):
 
     """
     if features is None:
-        ad_arr = []
+        ad_arr = [[] for _ in range(len(states))]
     else:
         if isinstance(features, numpy.ndarray):
             ad_arr = features.tolist()
@@ -264,7 +264,7 @@ def standard(arguments):
     weight = count_tmatrix_row(source_index, input_array, n_states, arguments.target_state_num)
 
     # Generate and write pickle object.
-    final_obj = create_pickle_obj(transitions, input_array, weight / len(transitions), features)
+    final_obj = create_pickle_obj(new_transitions, input_array, weight / len(transitions), features)
 
     with open(f"{arguments.out_dir}/{arguments.extract_output}", "wb") as fo:
         pickle.dump(final_obj, fo)
