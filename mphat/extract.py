@@ -92,7 +92,7 @@ def clean_self_to_self(input_array):
     return output_array
 
 
-def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num):
+def count_tmatrix_row(source_index, trajectory, n_states, target_num):
     """
     Count transitions for the source --> states row for the weights. Used to
     calculate the weights of each successful trajectory.
@@ -261,8 +261,7 @@ def standard(arguments):
 
     new_transitions = clean_self_to_self(transitions)
 
-    weight = count_tmatrix_row(source_index, input_array, n_states,
-                               arguments.target_state_num)
+    weight = count_tmatrix_row(source_index, input_array, n_states, arguments.target_state_num)
 
     # Generate and write pickle object.
     final_obj = create_pickle_obj(transitions, input_array, weight / len(transitions), features)
