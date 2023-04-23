@@ -96,6 +96,50 @@ def clean_self_to_self(input_array):
     return output_array
 
 
+def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num):
+    """
+    Count transitions for the source --> states row for the weights. Used to
+    calculate the weights of each successful trajectory.
+
+    Parameters
+    ----------
+    source_index : numpy.ndarray
+        An array of indices where it last visited the source state.
+
+    trajectory : numpy.ndarray
+        A list of the states as inputted.
+
+    n_states : int
+        Number of total states defined. Does not include the Unknown State.
+
+    source_num : int
+        Index of the source state as defined in ``discretize``.
+
+    target_num : int
+        Index of the target state as defined in ``discretize``.
+
+    Returns
+    -------
+    st_weight : float
+        Total weight of all the source --> target transitions.
+
+    """
+    count_row = numpy.zeros(n_states)
+    for istate in source_index:
+        for jstate in trajectory[istate + 1:]:
+            # If it isn't in the Unknown State.
+            if jstate != n_states:
+                count_row[jstate] += 1
+                break
+
+    # Row Normalize for the probability
+    count_row /= sum(count_row)
+    log.debug(f'Source row for T-matrix: {count_row}')
+    st_weight = count_row[target_num]
+
+    return st_weight
+
+
 def find_transitions(input_array, source_index, target_index):
     """
     Find all successful transitions in standard MD simulations.
@@ -149,52 +193,6 @@ def find_transitions(input_array, source_index, target_index):
     return source_indices, target_indices, transitions
 
 
-def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num):
-    """
-    Count transitions for the source --> states row for the weights. Used to
-    calculate the weights of each successful trajectory.
-
-    Parameters
-    ----------
-    source_index : numpy.ndarray
-        An array of indices where it last visited the source state.
-
-    trajectory : numpy.ndarray
-        A list of the states as inputted.
-
-    n_states : int
-        Number of total states defined. Does not include the Unknown State.
-
-    source_num : int
-        Index of the source state as defined in ``discretize``.
-
-    target_num : int
-        Index of the target state as defined in ``discretize``.
-
-    Returns
-    -------
-    st_weight : float
-        Total weight of all the source --> target transitions.
-
-    """
-    count_row = numpy.zeros(n_states)
-    for istate in source_index:
-        for jstate in trajectory[istate:]:
-            # If it isn't in the Unknown State.
-            if jstate == source_num:
-                pass
-            elif jstate != n_states:
-                count_row[jstate] += 1
-                break
-
-    # Row Normalize for the probability
-    count_row /= sum(count_row)
-    log.debug(f'Source row for T-matrix: {count_row}')
-    st_weight = count_row[target_num]
-
-    return st_weight
-
-
 def create_pickle_obj(transitions, states, weight, features=None):
     """
     Main function that transforms a list of frame transitions into the pickle object. For standard simulations only.
@@ -224,7 +222,7 @@ def create_pickle_obj(transitions, states, weight, features=None):
         ad_arr = []
     else:
         if isinstance(features, numpy.ndarray):
-            ad_arr = ad_arr.tolist()
+            ad_arr = features.tolist()
         else:
             ad_arr = list(features)
 
