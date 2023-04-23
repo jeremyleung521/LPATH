@@ -86,14 +86,14 @@ def load_data(file_name):
         A list with the data necessary to reassign, as extracted from ``output.pickle``.
 
     pathways : numpy.ndarray
-        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
     """
     with open(file_name, "rb") as f:
         data = pickle.load(f)
 
     npathways = len(data)
-    assert npathways, "Pickle object is empty. As"
+    assert npathways, "Pickle object is empty. Are you sure there are transitions?"
     lpathways = max([len(i) for i in data])
     n = len(data[0][0])
 
@@ -285,7 +285,7 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmap.npy", out_dir="succ
 
     if not exists(new_name) or remake is True:
         distmat = pairwise_distances(
-            X=path_strings, metric=lambda X, Y: calc_dist(X, Y, dictionary)
+            X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary)
         )
         numpy.save(file_name, distmat)
 
@@ -305,17 +305,17 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
 
     distmat_condensed = squareform(distmat, checks=False)
 
-    Z = sch.linkage(distmat_condensed, method="ward")
+    z = sch.linkage(distmat_condensed, method="ward")
 
     try:
-        sch.dendrogram(Z, no_labels=True, color_threshold=threshold)
+        sch.dendrogram(z, no_labels=True, color_threshold=threshold)
     except RecursionError as e:
         # Catch cases where are too many branches in the dendrogram for default recursion to work.
         import sys
         sys.setrecursionlimit(100000)
         log.warning(e)
         log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
-        sch.dendrogram(Z, no_labels=True, color_threshold=threshold)
+        sch.dendrogram(z, no_labels=True, color_threshold=threshold)
 
     try:
         import matplotlib.pyplot as plt
@@ -339,10 +339,10 @@ def hcluster(distmat, n_clusters):
     """
     distmat_condensed = squareform(distmat, checks=False)
 
-    Z = sch.linkage(distmat_condensed, method="ward")
+    z = sch.linkage(distmat_condensed, method="ward")
 
     # (Hyper Parameter t=number of clustesr)
-    cluster_labels = sch.fcluster(Z, t=n_clusters, criterion="maxclust")
+    cluster_labels = sch.fcluster(z, t=n_clusters, criterion="maxclust")
 
     return cluster_labels
 
