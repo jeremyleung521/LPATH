@@ -74,10 +74,15 @@ def clean_self_to_self(input_array):
 
     reduced_keys = [key for (key, count) in full_count.items() if count > 1]
 
+    # For debugging purposes.
+    # log.debug(f"Full Count: {full_count}")
+    # log.debug(f"Reduced Keys: {reduced_keys}")
     # Running backwards so indices are maintained.
     for delete in reduced_keys[::-1]:
         # Determine indices of where the duplicates happen
-        pop_list = numpy.argwhere(output_array[:, 1] == delete).flatten().sort()
+        pop_list = numpy.argwhere(output_array[:, 1] == delete).flatten()
+        pop_list.sort()
+        # log.debug(f"All indices where {delete} occur: {pop_list}")
         # Remove them except for the last instance
         for j in pop_list[::-1][1:]:
             input_array.pop(j)
@@ -103,9 +108,6 @@ def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num
     n_states : int
         Number of total states defined. Does not include the Unknown State.
 
-    source_num : int
-        Index of the source state as defined in ``discretize``.
-
     target_num : int
         Index of the target state as defined in ``discretize``.
 
@@ -119,16 +121,71 @@ def count_tmatrix_row(source_index, trajectory, n_states, source_num, target_num
     for istate in source_index:
         for jstate in trajectory[istate:]:
             # If it isn't in the Unknown State.
-            if jstate != n_states:
-                count_row[source_num, jstate] += 1
+            if jstate == source_num:
+                pass
+            elif jstate != n_states:
+                count_row[jstate] += 1
                 break
 
     # Row Normalize for the probability
     count_row /= sum(count_row)
-
-    st_weight = count_row[source_num, target_num]
+    log.debug(f'Source row for T-matrix: {count_row}')
+    st_weight = count_row[target_num]
 
     return st_weight
+
+
+def find_transitions(input_array, source_index, target_index):
+    """
+    Find all successful transitions in standard MD simulations.
+
+    Parameters
+    ----------
+    input_array : numpy.ndarray
+        An array of states assignments. Should be of shape (n_frames).
+
+    source_index : int or float
+        The assignment of the source state.
+
+    target_index : int or float
+        The assignment of the target state.
+
+    Returns
+    -------
+    source_indices : numpy.ndarray
+        An array of all indices where the input data visited the source state.
+
+    target_indices : numpy.ndarray
+        An array of all indices where the input data visited the target state.
+
+    transitions : numpy.ndarray
+        An array of shape (n_transitions, 2) showing all steps.
+
+    """
+    source_indices = numpy.argwhere(input_array == source_index).flatten()
+    target_indices = numpy.argwhere(input_array == target_index).flatten()
+
+    log.debug(f'Indices of source state {source_index}: {source_indices}')
+    log.debug(f'Indices of target state {target_index}: {target_indices}')
+
+    # Doing some sanity checks...
+    assert len(source_indices) > 0, f"None of your frames were assigned to the source state {source_index}."
+    assert len(target_indices) > 0, f"None of your frames were assigned to the target state {target_index}."
+    # This following check is taking too long.
+    # assert any(target > source for target in target_indices for source in source_indices), \
+    #     f"None of your target state assignments {target_index} occur after the \
+    #        last visit to the source state {source_index}."
+
+    # Now do the calculations
+    transitions = []
+    for val in source_indices:
+        check = find_min_distance(val, target_indices)
+        if check is not None:
+            transitions.append([val, check])
+
+    log.debug(f'Indices of all successful transitions: {transitions}')
+
+    return source_indices, target_indices, transitions
 
 
 def create_pickle_obj(transitions, states, weight, features=None):
@@ -177,48 +234,36 @@ def create_pickle_obj(transitions, states, weight, features=None):
 def standard(arguments):
     """
     Main function that executes the whole standard `extract` procedure.
-
     Parameters
     ----------
     arguments : argparse.Namespace
         A Namespace object will all the necessary parameters.
-
     """
     input_array = load_file(arguments.extract_input, arguments.stride)
-    n_states = max(input_array)
+    n_states = len(input_array)
 
     if arguments.pcoord is True:
         if arguments.featurization_name is None:
             log.warning('WARNING: The --pcoord flag is specified but no file is \
-                         specified with --extract-pcoord.')
+                         specified with --extract-pcoord. Skipping output.')
             features = None
         else:
             features = expanded_load(arguments.featurization_name, arguments.stride)
     else:
         features = None
 
-    source_index = numpy.argwhere(input_array == arguments.source_state_num).flatten()
-    target_index = numpy.argwhere(input_array == arguments.target_state_num).flatten()
-
-    log.debug(f'source_index: {source_index}')
-    log.debug(f'target_index: {target_index}')
-
-    transitions = []
-
-    for val in source_index:
-        transitions.append([val, find_min_distance(val, target_index)])
-
-    log.debug(f'transitions: {transitions}')
+    source_index, target_index, transitions = find_transitions(input_array, arguments.source_state_num,
+                                                               arguments.target_state_num)
 
     new_transitions = clean_self_to_self(transitions)
 
     weight = count_tmatrix_row(source_index, input_array, n_states,
-                               arguments.source_state_num, arguments.target_state_num)
+                               arguments.target_state_num)
 
     # Generate and write pickle object.
-    final_obj = create_pickle_obj(new_transitions, input_array, weight / len(new_transitions), features)
+    final_obj = create_pickle_obj(transitions, input_array, weight / len(transitions), features)
 
-    with open(f"{arguments.out_dir}/{arguments.output_name}", "wb") as fo:
+    with open(f"{arguments.out_dir}/{arguments.extract_output}", "wb") as fo:
         pickle.dump(final_obj, fo)
 
 
