@@ -57,6 +57,6 @@ def test_count_tmatrix_row():
     test_source_index = numpy.array(numpy.where(test_array == 0))[0]
     test_output = 0.4
 
-    output_array = mphat.extract.count_tmatrix_row(test_source_index, test_array, 3, 0, 1)
+    output_array = mphat.extract.count_tmatrix_row(test_source_index, test_array, 3, 1)
 
     assert output_array == test_output
