@@ -320,11 +320,11 @@ def add_match_args(parser=None):
                                 ``reassign_identity``, ``reassign_statelabel``, ``reassign_segid`` , \
                                 and ``reassign_custom``.')
     match_io.add_argument('--subsequence', '-seq', '--longest-common-subsequence', dest='longest_subsequence',
-                          action='save_true', default=True,
+                          action='store_true', default=True,
                           help='Use the longest common subsequence metric. The final answer is a total of common \
                                 discontinuous characters. This is the default.')
     match_io.add_argument('--substring', '-str', '--longest-common-substring', dest='longest_subsequence',
-                          action='save_false',
+                          action='store_false',
                           help='Use the longest common substring metric. The final answer is a length of common \
                                 continuous characters. This is not the default and (probably) should only be used when \
                                 comparing segment ids with ``trace_basis`` turned on in ``extract``. Overrides \
@@ -332,7 +332,7 @@ def add_match_args(parser=None):
 
     match_io.add_argument('--remake', '-dR', dest='dmatrix_remake', default=True, action='store_true',
                           help=argparse.SUPPRESS)
-    match_io.add_argument('--no-remake', '-nd', dest='dmatrix_remake', action='store_false',
+    match_io.add_argument('--no-remake', '-dN', '-nd', dest='dmatrix_remake', action='store_false',
                           help='Do not remake distance matrix. This overrides `--remake.`')
     match_io.add_argument('--remade-file', '-dF', dest='dmatrix_save', type=str, default='distmat.npy',
                           help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
