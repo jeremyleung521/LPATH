@@ -190,7 +190,7 @@ def find_transitions(input_array, source_index, target_index):
     return source_indices, target_indices, transitions
 
 
-def create_pickle_obj(transitions, states, weight, features=None, stride=1):
+def create_pickle_obj(transitions, states, weight, features=None):
     """
     Main function that transforms a list of frame transitions into the pickle object. For standard simulations only.
 
