@@ -219,7 +219,7 @@ def create_pickle_obj(transitions, states, weight, features=None):
 
     """
     if features is None:
-        ad_arr = []
+        ad_arr = [[] for _ in range(len(states))]
     else:
         if isinstance(features, numpy.ndarray):
             ad_arr = features.tolist()
