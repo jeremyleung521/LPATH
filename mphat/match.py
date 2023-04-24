@@ -308,6 +308,17 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
     z = sch.linkage(distmat_condensed, method="ward")
 
     try:
+        import matplotlib.pyplot as plt
+    except (ModuleNotFoundError, ImportError) as e:
+        log.debug(e)
+        log.debug(f"Can not import matplotlib.")
+        return
+
+    # Clean slate.
+    plt.cla()
+
+    # Plot dendrogram
+    try:
         sch.dendrogram(z, no_labels=True, color_threshold=threshold)
     except RecursionError as e:
         # Catch cases where are too many branches in the dendrogram for default recursion to work.
@@ -317,16 +328,9 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
         log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
         sch.dendrogram(z, no_labels=True, color_threshold=threshold)
 
-    try:
-        import matplotlib.pyplot as plt
-    except (ModuleNotFoundError, ImportError) as e:
-        log.debug(e)
-        log.debug(f"Can not import matplotlib.")
-        return
-
     plt.axhline(y=threshold, c="k")
     plt.ylabel("distance")
-    plt.xlabel("pathway")
+    plt.xlabel("pathways")
     plt.savefig(f"{out_dir}/dendrogram.pdf")
     if show:
         plt.show()
@@ -341,7 +345,7 @@ def hcluster(distmat, n_clusters):
 
     z = sch.linkage(distmat_condensed, method="ward")
 
-    # (Hyper Parameter t=number of clustesr)
+    # (Hyper Parameter t=number of cluster)
     cluster_labels = sch.fcluster(z, t=n_clusters, criterion="maxclust")
 
     return cluster_labels
