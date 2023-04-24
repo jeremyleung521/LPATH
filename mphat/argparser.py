@@ -121,7 +121,7 @@ def add_common_args(parser=None):
     commongroup.add_argument('-od', '--out-dir', '--output-directory', dest='out_dir', default='succ_traj',
                              type=str, help='Directory to save your output files. Path relative to ``$PWD``.')
     commongroup.add_argument('-st', '--stride', dest='stride', default=1, type=check_positive,
-                             help='Dictates how much data 33to use in analysis. If used in standard MD, this will \
+                             help='Dictates how much data to use in analysis. If used in standard MD, this will \
                                    be the step size (at a per file basis during load time). For a WE simulation, \
                                    this will be how many sub-tau frames used from each segment, starting \
                                    from the last frame and then counting backwards.')
@@ -237,6 +237,10 @@ def add_extract_args(parser=None):
                                   people, this would be the input used for the ``discretize`` step. This option \
                                   is only for standard simulations. You MUST manually specify the ``--pcoord`` flag \
                                   for this to work.')
+    extract_io.add_argument('-fs', '--feature-stride', dest='feature_stride', default=1, type=check_positive,
+                            help='Dictates the step size to which the ``--extract-featurization`` is read in. \
+                                   You will want this to match ``--stride`` used in ``discretize``. \
+                                   Ignored for a WE simulation.')
 
     raygroup = parser.add_argument_group('Extract Ray options')
 

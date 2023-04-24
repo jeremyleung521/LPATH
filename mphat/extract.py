@@ -88,6 +88,7 @@ def clean_self_to_self(input_array):
             input_array.pop(j)
 
     output_array = numpy.asarray(input_array)
+    log.debug(f'Indices of all true successful transitions: {output_array}')
 
     return output_array
 
@@ -184,12 +185,12 @@ def find_transitions(input_array, source_index, target_index):
         if check is not None:
             transitions.append([val, check])
 
-    log.debug(f'Indices of all successful transitions: {transitions}')
+    log.debug(f'Indices of all potentially successful transitions: {transitions}')
 
     return source_indices, target_indices, transitions
 
 
-def create_pickle_obj(transitions, states, weight, features=None):
+def create_pickle_obj(transitions, states, weight, features=None, stride=1):
     """
     Main function that transforms a list of frame transitions into the pickle object. For standard simulations only.
 
@@ -252,7 +253,7 @@ def standard(arguments):
                          specified with --extract-pcoord. Skipping output.')
             features = None
         else:
-            features = expanded_load(arguments.featurization_name, arguments.stride)
+            features = expanded_load(arguments.featurization_name, arguments.feature_stride)
     else:
         features = None
 

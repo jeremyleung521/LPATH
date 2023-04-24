@@ -30,8 +30,8 @@ Molecular Dynamics
 
 Discretize
 __________
-
-An example ``assign`` function (in a file called ``module.py``) for assigning two states based on the phi/psi angle::
+In this step, we will assign each frame of an MD trajectory based on the phi/psi dihedral angles saved in ``dihedral.npy``.
+Here is an example ``assign`` function (in a file called ``module.py``) used for assigning states::
 
     def assign_dih(input_array):
         """
@@ -58,7 +58,7 @@ An example ``assign`` function (in a file called ``module.py``) for assigning tw
             elif val[0] >= 25 and val[0] <= 90 and val[1] >= -55 and val[1] <= 0:  # Phi/Psi for C7ax
                 state_list.append(2)
             else:
-                state_list.append(-1)
+                state_list.append(3)
 
         return state_list
 
@@ -67,14 +67,21 @@ We will monkey-patch this function into ``mPHAT``.
 
 1. From the command line, run the following::
 
-    mphat discretize -I dihedral.npy -O states.npy -af module.assign_dih
+    mphat discretize -I dihedral.npy -O states.npy -af module.assign_dih --stride 100
 
-2. This will generate a ``states.npy`` file to be used in the ``extract`` step.
+
+
+2. We've read in ``dihedral.npy`` with a stride step of 100. This smaller dataset will be discretized with module.assign_dih. This will generate a ``states.npy`` file to be used in the ``extract`` step.
 
 Extract
 _______
+In this step, we will identify any successful transitions in the trajectory. We will be looking at the C7:sub:`eq` to C7:sub:`ax` transition.
+Since we already read in the data in stride steps of 100 in `discretize`, we do not need to use ``--stride`` again, unless you want to read in extra features.
 
-[UNDER CONSTRUCTION]
+1. From the command line, run the following::
+
+    mphat extract --extract-input states.npy --extract-output pathways.pickle --source-state 1 --target-state 2
+
 
 
 Match
