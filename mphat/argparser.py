@@ -329,9 +329,9 @@ def add_match_args(parser=None):
 
     match_io.add_argument('-dt', '--dendro-threshold', '--dendrogram-threshold', dest='dendrogram_threshold',
                           type=check_non_neg, default=0.5, help='Horizontal threshold line for the dendrogram.')
-    match_io.add_argument('-ds', '--dendro-show', '--dendrogram-show', dest='dendrogram_show', action='store_true',
-                          help='Show dendrogram with ``plt.show()``.')
-    match_io.add_argument('-dh', '--dendro-hide', '--dendrogram-hide', dest='dendrogram_hide', action='store_true',
+    match_io.add_argument('-ds', '--dendro-show', '--dendrogram-show', dest='dendrogram_show', default=True,
+                          action='store_true', help='Show dendrogram with ``plt.show()``.')
+    match_io.add_argument('-dh', '--dendro-hide', '--dendrogram-hide', dest='dendrogram_show', action='store_false',
                           help='Do not show dendrogram. Overrides ``--dendrogram-show``.')
     match_io.add_argument('-c', '--clusters', dest='clusters', default=None, nargs='*',
                           help='Clusters to export. 0-indexed. The default ``None`` will output all clusters.')
