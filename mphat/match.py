@@ -285,7 +285,7 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmap.npy", out_dir="succ
 
     if not exists(new_name) or remake is True:
         distmat = pairwise_distances(
-            X=path_strings, metric=lambda X, Y: calc_dist(X, Y, dictionary)
+            X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary)
         )
         numpy.save(file_name, distmat)
 
@@ -305,17 +305,7 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
 
     distmat_condensed = squareform(distmat, checks=False)
 
-    Z = sch.linkage(distmat_condensed, method="ward")
-
-    try:
-        sch.dendrogram(Z, no_labels=True, color_threshold=threshold)
-    except RecursionError as e:
-        # Catch cases where are too many branches in the dendrogram for default recursion to work.
-        import sys
-        sys.setrecursionlimit(100000)
-        log.warning(e)
-        log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
-        sch.dendrogram(Z, no_labels=True, color_threshold=threshold)
+    z = sch.linkage(distmat_condensed, method="ward")
 
     try:
         import matplotlib.pyplot as plt
@@ -324,12 +314,23 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
         log.debug(f"Can not import matplotlib.")
         return
 
-    ax = plt.gca()
-    if len(ax.lines) > 0:
-        ax.lines.remove(ax.lines[0])
+    # Clean slate.
+    plt.cla()
+
+    # Plot dendrogram
+    try:
+        sch.dendrogram(z, no_labels=True, color_threshold=threshold)
+    except RecursionError as e:
+        # Catch cases where are too many branches in the dendrogram for default recursion to work.
+        import sys
+        sys.setrecursionlimit(100000)
+        log.warning(e)
+        log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
+        sch.dendrogram(z, no_labels=True, color_threshold=threshold)
+
     plt.axhline(y=threshold, c="k")
     plt.ylabel("distance")
-    plt.xlabel("pathway")
+    plt.xlabel("pathways")
     plt.savefig(f"{out_dir}/dendrogram.pdf")
     if show:
         plt.show()
@@ -342,10 +343,10 @@ def hcluster(distmat, n_clusters):
     """
     distmat_condensed = squareform(distmat, checks=False)
 
-    Z = sch.linkage(distmat_condensed, method="ward")
+    z = sch.linkage(distmat_condensed, method="ward")
 
-    # (Hyper Parameter t=number of clustesr)
-    cluster_labels = sch.fcluster(Z, t=n_clusters, criterion="maxclust")
+    # (Hyper Parameter t=number of cluster)
+    cluster_labels = sch.fcluster(z, t=n_clusters, criterion="maxclust")
 
     return cluster_labels
 
