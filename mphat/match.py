@@ -324,6 +324,9 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
         log.debug(f"Can not import matplotlib.")
         return
 
+    ax = plt.gca()
+    if len(ax.lines) > 0:
+        ax.lines.remove(ax.lines[0])
     plt.axhline(y=threshold, c="k")
     plt.ylabel("distance")
     plt.xlabel("pathway")
