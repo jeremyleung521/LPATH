@@ -330,7 +330,7 @@ def we(arguments):
 
         return ad_arr
 
-    def frame_range(terminate, trace_basis, source_frame_num, term_frame_num, stride_step):
+    def frame_range(source_frame_num, term_frame_num, n_frames, stride_step):
         """
         Generator the frames we need to output based on ``stride_step`` and ``trace_basis``.
         Basically a replacement ``range`` object with extra checks for outputting.
@@ -338,17 +338,14 @@ def we(arguments):
 
         Parameters
         ----------
-        terminate : bool
-            True if we reached source this frame. Else not.
-
-        trace_basis : bool
-            Shows whether we're outputting just the transition or all the way back.
-
         source_frame_num : int
             Index of where trajectory last exited source state.
 
         term_frame_num : int
             Index of where trajectory first reached target state.
+
+        n_frames : int
+            Number of frames in each segment
 
         stride_step : int
             How often to output frames
@@ -359,21 +356,25 @@ def we(arguments):
             frames to output, outputted in reverse order as list or range object.
 
         """
+        base_frames = range(n_frames - 1, -1, -stride_step)
+        flag = True
 
-        if trace_basis:
-            # Loop through all frames in stride steps
-            base_frames = range(term_frame_num, -1, stride_step)
-        else:
-            # Loop through only to source_frame in stride steps
-            base_frames = range(term_frame_num, source_frame_num - 1, stride_step)
-
-        # Adding the source frame in if missing. Easier to deal with as a list here.
-        if terminate:
-            if source_frame_num not in base_frames:
-                frame_loop = sorted(list(base_frames) + [source_frame_num], reverse=True)
-            else:
+        if (source_frame_num, term_frame_num) != (0, n_frames - 1):
+            base_frames = list(base_frames)
+            if source_frame_num != 0 and (source_frame_num not in base_frames):
+                # Source frame and every base frame after
+                base_frames = base_frames + [source_frame_num]
+                frame_loop = sorted([frame for frame in base_frames if frame >= source_frame_num], reverse=True)
+                flag = False
+            if term_frame_num != n_frames - 1 and (term_frame_num not in base_frames):
+                # Every base frame before (and including) term frame
+                base_frames = base_frames + [term_frame_num]
+                frame_loop = sorted([frame for frame in base_frames if frame <= term_frame_num], reverse=True)
+                flag = False
+            if flag:
                 frame_loop = base_frames
         else:
+            # Normal iteration. Output all steps
             frame_loop = base_frames
 
         return frame_loop
@@ -454,16 +455,17 @@ def we(arguments):
                             # Went from source to target in one iteration. neat.
                             # Grabbing last instance it exited source state
                             source_frame_num = numpy.where(corr_assign == source_state_num)[0][-1]
-                            frame_loop = frame_range(True, trace_basis, source_frame_num, term_frame_num, stride_step)
+                            frame_loop = frame_range(source_frame_num, term_frame_num, total_frames, stride_step)
+                            for frame_index in frame_loop:
+                                indv_trace.append([iteration_num, segment_num, corr_assign[frame_index],
+                                                   *ad_arr[frame_index], frame_index, weight])
+                            break
                         else:
                             # Just a normal iteration where we reached target state. Output everything in stride.
-                            frame_loop = range(term_frame_num, -1, stride_step)
-
-                        # Output in order... frame_loop could be a range object or a list!
-                        for frame_index in frame_loop:
-                            indv_trace.append([iteration_num, segment_num, corr_assign[frame_index],
-                                               *ad_arr[frame_index], frame_index, weight])
-
+                            frame_loop = frame_range(0, term_frame_num, total_frames, stride_step)
+                            for frame_index in frame_loop:
+                                indv_trace.append([iteration_num, segment_num, corr_assign[frame_index],
+                                                   *ad_arr[frame_index], frame_index, weight])
                     elif iwalker.iteration.summary.name != iteration_num:
                         # Dealing with cases where we're in other iterations
                         if source_state_num not in corr_assign:
@@ -474,10 +476,10 @@ def we(arguments):
                                     # Breaking out...
                                     return None, None
                                 else:
-                                    # If traj hasn't been in state A, and not in target iteration...
+                                    # If traj hasn't been in source state, and not in target iteration...
                                     # add the whole iteration into list.
                                     # Also making sure it's not a target -> target transition
-                                    for frame_index in range(total_frames, -1, stride_step):
+                                    for frame_index in frame_range(0, total_frames - 1, total_frames, stride_step):
                                         indv_trace.append(
                                             [iwalker.iteration.summary.name, iwalker.segment_summary.name,
                                              corr_assign[frame_index], *ad_arr[frame_index], frame_index, weight]
@@ -491,8 +493,7 @@ def we(arguments):
                                 return None, None
                             else:
                                 # Final case where it's definitely source -> target
-                                frame_loop = frame_range(True, trace_basis, source_frame_num, total_frames,
-                                                         stride_step)
+                                frame_loop = frame_range(source_frame_num, total_frames - 1, total_frames, stride_step)
                                 for frame_index in frame_loop:
                                     indv_trace.append(
                                         [iwalker.iteration.summary.name, iwalker.segment_summary.name,
@@ -596,16 +597,17 @@ def we(arguments):
                         # Went from source to target in one iteration. neat.
                         # Grabbing last instance it exited source state
                         source_frame_num = numpy.where(corr_assign == source_state_num)[0][-1]
-                        frame_loop = frame_range(True, trace_basis, source_frame_num, term_frame_num, stride_step)
+                        frame_loop = frame_range(source_frame_num, term_frame_num, total_frames, stride_step)
+                        for frame_index in frame_loop:
+                            indv_trace.append([iteration_num, segment_num, corr_assign[frame_index],
+                                               *ad_arr[frame_index], frame_index, weight])
+                        break
                     else:
                         # Just a normal iteration where we reached target state. Output everything in stride.
-                        frame_loop = range(term_frame_num, -1, stride_step)
-
-                    # Output in order... frame_loop could be a range object or a list!
-                    for frame_index in frame_loop:
-                        indv_trace.append([iteration_num, segment_num, corr_assign[frame_index],
-                                           *ad_arr[frame_index], frame_index, weight])
-
+                        frame_loop = frame_range(0, term_frame_num, total_frames, stride_step)
+                        for frame_index in frame_loop:
+                            indv_trace.append([iteration_num, segment_num, corr_assign[frame_index],
+                                               *ad_arr[frame_index], frame_index, weight])
                 elif iwalker.iteration.summary.name != iteration_num:
                     # Dealing with cases where we're in other iterations
                     if source_state_num not in corr_assign:
@@ -619,7 +621,7 @@ def we(arguments):
                                 # If traj hasn't been in state A, and not in target iteration...
                                 # add the whole iteration into list.
                                 # Also making sure it's not a target -> target transition
-                                for frame_index in range(total_frames, -1, stride_step):
+                                for frame_index in frame_range(0, total_frames - 1, total_frames, stride_step):
                                     indv_trace.append(
                                         [iwalker.iteration.summary.name, iwalker.segment_summary.name,
                                          corr_assign[frame_index], *ad_arr[frame_index], frame_index, weight]
@@ -633,8 +635,7 @@ def we(arguments):
                             return None, None
                         else:
                             # Final case where it's definitely source -> target
-                            frame_loop = frame_range(True, trace_basis, source_frame_num, total_frames,
-                                                     stride_step)
+                            frame_loop = frame_range(source_frame_num, total_frames - 1, total_frames, stride_step)
                             for frame_index in frame_loop:
                                 indv_trace.append(
                                     [iwalker.iteration.summary.name, iwalker.segment_summary.name,
@@ -828,7 +829,7 @@ def we(arguments):
             # Yes, tracing backwards from the last iteration. This will (theoretically) allow us to catch
             # duplicates more efficiently.
             with h5py.File(assign_name, "r") as assign_file:
-                tqdm_iter = trange(last_iter, first_iter - 1, -1, desc="iter")
+                tqdm_iter = trange(last_iter, first_iter - 1, -1, desc="iterations")
                 for n_iter in tqdm_iter:
                     all_ray_tasks = []
                     for n_seg in range(assign_file["nsegs"][n_iter - 1]):
@@ -895,11 +896,11 @@ def we(arguments):
                             if traj_output is not None:
                                 traj_output.save(f"{out_dir}/{n_iter}_{n_seg}{out_traj_ext}")
 
-        # Output list
-        trace_out_list = sorted(trace_out_list, key=lambda x: (-x[0][0], x[0][1]))
-
         if len(trace_out_list) == 0:
             raise EmptyOutputError
+
+        # Output list
+        trace_out_list = sorted(trace_out_list, key=lambda x: (-x[0][0], x[0][1]))
 
         with open(f"{out_dir}/{output_name}", "wb") as fo:
             pickle.dump(trace_out_list, fo)
