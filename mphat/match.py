@@ -71,6 +71,40 @@ def calc_dist(seq1, seq2, dictionary):
     return 1 - similarity
 
 
+def calc_dist_substr(seq1, seq2, dictionary):
+    """
+    Pattern match and calculate the similarity between two ``state string`` substrings.
+    Used when you're comparing segment ids.
+
+    Parameters
+    ----------
+    seq1 : numpy.ndarray
+        First string to be compared.
+
+    seq2 : numpy.ndarray
+        Second string to be compared.
+
+    dictionary : dict
+        Dictionary mapping ``state_id`` (float/int) to ``state string`` (characters).
+
+    Returns
+    -------
+    1 - similarity : float
+        Similarity score.
+
+    """
+    # Remove all instances of initial/basis states.
+    # seq1 = seq1[seq1 > 0]
+    seq1_str = "".join(dictionary[x] for x in seq1)
+    # seq2 = seq2[seq2 > 0]
+    seq2_str = "".join(dictionary[x] for x in seq2)
+
+    km = int(pylcs.lcs_string_length(seq1_str, seq2_str))
+    similarity = (2 * km) / (int(len(seq1_str) + len(seq2_str)))
+
+    return 1 - similarity
+
+
 def load_data(file_name):
     """
     Load in the pickle data from ``extract``.
@@ -205,6 +239,44 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
     return dictionary
 
 
+def reassign_segid(data, pathways, dictionary, assign_file=None):
+    """
+    Use seg ids as state labels.
+
+    Parameters
+    ----------
+    data : list
+        An list with the data necessary to reassign, as extracted from ``output.pickle``.
+
+    pathways : numpy.ndarray
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
+
+    dictionary : dict
+        An empty dictionary obj for mapping ``state_id`` with ``state string``.
+
+    assign_file : str
+        A string pointing to the ``assign.h5`` file. Needed as a parameter, but ignored if it's an MD trajectory.
+
+    Returns
+    -------
+    dictionary : dict
+        A dictionary mapping each ``state_id`` (float/int) with a `state string` (character).
+
+    """
+    for idx, val in enumerate(data):
+        flipped_val = numpy.asarray(val)[::-1]
+        for idx2, val2 in enumerate(flipped_val):
+            pathways[idx, idx2] = val2[1]
+
+    n_states = int(max([seg[2] for traj in pathways for seg in traj]))
+    for idx in range(n_states):
+        dictionary[idx] = chr(idx + 65)
+
+    dictionary[n_states] = '!'  # Unknown state
+
+    return dictionary
+
+
 def reassign_identity(data, pathways, dictionary, assign_file=None):
     """
     Use assign.h5 states as is. Does not attempt to map assignment
@@ -264,9 +336,34 @@ def expand_shorter_traj(pathways, dictionary):
                 step[2] = len(dictionary)  # Mark with the last entry
 
 
-def gen_dist_matrix(pathways, dictionary, file_name="distmap.npy", out_dir="succ_traj", remake=False):
+def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ_traj", remake=False, metric=True):
     """
     Generate the path_string to path_string similarity distance matrix.
+
+    Parameters
+    ----------
+    pathways : numpy.ndarray
+        An array with all the sequences to be compared.
+
+    dictionary : dict
+        A dictionary to map pathways states to characters.
+
+    file_name : str, default: 'distmat.npy'
+        The file to output the distance matrix.
+
+    out_dir : str, default: 'succ_traj'
+        Directory to output any files.
+
+    remake : bool, default: True
+        Indicates whether to remake distance matrix or not.
+
+    metric : bool, default: True
+        Indicate which metric to use. If True, the ``longest common subsequence`` metric will be used.
+        If False, the ``longest common substring`` metric will be used. The latter should only be used
+        when comparing states where ``trace_basis`` set as True, such as with segment IDs.
+
+    Returns
+    -------
 
     """
     out_dir = f'{out_dir.rsplit("/", 1)[0]}'
@@ -284,11 +381,15 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmap.npy", out_dir="succ
     weights = numpy.asarray(weights)
 
     if not exists(new_name) or remake is True:
-        distmat = pairwise_distances(
-            X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary)
-        )
+        if metric is True:
+            distmat = pairwise_distances(
+                X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary)
+            )
+        else:
+            distmat = pairwise_distances(
+                X=path_strings, metric=lambda x, y: calc_dist_substr(x, y, dictionary)
+            )
         numpy.save(file_name, distmat)
-
     else:
         distmat = numpy.load(file_name)
 
@@ -468,6 +569,7 @@ def main(arguments):
         'reassign_identity': reassign_identity,
         'reassign_statelabel': reassign_statelabel,
         'reassign_custom': reassign_custom,
+        'reassign_segid': reassign_segid,
     }
 
     if arguments.reassign_method in preset_reassign.keys():
@@ -491,7 +593,8 @@ def main(arguments):
     expand_shorter_traj(pathways, dictionary)  # Necessary if pathways are of variable length
     dist_matrix, weights = gen_dist_matrix(pathways, dictionary, file_name=arguments.dmatrix_save,
                                            out_dir=arguments.out_dir,
-                                           remake=arguments.dmatrix_remake)  # Calculate distance matrix
+                                           remake=arguments.dmatrix_remake,  # Calculate distance matrix
+                                           metric=arguments.longest_subsequence)  # Which metric to use
 
     # Visualize the Dendrogram and determine how clusters used to group successful trajectories
     visualize(dist_matrix, threshold=arguments.dendrogram_threshold, out_dir=arguments.out_dir,

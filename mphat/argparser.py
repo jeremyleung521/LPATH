@@ -317,7 +317,18 @@ def add_match_args(parser=None):
     match_io.add_argument('--reassign', '-ra', '--reassign-method', dest='reassign_method',
                           default='reassign_identity', type=str,
                           help='Reassign Method to use. Could be one of the defaults or a module to load. Defaults are \
-                                ``reassign_identity``, ``reassign_statelabel``, and ``reassign_custom``.')
+                                ``reassign_identity``, ``reassign_statelabel``, ``reassign_segid`` , \
+                                and ``reassign_custom``.')
+    match_io.add_argument('--subsequence', '-seq', '--longest-common-subsequence', dest='longest_subsequence',
+                          action='save_true', default=True,
+                          help='Use the longest common subsequence metric. The final answer is a total of common \
+                                discontinuous characters. This is the default.')
+    match_io.add_argument('--substring', '-str', '--longest-common-substring', dest='longest_subsequence',
+                          action='save_false',
+                          help='Use the longest common substring metric. The final answer is a length of common \
+                                continuous characters. This is not the default and (probably) should only be used when \
+                                comparing segment ids with ``trace_basis`` turned on in ``extract``. Overrides \
+                                ``--longest-common-subsequence``.')
 
     match_io.add_argument('--remake', '-dR', dest='dmatrix_remake', default=True, action='store_true',
                           help=argparse.SUPPRESS)
