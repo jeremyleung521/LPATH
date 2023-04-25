@@ -87,8 +87,6 @@ Since we already read in the data every 100 frames with ``--stride 100`` in `dis
 Match
 _____
 In this step, we will pattern match any successful transitions we've identified in ``extract``. We will, again, be looking at the C7:sub:`eq` to C7:sub:`ax` transition.
-We will be
-
 
 1. From the command line, run the following::
 
@@ -117,18 +115,29 @@ We'll try to discretize a ``multi.h5`` (generated with ``w_multi_west --ibstates
 1. Run the following in the command line to run ``w_assign``::
 
     mphat discretize -we -W multi.h5 -A ANALYSIS/TEST/assign.h5 \
-        --assign-args "-W multi.h5 -r west.cfg --states-from-config --scheme TEST"
+        --assign-args "-W multi.h5 -r west.cfg --config-from-file --scheme TEST"
 
 
 Extract
 _______
+In this step, we will identify any successful transitions in the trajectory. We will be looking at the C7:sub:`eq` to C7:sub:`ax` transition.
 
-[UNDER CONSTRUCTION]
+1. From the command line, run the following::
+
+    mphat extract -we -W multi.h5 -A ANALYSIS/TEST/assign.h5 --source-state 1 --target-state 2 --exctract-output output.pickle --out-dir succ_traj
 
 
 Match
 _____
+In this step, we will pattern match any successful transitions we've identified in ``extract``. We will, again, be looking at the C7:sub:`eq` to C7:sub:`ax` transition.
+This will do the pattern matching and output individual h5 files for each cluster.
 
+1. From the command line, run the following::
 
-[UNDER CONSTRUCTION]
+    mphat match -we --input-pickle succ_traj/output.pickle --cluster-labels-output succ_traj/cluster_labels.npy --export-h5 --file-pattern "west_succ_c{}.h5"
+
+2. After the comparison process is completed, it should show you the dendrogram. Closing the figure should trigger prompts to guide you further.
+
+3. Input ``y`` if you think the threshold (horizontal line which dictates how many clusters there are) should be a different value. Otherwise, input ``n`` and tell the program how many clusters you want at the end.
+
 
