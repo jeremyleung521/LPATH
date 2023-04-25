@@ -76,7 +76,7 @@ We will monkey-patch this function into ``mPHAT``.
 Extract
 _______
 In this step, we will identify any successful transitions in the trajectory. We will be looking at the C7:sub:`eq` to C7:sub:`ax` transition.
-Since we already read in the data in stride steps of 100 in `discretize`, we do not need to use ``--stride`` again, unless you want to read in extra features.
+Since we already read in the data every 100 frames with ``--stride 100`` in `discretize`, we do not need to use ``--stride`` again. If you want to include in extra features for reassignment later on (i.e. in ``match``), use the ``--feature-stride 100`` option.
 
 1. From the command line, run the following::
 
@@ -86,9 +86,17 @@ Since we already read in the data in stride steps of 100 in `discretize`, we do 
 
 Match
 _____
+In this step, we will pattern match any successful transitions we've identified in ``extract``. We will, again, be looking at the C7:sub:`eq` to C7:sub:`ax` transition.
+We will be
 
-[UNDER CONSTRUCTION]
 
+1. From the command line, run the following::
+
+    mphat match --input-pickle succ_traj/pathways.pickle --cluster-labels-output succ_traj/cluster_labels.npy
+
+2. After the comparison process is completed, it should show you the dendrogram. Closing the figure should trigger prompts to guide you further.
+
+3. Input ``y`` if you think the threshold (horizontal line which dictates how many clusters there are) should be a different value. Otherwise, input ``n`` and tell the program how many clusters you want at the end.
 
 Weighted Ensemble Simulations
 -----------------------------

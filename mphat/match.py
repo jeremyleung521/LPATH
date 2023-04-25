@@ -377,7 +377,7 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
     if metric:
         for pathway in pathways:
             # weights for non-existent iters
-            nonzero = pathway[pathway[:, 2] < len(dictionary)]
+            nonzero = pathway[pathway[:, 2] < len(dictionary) - 1]
             weights.append(nonzero[-1][-1])
             # Create path_strings
             path_strings.append(pathway[:, 2])
@@ -563,6 +563,24 @@ def ask_number_cluster():
             print("Invalid input.\n")
 
 
+def report_statistics(nclusters, cluster_labels, weights):
+    """
+    Report statistics about the final clusters.
+
+    """
+    # TODO: Not completely written yet.
+    # Initialize the dictionary with 0 weight.
+    final_dictionary = dict()
+    for j in range(nclusters):
+        final_dictionary[j] = 0
+
+    for (cl, weight) in zip(cluster_labels, weights):
+        final_dictionary[cl] += weight
+
+    report = f'Number of clusters: {nclusters}\n'
+    log.info(report)
+
+
 def main(arguments):
     """
     Main function that executes the whole `match` step.
@@ -611,6 +629,8 @@ def main(arguments):
     determine_rerun(dist_matrix)
     ncluster = ask_number_cluster()
     cluster_labels = hcluster(dist_matrix, ncluster)
+
+    # report_statistics(nclusters, cluster_labels, weights) # Not completely written yet.
 
     # Output cluster labels
     numpy.save(arguments.cl_output, cluster_labels)
