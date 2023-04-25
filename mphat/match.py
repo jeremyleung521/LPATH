@@ -266,11 +266,12 @@ def reassign_segid(data, pathways, dictionary, assign_file=None):
     for idx, val in enumerate(data):
         flipped_val = numpy.asarray(val)[::-1]
         for idx2, val2 in enumerate(flipped_val):
-            pathways[idx, idx2] = val2[1]
+            pathways[idx, idx2] = val2  # Copy everything...
+            pathways[idx, idx2, 2] = val2[1]  # Replace states with seg_id
 
-    n_states = int(max([seg[2] for traj in pathways for seg in traj]))
+    n_states = int(max([seg[2] for traj in pathways for seg in traj])) + 1
     for idx in range(n_states):
-        dictionary[idx] = chr(idx + 65)
+        dictionary[idx] = chr(idx + 65)  # Map seg_id to a unique character
 
     dictionary[n_states] = '!'  # Unknown state
 
@@ -307,7 +308,7 @@ def reassign_identity(data, pathways, dictionary, assign_file=None):
         for idx2, val2 in enumerate(flipped_val):
             pathways[idx, idx2] = val2
 
-    n_states = int(max([seg[2] for traj in pathways for seg in traj]))
+    n_states = int(max([seg[2] for traj in pathways for seg in traj])) + 1
     for idx in range(n_states):
         dictionary[idx] = str(idx)
 
@@ -596,7 +597,8 @@ def main(arguments):
     dictionary = reassign(data, pathways, dictionary, arguments.assign_name)  # system-specific reassignment of states
 
     # Cleanup
-    expand_shorter_traj(pathways, dictionary)  # Necessary if pathways are of variable length
+    if arguments.longest_subsequence:  # Probably a better way to check this.
+        expand_shorter_traj(pathways, dictionary)  # Necessary if pathways are of variable length
     dist_matrix, weights = gen_dist_matrix(pathways, dictionary, file_name=arguments.dmatrix_save,
                                            out_dir=arguments.out_dir,
                                            remake=arguments.dmatrix_remake,  # Calculate distance matrix
