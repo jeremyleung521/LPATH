@@ -60,9 +60,9 @@ def calc_dist(seq1, seq2, dictionary):
 
     """
     # Remove all instances of "unknown" state, which is always the last entry in the dictionary.
-    seq1 = seq1[seq1 < len(dictionary)]
+    seq1 = seq1[seq1 < len(dictionary) - 1]
     seq1_str = "".join(dictionary[x] for x in seq1)
-    seq2 = seq2[seq2 < len(dictionary)]
+    seq2 = seq2[seq2 < len(dictionary) - 1]
     seq2_str = "".join(dictionary[x] for x in seq2)
 
     km = int(pylcs.lcs_sequence_length(seq1_str, seq2_str))
@@ -334,7 +334,7 @@ def expand_shorter_traj(pathways, dictionary):
     for pathway in pathways:
         for step in pathway:
             if step[0] == 0:  # If no iteration number (i.e., a dummy frame)
-                step[2] = len(dictionary)  # Mark with the last entry
+                step[2] = len(dictionary) - 1  # Mark with the last entry
 
 
 def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ_traj", remake=False, metric=True):
@@ -597,8 +597,7 @@ def main(arguments):
     dictionary = reassign(data, pathways, dictionary, arguments.assign_name)  # system-specific reassignment of states
 
     # Cleanup
-    if arguments.longest_subsequence:  # Probably a better way to check this.
-        expand_shorter_traj(pathways, dictionary)  # Necessary if pathways are of variable length
+    expand_shorter_traj(pathways, dictionary)  # Necessary if pathways are of variable length
     dist_matrix, weights = gen_dist_matrix(pathways, dictionary, file_name=arguments.dmatrix_save,
                                            out_dir=arguments.out_dir,
                                            remake=arguments.dmatrix_remake,  # Calculate distance matrix
