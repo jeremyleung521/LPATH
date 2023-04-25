@@ -176,6 +176,8 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
         # Further downsizing... to if pcoord is less than 5
         first_contact = numpy.where(flipped_val[:, 3] < 5)[0][0]
         for idx2, val2 in enumerate(flipped_val):
+            # First copy all columns over
+            pathways[idx, idx2] = val2
             # ortho is assigned to state 0
             if val2[2] in [1, 3, 4, 6, 7, 9]:
                 val2[2] = 0
