@@ -16,7 +16,7 @@ Copyright (c) 2023, Anthony Bogetti, Jeremy Leung, Lillian Chong
 - [ ] Usage.rst page
 - [ ] example ipynbs are bare bones, need sample files
 - [ ] unit testing
-- [ ] extract defaults to last frame of iteration. Implement stride and actually give pcoord/auxdata to correct frame.
+- [x] extract defaults to last frame of iteration. Implement stride and actually give pcoord/auxdata to correct frame.
 - [x] command line interface/argparser
 - [x] Sphinx/Read the Docs autodoc
 - [x] Run each tool directly
