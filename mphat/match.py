@@ -371,17 +371,23 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
 
     weights = []
     path_strings = []
-    for pathway in pathways:
-        # weights for non-existent iters
-        nonzero = pathway[pathway[:, 2] < len(dictionary)]
-        weights.append(nonzero[-1][-1])
-        # Create path_strings
-        path_strings.append(pathway[:, 2])
+    if metric:
+        for pathway in pathways:
+            # weights for non-existent iters
+            nonzero = pathway[pathway[:, 2] < len(dictionary)]
+            weights.append(nonzero[-1][-1])
+            # Create path_strings
+            path_strings.append(pathway[:, 2])
+    else:
+        for pathway in pathways:
+            weights.append(pathway[-1][-1])
+            # Create path_strings
+            path_strings.append(pathway[:, 2])
 
     weights = numpy.asarray(weights)
 
     if not exists(new_name) or remake is True:
-        if metric is True:
+        if metric:
             distmat = pairwise_distances(
                 X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary)
             )
