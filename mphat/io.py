@@ -1,8 +1,10 @@
 """
 I/O Operations
 """
-import numpy
 from ast import literal_eval
+
+import numpy
+
 
 def load_file(input_file, stride):
     """
@@ -83,3 +85,14 @@ def output_file(out_array, output_name):
     """
     n = numpy.asarray(out_array)
     numpy.save(output_name, n)
+
+
+class EmptyOutputError(Exception):
+    """
+    Custom Error for cases when extract has empty output.
+
+    """
+
+    def __init__(self, message="No successful trajectories extracted."):
+        self.message = message
+        super().__init__(self.message)

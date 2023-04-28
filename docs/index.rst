@@ -16,7 +16,7 @@ mPHAT: Minimal Pathway Histogram Analysis of Trajectories is a user-friendly, Py
    getting_started
    usage
    api
-
+   errors
 
 Indices and tables
 ==================

@@ -60,9 +60,9 @@ def calc_dist(seq1, seq2, dictionary):
 
     """
     # Remove all instances of "unknown" state, which is always the last entry in the dictionary.
-    seq1 = seq1[seq1 < len(dictionary)]
+    seq1 = seq1[seq1 < len(dictionary) - 1]
     seq1_str = "".join(dictionary[x] for x in seq1)
-    seq2 = seq2[seq2 < len(dictionary)]
+    seq2 = seq2[seq2 < len(dictionary) - 1]
     seq2_str = "".join(dictionary[x] for x in seq2)
 
     km = int(pylcs.lcs_sequence_length(seq1_str, seq2_str))
@@ -120,19 +120,19 @@ def load_data(file_name):
         A list with the data necessary to reassign, as extracted from ``output.pickle``.
 
     pathways : numpy.ndarray
-        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
     """
     with open(file_name, "rb") as f:
         data = pickle.load(f)
 
     npathways = len(data)
-    assert npathways, "Pickle object is empty. As"
+    assert npathways, "Pickle object is empty. Are you sure there are transitions?"
     lpathways = max([len(i) for i in data])
     n = len(data[0][0])
 
     pathways = numpy.zeros((npathways, lpathways, n), dtype=object)
-    # This "Pathways" array should be Iter/Seg/State/auxdata_or_pcoord/weight
+    # This "Pathways" array should be Iter/Seg/State/auxdata_or_pcoord/frame#/weight
 
     return data, pathways
 
@@ -153,7 +153,7 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
         An array with the data necessary to reassign, as extracted from ``output.pickle``.
 
     pathways : numpy.ndarray
-        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
     dictionary : dict
         An empty dictionary obj for mapping ``state_id`` with ``state string``.
@@ -176,6 +176,8 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
         # Further downsizing... to if pcoord is less than 5
         first_contact = numpy.where(flipped_val[:, 3] < 5)[0][0]
         for idx2, val2 in enumerate(flipped_val):
+            # First copy all columns over
+            pathways[idx, idx2] = val2
             # ortho is assigned to state 0
             if val2[2] in [1, 3, 4, 6, 7, 9]:
                 val2[2] = 0
@@ -208,7 +210,7 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
         An list with the data necessary to reassign, as extracted from ``output.pickle``.
 
     pathways : numpy.ndarray
-        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
     dictionary : dict
         An empty dictionary obj for mapping ``state_id`` with "state string".
@@ -266,11 +268,12 @@ def reassign_segid(data, pathways, dictionary, assign_file=None):
     for idx, val in enumerate(data):
         flipped_val = numpy.asarray(val)[::-1]
         for idx2, val2 in enumerate(flipped_val):
-            pathways[idx, idx2] = val2[1]
+            pathways[idx, idx2] = val2  # Copy everything...
+            pathways[idx, idx2, 2] = val2[1]  # Replace states with seg_id
 
-    n_states = int(max([seg[2] for traj in pathways for seg in traj]))
+    n_states = int(max([seg[2] for traj in pathways for seg in traj])) + 1
     for idx in range(n_states):
-        dictionary[idx] = chr(idx + 65)
+        dictionary[idx] = chr(idx + 65)  # Map seg_id to a unique character
 
     dictionary[n_states] = '!'  # Unknown state
 
@@ -288,7 +291,7 @@ def reassign_identity(data, pathways, dictionary, assign_file=None):
         An list with the data necessary to reassign, as extracted from ``output.pickle``.
 
     pathways : numpy.ndarray
-        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+        An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
     dictionary : dict
         An empty dictionary obj for mapping ``state_id`` with ``state string``.
@@ -307,7 +310,7 @@ def reassign_identity(data, pathways, dictionary, assign_file=None):
         for idx2, val2 in enumerate(flipped_val):
             pathways[idx, idx2] = val2
 
-    n_states = int(max([seg[2] for traj in pathways for seg in traj]))
+    n_states = int(max([seg[2] for traj in pathways for seg in traj])) + 1
     for idx in range(n_states):
         dictionary[idx] = str(idx)
 
@@ -324,7 +327,7 @@ def expand_shorter_traj(pathways, dictionary):
     Parameters
     ----------
     pathways : numpy.ndarray or list
-        An array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/weight.
+        An array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
     dictionary: dict
         Maps each state_id to a corresponding string.
@@ -333,7 +336,7 @@ def expand_shorter_traj(pathways, dictionary):
     for pathway in pathways:
         for step in pathway:
             if step[0] == 0:  # If no iteration number (i.e., a dummy frame)
-                step[2] = len(dictionary)  # Mark with the last entry
+                step[2] = len(dictionary) - 1  # Mark with the last entry
 
 
 def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ_traj", remake=False, metric=True):
@@ -371,17 +374,23 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
 
     weights = []
     path_strings = []
-    for pathway in pathways:
-        # weights for non-existent iters
-        nonzero = pathway[pathway[:, 2] < len(dictionary)]
-        weights.append(nonzero[-1][-1])
-        # Create path_strings
-        path_strings.append(pathway[:, 2])
+    if metric:
+        for pathway in pathways:
+            # weights for non-existent iters
+            nonzero = pathway[pathway[:, 2] < len(dictionary) - 1]
+            weights.append(nonzero[-1][-1])
+            # Create path_strings
+            path_strings.append(pathway[:, 2])
+    else:
+        for pathway in pathways:
+            weights.append(pathway[-1][-1])
+            # Create path_strings
+            path_strings.append(pathway[:, 2])
 
     weights = numpy.asarray(weights)
 
     if not exists(new_name) or remake is True:
-        if metric is True:
+        if metric:
             distmat = pairwise_distances(
                 X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary)
             )
@@ -554,6 +563,24 @@ def ask_number_cluster():
             print("Invalid input.\n")
 
 
+def report_statistics(nclusters, cluster_labels, weights):
+    """
+    Report statistics about the final clusters.
+
+    """
+    # TODO: Not completely written yet.
+    # Initialize the dictionary with 0 weight.
+    final_dictionary = dict()
+    for j in range(nclusters):
+        final_dictionary[j] = 0
+
+    for (cl, weight) in zip(cluster_labels, weights):
+        final_dictionary[cl] += weight
+
+    report = f'Number of clusters: {nclusters}\n'
+    log.info(report)
+
+
 def main(arguments):
     """
     Main function that executes the whole `match` step.
@@ -602,6 +629,8 @@ def main(arguments):
     determine_rerun(dist_matrix)
     ncluster = ask_number_cluster()
     cluster_labels = hcluster(dist_matrix, ncluster)
+
+    # report_statistics(nclusters, cluster_labels, weights) # Not completely written yet.
 
     # Output cluster labels
     numpy.save(arguments.cl_output, cluster_labels)

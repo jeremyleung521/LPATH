@@ -1,4 +1,4 @@
-name: westpa-pylcs
+name: westpa-mphat
 channels:
     - conda-forge
     - defaults

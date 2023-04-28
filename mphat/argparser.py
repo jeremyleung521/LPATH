@@ -185,7 +185,7 @@ def add_discretize_args(parser=None):
                                help='A string of arguments to pass onto w_assign as you would input in the command \
                                      line to ``w_assign``. Either use the defaults (leave blank for the ``TEST`` \
                                      scheme in ``west.cfg`` or at a minimum, you need to specify \
-                                     ``--states-from-config --scheme NAME_OF_SCHEME`` to read \
+                                     ``--config-from-file --scheme NAME_OF_SCHEME`` to read \
                                      the config from your ``west.cfg`` file.')
 
     return parser
