@@ -15,11 +15,10 @@ Introduction
 3. The ``match`` step takes what's outputted in ``extract`` and cross pattern match to identify pathway classes. It is possible to reassign states in this step.
 
 
-There are three different ways of running these steps. Due to the sheer amount of parameter options, it is recommended that users start with the Jupyter notebook.
+There are two different ways of running these steps. Due to the sheer amount of parameter options, it is recommended that users start with the Jupyter notebook.
 
 1. Import each step's ``main()`` function and run everything in an interactive python session (e.g., Jupyter notebook).  **[RECOMMENDED]**
 2. Run through the command line (e.g., ``mphat discretize -I west.h5 --assign-arguments '--config-from-file --scheme TEST'``.
-3. Run each python script directly (e.g., ``python mphat/mphat.py``).
 
 
 .. _API: https://mphat.readthedocs.io/en/latest/api.html
@@ -70,7 +69,6 @@ We will monkey-patch this function into ``mPHAT``.
     mphat discretize -I dihedral.npy -O states.npy -af module.assign_dih --stride 100
 
 
-
 2. We've read in ``dihedral.npy`` with a stride step of 100. This smaller dataset will be discretized with module.assign_dih. This will generate a ``states.npy`` file to be used in the ``extract`` step.
 
 Extract
@@ -81,7 +79,6 @@ Since we already read in the data every 100 frames with ``--stride 100`` in `dis
 1. From the command line, run the following::
 
     mphat extract --extract-input states.npy --extract-output pathways.pickle --source-state 1 --target-state 2
-
 
 
 Match
@@ -121,10 +118,12 @@ We'll try to discretize a ``multi.h5`` (generated with ``w_multi_west --ibstates
 Extract
 _______
 In this step, we will identify any successful transitions in the trajectory. We will be looking at the C7:sub:`eq` to C7:sub:`ax` transition.
+If you are looking to compare using segment IDs in the next step (not recommended for simulations combined with ``w_multi_west``) or want to include the waiting time (time spent in the source state) in the pattern matching, make sure you turn on ``--trace-basis`` to trace all the way back to the basis state. Do note that this significantly increases the time it requires to extract all successful trajectories.
 
 1. From the command line, run the following::
 
-    mphat extract -we -W multi.h5 -A ANALYSIS/TEST/assign.h5 --source-state 1 --target-state 2 --exctract-output output.pickle --out-dir succ_traj
+    mphat extract -we -W multi.h5 -A ANALYSIS/TEST/assign.h5 --source-state 1 \
+        --target-state 2 --exctract-output output.pickle --out-dir succ_traj
 
 
 Match
@@ -134,10 +133,16 @@ This will do the pattern matching and output individual h5 files for each cluste
 
 1. From the command line, run the following::
 
-    mphat match -we --input-pickle succ_traj/output.pickle --cluster-labels-output succ_traj/cluster_labels.npy --export-h5 --file-pattern "west_succ_c{}.h5"
+    mphat match -we --input-pickle succ_traj/output.pickle --cluster-labels-output succ_traj/cluster_labels.npy \
+        --export-h5 --file-pattern "west_succ_c{}.h5"
 
 2. After the comparison process is completed, it should show you the dendrogram. Closing the figure should trigger prompts to guide you further.
 
 3. Input ``y`` if you think the threshold (horizontal line which dictates how many clusters there are) should be a different value. Otherwise, input ``n`` and tell the program how many clusters you want at the end.
 
+
+For cases where you want to run pattern matching comparison between segment IDs, you will have to use the largest common substring ``--substring`` option. By default, the longest common subsequence algorithm is used.::
+
+    mphat match -we --input-pickle succ_traj/output.pickle --cluster-labels-output succ_traj/cluster_labels.npy \
+        --export-h5 --file-pattern "west_succ_c{}.h5" --reassign-function "reassign_segid" --substring
 

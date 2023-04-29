@@ -339,7 +339,8 @@ def expand_shorter_traj(pathways, dictionary):
                 step[2] = len(dictionary) - 1  # Mark with the last entry
 
 
-def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ_traj", remake=False, metric=True):
+def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ_traj", remake=False, metric=True,
+                    n_jobs=None):
     """
     Generate the path_string to path_string similarity distance matrix.
 
@@ -389,14 +390,15 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
 
     weights = numpy.asarray(weights)
 
+    # TODO: Load bar?
     if not exists(new_name) or remake is True:
         if metric:
             distmat = pairwise_distances(
-                X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary)
+                X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary), n_jobs=n_jobs,
             )
         else:
             distmat = pairwise_distances(
-                X=path_strings, metric=lambda x, y: calc_dist_substr(x, y, dictionary)
+                X=path_strings, metric=lambda x, y: calc_dist_substr(x, y, dictionary), n_jobs=n_jobs,
             )
         numpy.save(file_name, distmat)
     else:
@@ -461,7 +463,26 @@ def hcluster(distmat, n_clusters):
     return cluster_labels
 
 
-def export_files(
+def export_pickle(pathways, out_dir='succ_traj'):
+    """
+    Option to output the reassigned pickle object.
+
+    Parameters
+    ----------
+    pathways : numpy.ndarray
+
+
+    out_dir : str
+        Folder to output files.
+
+    Returns
+    -------
+
+    """
+    pass
+
+
+def export_we_files(
         data_arr,
         weights,
         cluster_labels,
@@ -539,14 +560,17 @@ def determine_rerun(dist_matrix):
         A Numpy array of the distance matrix.
     """
     while True:
-        ans = input('Do you want to regenerate the graph with a new threshold (y/[n])?\n')
-        if ans == 'y' or ans == 'Y':
-            ans2 = input('What new threshold would you like?\n')
-            visualize(dist_matrix, threshold=float(ans2), show=True)
-        elif ans == 'n' or ans == 'N' or ans == '':
-            break
-        else:
-            input("Invalid input.\n")
+        try:
+            ans = input('Do you want to regenerate the graph with a new threshold (y/[n])?\n')
+            if ans == 'y' or ans == 'Y':
+                ans2 = input('What new threshold would you like?\n')
+                visualize(dist_matrix, threshold=float(ans2), show=True)
+            elif ans == 'n' or ans == 'N' or ans == '':
+                break
+            else:
+                input("Invalid input.\n")
+        except KeyboardInterrupt:
+            sys.exit(0)
 
 
 def ask_number_cluster():
@@ -555,12 +579,15 @@ def ask_number_cluster():
 
     """
     while True:
-        ans = input('How many clusters would you like to separate the pathways into?\n')
         try:
-            ans = int(ans)
-            return ans
-        except ValueError:
-            print("Invalid input.\n")
+            ans = input('How many clusters would you like to separate the pathways into?\n')
+            try:
+                ans = int(ans)
+                return ans
+            except ValueError:
+                print("Invalid input.\n")
+        except KeyboardInterrupt:
+            sys.exit(0)
 
 
 def report_statistics(nclusters, cluster_labels, weights):
@@ -621,7 +648,8 @@ def main(arguments):
     dist_matrix, weights = gen_dist_matrix(pathways, dictionary, file_name=arguments.dmatrix_save,
                                            out_dir=arguments.out_dir,
                                            remake=arguments.dmatrix_remake,  # Calculate distance matrix
-                                           metric=arguments.longest_subsequence)  # Which metric to use
+                                           metric=arguments.longest_subsequence,  # Which metric to use
+                                           n_jobs=arguments.dmatrix_parallel)  # Number of jobs for pairwise_distance
 
     # Visualize the Dendrogram and determine how clusters used to group successful trajectories
     visualize(dist_matrix, threshold=arguments.dendrogram_threshold, out_dir=arguments.out_dir,
@@ -637,7 +665,7 @@ def main(arguments):
 
     # Following exports each cluster to its own h5 file, all weights of segments not in that group = 0.
     if arguments.we and arguments.export_h5:
-        export_files(
+        export_we_files(
             data,
             weights,
             cluster_labels,
@@ -661,6 +689,7 @@ if __name__ == "__main__":
         assign_name='ANALYSIS/ALL/assign.h5',  # Name of input assign.h5 file
         dmatrix_remake=True,  # Enable to remake the distance Matrix
         dmatrix_save='distmap.npy',  # If dmatrix_remake is False, load this file instead. Assumed located in {out_dir}.
+        dmatrix_parallel=None,  # Number of jobs to run as part of the pairwise_distances() calculation.
         dendrogram_threshold=0.5,  # Threshold for the Dendrogram
         dendrogram_show=True,  # Show the Dendrogram using plt.show()
         out_dir='succ_traj',  # Output for the distance Matrix
