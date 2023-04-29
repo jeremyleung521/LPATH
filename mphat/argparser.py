@@ -337,6 +337,10 @@ def add_match_args(parser=None):
     match_io.add_argument('--remade-file', '-dF', dest='dmatrix_save', type=str, default='distmat.npy',
                           help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
                                 specified. Assumed to be in ``out-dir``.')
+    match_io.add_argument('--remake-parallel', '-dP', dest='dmatrix_parallel', type=int,
+                          help='Number of jobs to run with the pairwise distance calculations. The default=None issues \
+                                one job. A value of -1 uses all available resources. This is directly passed to the \
+                                n_jobs parameter for ``sklearn.metrics.pairwise_distances()``.')
 
     match_io.add_argument('-dt', '--dendro-threshold', '--dendrogram-threshold', dest='dendrogram_threshold',
                           type=check_non_neg, default=0.5, help='Horizontal threshold line for the dendrogram.')
