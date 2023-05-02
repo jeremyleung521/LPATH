@@ -352,19 +352,22 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
     dictionary : dict
         A dictionary to map pathways states to characters.
 
-    file_name : str, default: 'distmat.npy'
+    file_name : str, default : 'distmat.npy'
         The file to output the distance matrix.
 
-    out_dir : str, default: 'succ_traj'
+    out_dir : str, default : 'succ_traj'
         Directory to output any files.
 
-    remake : bool, default: True
+    remake : bool, default : True
         Indicates whether to remake distance matrix or not.
 
-    metric : bool, default: True
+    metric : bool, default : True
         Indicate which metric to use. If True, the ``longest common subsequence`` metric will be used.
         If False, the ``longest common substring`` metric will be used. The latter should only be used
         when comparing states where ``trace_basis`` set as True, such as with segment IDs.
+
+    n_jobs : int, default : None
+        Number of jobs to run for the pairwise_distances() calculation. The default issues one job.
 
     Returns
     -------
@@ -463,47 +466,26 @@ def hcluster(distmat, n_clusters):
     return cluster_labels
 
 
-def export_pickle(pathways, out_dir='succ_traj'):
+def determine_clusters(cluster_labels, clusters=None):
     """
-    Option to output the reassigned pickle object.
+    Determine how many clusters to output.
 
     Parameters
     ----------
-    pathways : numpy.ndarray
+    cluster_labels : numpy.ndarray
+        An array with cluster assignments for each pathway.
 
-
-    out_dir : str
-        Folder to output files.
+    clusters : list or None
+        Straight from the argparser.
 
     Returns
     -------
+    clusters : list
+        A list of clusters to output.
 
     """
-    pass
-
-
-def export_we_files(
-        data_arr,
-        weights,
-        cluster_labels,
-        clusters=None,
-        file_pattern="west_succ_c{}.h5",
-        out_dir="succ_traj",
-        west_name="west.h5",
-        assign_name="assign.h5",
-):
-    """
-    Export each group of successful trajectories into independent west.h5 file.
-
-    """
-    # TODO: Add option to output pathways object, with might be different from output.pickle after reassignment.
-    try:
-        import h5py
-    except ModuleNotFoundError:
-        raise ModuleNotFoundError('Could not import h5py. Exiting out.')
-
     if clusters is None:
-        clusters = list(range(1, max(cluster_labels) + 1))
+        clusters = list(range(0, max(cluster_labels) + 1))
     elif not isinstance(clusters, list):
         try:
             list(clusters)
@@ -512,6 +494,97 @@ def export_we_files(
                 "Provided cluster numbers don't work. Provide a list desired of cluster numbers or 'None' to output \
                 all clusters."
             )
+
+    return clusters
+
+
+def export_pickle(pathways, output_path):
+    """
+    Option to output the reassigned pickle object.
+
+    Parameters
+    ----------
+    pathways : numpy.ndarray
+        A reassigned pathway object
+
+    output_path : str
+        Path to output pickle object.
+
+    """
+    with open(output_path, 'wb') as f:
+        pickle.dump(pathways, f)
+
+
+def export_std_files(data_arr, weights, cluster_labels, clusters=None, out_dir="succ_traj"):
+    """
+    Export data for standard simulations.
+
+    Parameters
+    ----------
+    data_arr : numpy.ndarray
+        The array with all the pathways.
+
+    weights : numpy.ndarray
+        Weight information of the pathways.
+
+    cluster_labels : numpy.ndarray
+        An array with cluster assignments for each pathway.
+
+    clusters : list or None
+        A list of clusters to output, straight from the argparser.
+
+    out_dir : str
+        Directory to output files.
+
+    """
+    clusters = determine_clusters(cluster_labels, clusters)
+
+    representative_file = f'{out_dir.rsplit("/", 1)[0]}' + '/representative_segments.txt'
+    representative_list = []
+
+    for icluster in clusters:
+        pass
+        # representative_list.append(str(data_cl[numpy.argmax(weights_cl)][0]) + '\n')
+
+    with open(representative_file, 'w') as f:
+        f.writelines(representative_list)
+
+
+def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="west_succ_c{}.h5",
+                    out_dir="succ_traj", west_name="west.h5"):
+    """
+    Export each group of successful trajectories into independent west.h5 file.
+
+    Parameters
+    ----------
+    data_arr : numpy.ndarray
+        The array with all the pathways.
+
+    weights : numpy.ndarray
+        Weight information of the pathways.
+
+    cluster_labels : numpy.ndarray
+        An array with cluster assignments for each pathway.
+
+    clusters : list or None
+        A list of clusters to output.
+
+    file_pattern : str
+        String pattern of how files should be outputted.
+
+    out_dir : str
+        Directory to output files.
+
+    west_name : str
+        Name of west.h5 file to use as base.
+
+    """
+    try:
+        import h5py
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError('Could not import h5py. Exiting out.')
+
+    clusters = determine_clusters(cluster_labels, clusters)
 
     representative_file = f'{out_dir.rsplit("/", 1)[0]}' + '/representative_segments.txt'
     representative_list = []
@@ -523,8 +596,8 @@ def export_we_files(
             copyfile(west_name, new_file)
 
         first_iter = 1
-        with h5py.File(assign_name, "r") as afile:
-            last_iter = len(afile["nsegs"])
+        with h5py.File(west_name, "r") as h5_file:
+            last_iter = len(h5_file['summary'])
 
         tqdm_iter = trange(last_iter, first_iter - 1, -1, desc="iter")
 
@@ -540,9 +613,9 @@ def export_we_files(
             trace_out_list.append(list(numpy.array(item)[:, :2]))
 
         exclusive_set = {tuple(pair) for ilist in trace_out_list for pair in ilist}
-        with h5py.File(new_file, "r+") as h5file, h5py.File(assign_name, "r") as afile:
+        with h5py.File(new_file, "r+") as h5file:
             for n_iter in tqdm_iter:
-                for n_seg in range(afile["nsegs"][n_iter - 1]):
+                for n_seg in trange(len(h5file[f'iteration/{n_iter:>08}/seg_index'])):
                     if (n_iter, n_seg) not in exclusive_set:
                         h5file[f"iterations/iter_{n_iter:>08}/seg_index"]["weight", n_seg] = 0
 
@@ -594,6 +667,20 @@ def report_statistics(nclusters, cluster_labels, weights):
     """
     Report statistics about the final clusters.
 
+    Parameters
+    ----------
+    nclusters : int
+        Number of clusters.
+
+    cluster_labels : numpy.ndarray
+        An array mapping pathways to cluster
+
+    weights : numpy.ndarray
+        Weight information
+
+    Returns
+    -------
+
     """
     # TODO: Not completely written yet.
     # Initialize the dictionary with 0 weight.
@@ -604,7 +691,9 @@ def report_statistics(nclusters, cluster_labels, weights):
     for (cl, weight) in zip(cluster_labels, weights):
         final_dictionary[cl] += weight
 
-    report = f'Number of clusters: {nclusters}\n'
+    report = f'Total Number of clusters: {nclusters}\n'
+    for (key, val) in final_dictionary.items():
+        report += f'Weight of cluster {key}: {val}\n'
     log.info(report)
 
 
@@ -658,22 +747,25 @@ def main(arguments):
     ncluster = ask_number_cluster()
     cluster_labels = hcluster(dist_matrix, ncluster)
 
-    # report_statistics(nclusters, cluster_labels, weights) # Not completely written yet.
+    # Report statistics
+    log.debug('Reporting statistics')
+    # report_statistics(ncluster, cluster_labels, weights) # Not completely written yet.
 
-    # Output cluster labels
+    # Output cluster labels and reassigned pickle object
+    log.debug('Outputting files')
+    export_pickle(pathways, arguments.output_pickle)
     numpy.save(arguments.cl_output, cluster_labels)
 
     # Following exports each cluster to its own h5 file, all weights of segments not in that group = 0.
     if arguments.we and arguments.export_h5:
         export_we_files(
-            data,
+            pathways,
             weights,
             cluster_labels,
             clusters=arguments.clusters,
             out_dir=arguments.out_dir,
             file_pattern=arguments.file_pattern,
             west_name=arguments.west_name,
-            assign_name=arguments.assign_name,
         )
 
 

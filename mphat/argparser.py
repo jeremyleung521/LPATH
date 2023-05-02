@@ -311,6 +311,9 @@ def add_match_args(parser=None):
     match_io.add_argument('-ip', '--IP', '--pickle', '--input-pickle', dest='input_pickle',
                           default='succ_traj/output.pickle', type=str, help='Path to pickle object from the `extract` \
                           step.')
+    match_io.add_argument('-op', '--OP', '--output-pickle', dest='output_pickle',
+                          default='succ_traj/pathways.pickle', type=str, help='Path to reassigned object to be \
+                          outputted from the `match` step.')
     match_io.add_argument('-co', '--cl-output', '--cluster-label-output', dest='cl_output',
                           default='succ_traj/cluster_labels.npy', type=str,
                           help='Output file location for cluster labels.')
