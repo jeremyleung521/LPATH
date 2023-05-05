@@ -772,6 +772,11 @@ def main(arguments):
     # Reassignment... (or not) Make sure `dictionary` is declared globally since calc_distances() requires it.
     dictionary = reassign(data, pathways, dictionary, arguments.assign_name)  # system-specific reassignment of states
 
+    if len(dictionary) < 3:
+        log.warning(f'WARNING: Only {len(dictionary)} states defined, including the "unknown" state. \
+                      This will likely produce bad clustering results and you should considering reassigning to more \
+                      intermediate states using a modified ``--reassign-method``.')
+
     # Cleanup
     expand_shorter_traj(pathways, dictionary)  # Necessary if pathways are of variable length
     dist_matrix, weights = gen_dist_matrix(pathways, dictionary, file_name=arguments.dmatrix_save,

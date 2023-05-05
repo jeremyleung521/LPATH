@@ -11,7 +11,8 @@ log = logging.getLogger(__name__)
 
 def assign(input_array):
     """
-    This is an example function for mapping a list of features to state IDs. This should be subclassed.
+    This is an example function for mapping a list of features to state IDs. This should be subclassed
+    by passing a similar module (catered to your system) to ``--assign-function``.
 
     Parameters
     ----------
@@ -41,10 +42,9 @@ def assign(input_array):
 
 def main(arguments):
     """
-    Main function that executes the whole ``match`` step. Also called by the
-    ``entry_point()`` function.
+    Main function that executes the whole ``match`` step.
 
-    If it's an HDF5 file, it'll just run ``w_assign`` (as w_assign).
+    If it's been run with ``arguments.we``, it'll just run ``w_assign``.
 
     Parameters
     ----------
@@ -102,6 +102,16 @@ def main(arguments):
             log.info(f'INFO: Replaced assign() with {arguments.assign_func}')
 
         out_array = assign(input_array)
+
+        # Warning
+        n_states = len(set(out_array))
+        if n_states < 3:
+            log.info(f'Only {n_states} defined, including the "unknown" state. This should be fine for \
+                       ``mphat extract`` purposes but will likely produce bad quality pattern matching results \
+                       further downstream. Please consider running ``mphat discretize`` with more states or \
+                       plan to reassign the trajectory using the ``reassign-method`` option in ``mphat match``.')
+
+        # Output
         output_file(out_array, arguments.output_name)
 
 

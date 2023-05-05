@@ -226,6 +226,32 @@ def find_transitions(input_array, source_index, target_index):
     return source_indices, target_indices, transitions
 
 
+def raise_warnings(output_array, statistics):
+    """
+    Raise warnings and Errors towards common failure modes.
+
+    Parameters
+    ----------
+    output_array : list
+       A list of lists containing traced trajectories
+
+    """
+    # If no successful trajectories...
+    if len(output_array) == 0:
+        raise EmptyOutputError
+
+    lengths = [len(a) for a in output_array]
+    if min(lengths) < 10:
+        log.warning(f'WARNING: Extracted trajectories have a minimum length of <10 frames, which will \
+                      affect the quality of pattern matching further downstream. For standard simulations, use a \
+                      smaller ``stride`` to retain more data points. For WE simulations, use a larger ``stride`` to \
+                      output more sub-tau values. Another option is to use ``--trace-basis`` to include trajectory \
+                      history all the way back to the "basis state". Proceeding to output pickle object anyway.')
+
+    if statistics:
+        log.info(f'INFO: Mean length ± 1σ of trajectory: {numpy.average(lengths)} ± {numpy.std(lengths)}\n')
+
+
 def create_pickle_obj(transitions, states, weight, features=None):
     """
     Main function that transforms a list of frame transitions into the pickle object. For standard simulations only.
@@ -308,6 +334,8 @@ def standard(arguments):
 
     # Generate and write pickle object.
     final_obj = create_pickle_obj(new_transitions, input_array, weight / len(transitions), features)
+
+    raise_warnings(final_obj)
 
     with open(f"{arguments.out_dir}/{arguments.extract_output}", "wb") as fo:
         pickle.dump(final_obj, fo)
@@ -937,8 +965,8 @@ def we(arguments):
                             if traj_output is not None:
                                 traj_output.save(f"{out_dir}/{n_iter}_{n_seg}{out_traj_ext}")
 
-        if len(trace_out_list) == 0:
-            raise EmptyOutputError
+        # Failure modes and warnings... and result stats!
+        raise_warnings(trace_out_list, arguments.stats)
 
         # Output list
         trace_out_list = sorted(trace_out_list, key=lambda x: (-x[0][0], x[0][1]))

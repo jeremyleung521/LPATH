@@ -125,8 +125,9 @@ def add_common_args(parser=None):
                                    be the step size (at a per file basis during load time). For a WE simulation, \
                                    this will be how many sub-tau frames used from each segment, starting \
                                    from the last frame and then counting backwards.')
-
-    commongroup.add_argument('--debug', action='store_true', help='Enable debug mode.')
+    commongroup.add_argument('-s', '--stats', '--statistics', dest='stats', action='store_true',
+                             help='Enable results statistics output.')
+    commongroup.add_argument('--debug', '-v', action='store_true', help='Enable debug mode.')
 
     wegroup = parser.add_argument_group('WE-specific Shared Parameters')
 
