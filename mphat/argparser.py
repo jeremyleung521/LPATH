@@ -241,6 +241,12 @@ def add_extract_args(parser=None):
                             help='Dictates the step size to which the ``--extract-featurization`` is read in. \
                                    You will want this to match ``--stride`` used in ``discretize``. \
                                    Ignored for a WE simulation.')
+    extract_io.add_argument('--trace-basis', '-b', dest='trace_basis', action='store_true',
+                            help='Whether to trace all the way back to the "basis state". False by default. For WE \
+                                  simulations, this (as it is aptly named) output the trajectory all the way back \
+                                  to the basis state. For standard simulations, This will either be the first frame of \
+                                  the trajectory or, if it had previously reached the target state, the first time it \
+                                  returned to the source state after it has left the target state.')
 
     raygroup = parser.add_argument_group('Extract Ray options')
 
@@ -260,7 +266,6 @@ def add_extract_args(parser=None):
                                             Default is 0, which will use all available iterations.')
     extract_we.add_argument('-hdf5', '--hdf5', dest='hdf5', action='store_true', help='')
 
-    extract_we.add_argument('--trace-basis', '-b', dest='trace_basis', action='store_true', help='')
     extract_we.add_argument('-a', '--aux', '--AUX', '--auxdata', '--AUXDATA', dest='auxdata', nargs='*',
                             action='extend', help='Names of additional auxiliary datasets to be combined.')
     extract_we.add_argument('-aa', '--auxall', nargs='?', dest='auxdata', const=[],

@@ -48,10 +48,46 @@ def find_min_distance(ref_value, indices):
     Returns
     -------
     minimum value : float, int
-        The closest value to ref_value in indices.
+        The closest index (in indices) to ref_value.
 
     """
     return min([v for v in indices if v >= ref_value] or [None])
+
+
+def assign_color_frame(source_indices, target_indices):
+    """
+    Assign color to each target frame.
+
+    Parameters
+    ----------
+    source_indices : list or numpy.ndarray
+        A list or array of indices assigned source state.
+
+    target_indices : list or numpy.ndarray
+        A list or array of indices assigned sink state.
+
+    Returns
+    -------
+    target_colors : dictionary
+        A list mapping each target index in ``target_indices`` with a frame it should trace back to.
+        Essentially the frame when the color of the trajectory switched from sink to source.
+
+    """
+    # Assign default color to each target index. 0 by default.
+    target_colors = dict()
+    last_source = 0
+    test_source = 0
+    for idx, val in enumerate(target_indices):
+        if val > test_source:
+            last_source = test_source
+        target_colors[val] = last_source
+        # Finding the next source after each target, which should be the frame saved for the next idx.
+        # At the last loop, last_source should be None.
+        test_source = find_min_distance(val, source_indices)
+
+    assert len(target_colors) == len(target_indices)
+
+    return target_colors
 
 
 def clean_self_to_self(input_array):
@@ -182,7 +218,7 @@ def find_transitions(input_array, source_index, target_index):
     transitions = []
     for val in source_indices:
         check = find_min_distance(val, target_indices)
-        if check is not None:
+        if check:
             transitions.append([val, check])
 
     log.debug(f'Indices of all potentially successful transitions: {transitions}')
@@ -261,6 +297,11 @@ def standard(arguments):
                                                                arguments.target_state_num)
 
     new_transitions = clean_self_to_self(transitions)
+
+    if arguments.trace_basis:
+        target_color_dict = assign_color_frame(source_index, target_index)
+        for transition in new_transitions:
+            transition[0] = target_color_dict[transition[1]]
 
     weight = count_tmatrix_row(source_index, input_array, n_states, arguments.source_state_num,
                                arguments.target_state_num)
@@ -533,7 +574,7 @@ def we(arguments):
                 else:
                     indv_traj = None
 
-                # print(indv_trace)
+                log.debug(f'{indv_trace}')
 
                 return indv_trace, indv_traj
     else:
@@ -701,10 +742,10 @@ def we(arguments):
         """
         Code that goes through an assign file (assign_name) and extracts iteration
         and segment number + its trace into a pickle object. Defaults to just
-        the whole passage but can be overridden by trace_basis=False
-        to just the transition time (between it last exits source to when
-        it first touches target). Can also extract the trajectories along
-        the way with out_traj=True.
+        the transition time (between it last exits source to when
+        it first touches target) but can be switched to the whole passage (all the way
+        to the basis state) with ``trace_basis=True``. Can also extract the full
+        trajectories along the way with out_traj=True.
 
         Arguments
         =========
@@ -729,7 +770,7 @@ def we(arguments):
             Last iteration to analyze. Inclusive. 0 implies it will
             analyze all labeled iterations.
 
-        trace_basis : bool, default: True
+        trace_basis : bool, default: False
             Option to analyze each successful trajectory up till its
             basis state. False will only analyze the transition time
             (i.e. last it exited source until it first touches the target state).

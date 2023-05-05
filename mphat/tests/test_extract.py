@@ -60,3 +60,18 @@ def test_count_tmatrix_row():
     output_array = mphat.extract.count_tmatrix_row(test_source_index, test_array, 3, 0, 1)
 
     assert output_array == test_output
+
+
+def test_assign_color_frame():
+    """
+    Tests whether it successfully assigns color (i.e. 0 or first time it arrives at source after target) to target_frame
+
+    """
+    test_array = numpy.asarray([0, 3, 3, 1, 2, 2, 1, 2, 1, 2, 0, 0, 2, 3, 1, 1, 2, 2, 2, 2, 0, 2, 2, 0, 3, 1, 2, 1, 0])
+    test_source_index = numpy.array(numpy.where(test_array == 0))[0]
+    test_sink_index = numpy.array(numpy.where(test_array == 2))[0]
+    test_output = {4: 0, 5: 0, 7: 0, 9: 0, 12: 10, 16: 10, 17: 10, 18: 10, 19: 10, 21: 20, 22: 20, 26: 23}
+
+    output_array = mphat.extract.assign_color_frame(test_source_index, test_sink_index)
+
+    assert output_array == test_output
