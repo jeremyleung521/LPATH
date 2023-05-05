@@ -393,7 +393,6 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
 
     weights = numpy.asarray(weights)
 
-    # TODO: Load bar?
     if not exists(new_name) or remake is True:
         if metric:
             distmat = pairwise_distances(
@@ -515,6 +514,42 @@ def export_pickle(pathways, output_path):
         pickle.dump(pathways, f)
 
 
+def select_rep(data_arr, weights, cluster_labels, icluster):
+    """
+    Small function to determine representative array/weight
+
+    Parameters
+    ----------
+    data_arr : numpy.ndarray
+        The array with all the pathways.
+
+    weights : numpy.ndarray
+        Weight information of the pathways.
+
+    cluster_labels : numpy.ndarray
+        An array with cluster assignments for each pathway.
+
+    icluster : int
+        Index of cluster to look at.
+
+    Returns
+    -------
+    data_cl : list
+        A list of pathways from icluster.
+
+    rep_weight : float
+        The weight of the representative structure of icluster.
+
+    """
+    selected_cluster = cluster_labels == icluster
+    cluster_arr = numpy.array(data_arr, dtype=object)[selected_cluster]
+    data_cl = list(cluster_arr)
+    weights_cl = weights[selected_cluster]
+    rep_weight = data_cl[numpy.argmax(weights_cl)][0]
+
+    return data_cl, rep_weight
+
+
 def export_std_files(data_arr, weights, cluster_labels, clusters=None, out_dir="succ_traj"):
     """
     Export data for standard simulations.
@@ -543,15 +578,20 @@ def export_std_files(data_arr, weights, cluster_labels, clusters=None, out_dir="
     representative_list = []
 
     for icluster in clusters:
-        pass
-        # representative_list.append(str(data_cl[numpy.argmax(weights_cl)][0]) + '\n')
+        trace_out_list = []
+        data_cl, rep_weight = select_rep(data_arr, weights, cluster_labels, icluster)
+        log.debug(f'cluster {icluster} representative weight: {rep_weight}')
+        representative_list.append(f'{rep_weight}\n')
+
+        for idx, item in enumerate(data_cl):
+            trace_out_list.append(list(numpy.array(item)[:, :2]))
 
     with open(representative_file, 'w') as f:
         f.writelines(representative_list)
 
 
 def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="west_succ_c{}.h5",
-                    out_dir="succ_traj", west_name="west.h5"):
+                    out_dir="succ_traj", west_name='west.h5'):
     """
     Export each group of successful trajectories into independent west.h5 file.
 
@@ -585,12 +625,12 @@ def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="w
         raise ModuleNotFoundError('Could not import h5py. Exiting out.')
 
     clusters = determine_clusters(cluster_labels, clusters)
+    out_dir = out_dir.rsplit("/", 1)[0]
 
-    representative_file = f'{out_dir.rsplit("/", 1)[0]}' + '/representative_segments.txt'
+    representative_file = f'{out_dir}' + '/representative_segments.txt'
     representative_list = []
     for icluster in clusters:
-
-        new_file = f'{out_dir.rsplit("/", 1)[0]}/' + file_pattern.format(str(icluster))
+        new_file = f'{out_dir}/' + file_pattern.format(str(icluster))
 
         if not exists(new_file):
             copyfile(west_name, new_file)
@@ -599,15 +639,15 @@ def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="w
         with h5py.File(west_name, "r") as h5_file:
             last_iter = len(h5_file['summary'])
 
+        # tqdm load bar, working backwards
         tqdm_iter = trange(last_iter, first_iter - 1, -1, desc="iter")
 
+        # Identify constituents of a cluster to output.
         trace_out_list = []
-        selected_cluster = cluster_labels == icluster
-        cluster_arr = numpy.array(data_arr, dtype=object)[selected_cluster]
-        data_cl = list(cluster_arr)
-        weights_cl = weights[selected_cluster]
-        print(data_cl[numpy.argmax(weights_cl)][0])
-        representative_list.append(str(data_cl[numpy.argmax(weights_cl)][0]) + '\n')
+        data_cl, rep_weight = select_rep(data_arr, weights, cluster_labels, icluster)
+
+        log.debug(f'cluster {icluster} representative weight: {rep_weight}')
+        representative_list.append(f'{rep_weight}\n')
 
         for idx, item in enumerate(data_cl):
             trace_out_list.append(list(numpy.array(item)[:, :2]))
