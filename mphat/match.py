@@ -722,18 +722,21 @@ def report_statistics(nclusters, cluster_labels, weights):
     -------
 
     """
-    # TODO: Not completely written yet.
     # Initialize the dictionary with 0 weight.
     final_dictionary = dict()
+    counts = dict()
     for j in range(nclusters):
         final_dictionary[j] = 0
+        counts[j] = 0
 
     for (cl, weight) in zip(cluster_labels, weights):
         final_dictionary[cl] += weight
+        counts[cl] += 1
 
-    report = f'Total Number of clusters: {nclusters}\n'
+    report = f'===mPHAT Pattern Matching Statistics===\n'
+    report += f'Total Number of clusters: {nclusters}\n'
     for (key, val) in final_dictionary.items():
-        report += f'Weight of cluster {key}: {val}\n'
+        report += f'Weight/count of cluster {key}: {val} / {counts[key]}\n'
     log.info(report)
 
 
@@ -794,7 +797,7 @@ def main(arguments):
 
     # Report statistics
     log.debug('Reporting statistics')
-    # report_statistics(ncluster, cluster_labels, weights) # Not completely written yet.
+    report_statistics(ncluster, cluster_labels, weights)
 
     # Output cluster labels and reassigned pickle object
     log.debug('Outputting files')
