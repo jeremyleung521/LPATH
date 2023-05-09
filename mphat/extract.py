@@ -335,7 +335,7 @@ def standard(arguments):
     # Generate and write pickle object.
     final_obj = create_pickle_obj(new_transitions, input_array, weight / len(transitions), features)
 
-    raise_warnings(final_obj)
+    raise_warnings(final_obj, arguments.stats)
 
     with open(f"{arguments.out_dir}/{arguments.extract_output}", "wb") as fo:
         pickle.dump(final_obj, fo)
