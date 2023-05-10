@@ -722,10 +722,10 @@ def report_statistics(nclusters, cluster_labels, weights):
     -------
 
     """
-    # Initialize the dictionary with 0 weight.
+    # Initialize the dictionary with 0 weight. 1-based for cl.
     final_dictionary = dict()
     counts = dict()
-    for j in range(nclusters):
+    for j in range(1, nclusters + 1):
         final_dictionary[j] = 0
         counts[j] = 0
 
