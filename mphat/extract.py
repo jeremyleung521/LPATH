@@ -25,7 +25,7 @@ from os import mkdir
 from shutil import copyfile
 
 import numpy
-from tqdm.auto import trange
+from tqdm.auto import tqdm, trange
 
 from mphat.io import load_file, expanded_load, EmptyOutputError
 
@@ -114,7 +114,7 @@ def clean_self_to_self(input_array):
     # log.debug(f"Full Count: {full_count}")
     # log.debug(f"Reduced Keys: {reduced_keys}")
     # Running backwards so indices are maintained.
-    for delete in reduced_keys[::-1]:
+    for delete in tqdm(reduced_keys[::-1], desc='Cleaning redundant transitions'):
         # Determine indices of where the duplicates happen
         pop_list = numpy.argwhere(output_array[:, 1] == delete).flatten()
         pop_list.sort()
@@ -216,7 +216,7 @@ def find_transitions(input_array, source_index, target_index):
 
     # Now do the calculations
     transitions = []
-    for val in source_indices:
+    for val in tqdm(source_indices, desc='Tracing successful transitions'):
         check = find_min_distance(val, target_indices)
         if check:
             transitions.append([val, check])
