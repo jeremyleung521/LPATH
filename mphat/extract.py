@@ -114,7 +114,7 @@ def clean_self_to_self(input_array):
     # log.debug(f"Full Count: {full_count}")
     # log.debug(f"Reduced Keys: {reduced_keys}")
     # Running backwards so indices are maintained.
-    for delete in tqdm(reduced_keys[::-1], desc='Cleaning redundant transitions'):
+    for delete in tqdm(reduced_keys[::-1], desc='Cleaning redundant transitions', leave=False):
         # Determine indices of where the duplicates happen
         pop_list = numpy.argwhere(output_array[:, 1] == delete).flatten()
         pop_list.sort()
@@ -216,7 +216,7 @@ def find_transitions(input_array, source_index, target_index):
 
     # Now do the calculations
     transitions = []
-    for val in tqdm(source_indices, desc='Tracing successful transitions'):
+    for val in tqdm(source_indices, desc='Tracing successful transitions', leave=False):
         check = find_min_distance(val, target_indices)
         if check:
             transitions.append([val, check])
