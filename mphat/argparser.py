@@ -10,8 +10,7 @@ arg_desc = """
 mPHAT: minimal Pathway Analysis Histogram Analysis of Trajectories
 =================================================================="""
 
-
-all_options = ['discretize', 'extract', 'match', 'all']
+all_options = ['discretize', 'extract', 'match', 'plot', 'all']
 
 
 def check_non_neg(value):
@@ -343,7 +342,7 @@ def add_match_args(parser=None):
                           help=argparse.SUPPRESS)
     match_io.add_argument('--no-remake', '-dN', '-nd', dest='dmatrix_remake', action='store_false',
                           help='Do not remake distance matrix. This overrides `--remake.`')
-    match_io.add_argument('--remade-file', '-dF', dest='dmatrix_save', type=str, default='distmat.npy',
+    match_io.add_argument('--remake-file', '--remade-file', '-dF', dest='dmatrix_save', type=str, default='distmat.npy',
                           help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
                                 specified. Assumed to be in ``out-dir``.')
     match_io.add_argument('--remake-parallel', '-dP', dest='dmatrix_parallel', type=int,
@@ -354,7 +353,7 @@ def add_match_args(parser=None):
     match_io.add_argument('-dt', '--dendro-threshold', '--dendrogram-threshold', dest='dendrogram_threshold',
                           type=check_non_neg, default=0.5, help='Horizontal threshold line for the dendrogram.')
     match_io.add_argument('-ds', '--dendro-show', '--dendrogram-show', dest='dendrogram_show', default=True,
-                          action='store_true', help='Show dendrogram with ``plt.show()``.')
+                          action='store_true', help=argparse.SUPPRESS)
     match_io.add_argument('-dh', '--dendro-hide', '--dendrogram-hide', dest='dendrogram_show', action='store_false',
                           help='Do not show dendrogram. Overrides ``--dendrogram-show``.')
     match_io.add_argument('-c', '--clusters', dest='clusters', default=None, nargs='*',
@@ -366,6 +365,35 @@ def add_match_args(parser=None):
                           action='store_true', help='Export each cluster as an independent H5 file.')
     match_we.add_argument('-fp', '--fp', '--file-pattern', dest='file_pattern',
                           default="west_succ_c{}.h5", type=str, help='Pattern to name per-cluster HDF5 files.')
+
+    return parser
+
+
+def add_plot_args(parser=None):
+    """
+    This block process all the necessary arguments for the "plot.py" module.
+
+    Parameters
+    ----------
+    parser : argparse.ArgumentParser
+        A parser passed in from each tool. Separated from each function because the
+        catch-all tool to run everything in succession will only have 1 parser.
+        This will auto create a parser if None is passed.
+
+    Returns
+    -------
+    parser : argparse.ArgumentParser
+        Returns an instance of the parser with all the new arguments added in.
+
+    """
+    if parser is None:
+        parser = create_parser()
+
+    plot_io = parser.add_argument_group('Plot Specific Parameters')
+
+    plot_io.add_argument('-im', '--IM', '--match-plot', '--input-match', dest='output_pickle',
+                         default='succ_traj/pathways.pickle', type=str, help='Path to pickle object from the `extract` \
+                         step.')
 
     return parser
 
@@ -394,6 +422,7 @@ def add_all_args(parser=None):
     parser = add_discretize_args(parser)
     parser = add_extract_args(parser)
     parser = add_match_args(parser)
+    parser = add_plot_args(parser)
 
     return parser
 
@@ -406,6 +435,7 @@ def create_subparsers(parser, subparser_list):
                                       help='The discretization step')
     extract = subparser.add_parser('extract', description='=== Extract Step ===', help='The extract step')
     match = subparser.add_parser('match', description='=== Match Step ===', help='The pattern matching step')
+    plot = subparser.add_parser('plot', description='=== Plot Step ===', help='The plotting step')
     all_steps = subparser.add_parser('all', description='=== All Steps ===', help='Run all steps')
 
     # Discretize
@@ -419,6 +449,10 @@ def create_subparsers(parser, subparser_list):
     # Match
     match = add_common_args(match)
     subparser_list.append(add_match_args(match))
+
+    # Plot
+    plot = add_common_args(plot)
+    subparser_list.append(add_plot_args(plot))
 
     # All steps
     subparser_list.append(add_all_args(all_steps))

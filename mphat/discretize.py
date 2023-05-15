@@ -61,8 +61,8 @@ def main(arguments):
             raise ModuleNotFoundError("Trying to discretize an HDF5 file but can't import w_assign")
 
         if arguments.we and arguments.input_name != arguments.west_name:
-            setattr(arguments, 'west_name', arguments.input_name)
-            log.debug("Replacing parameter `west_name` with `input_name`")
+            setattr(arguments, 'input_name', arguments.west_name)
+            log.debug("Replacing parameter `input_name` with `west_name`")
 
         if arguments.we and arguments.output_name != arguments.assign_name:
             setattr(arguments, 'output_name', arguments.assign_name)
@@ -113,33 +113,3 @@ def main(arguments):
 
         # Output
         output_file(out_array, arguments.output_name)
-
-
-if __name__ == "__main__":
-    """
-    For calling `discretize.py` directly. Note all of the parameters are specified manually here.
-    """
-    import argparse
-
-    args = argparse.Namespace(
-        we=True,  # Analyzing a WE simulation
-        input_name='dihedral.npy',  # Input data for state assignment. Something like 'dihedral.npy'.
-        output_name='discretized.npy',  # Output file name for the state assignment.
-        assign_func='assign_func',  # Assign function that dictates how to assign states
-        west_name='west.h5',  # Name of input HDF5 file (e.g., west.h5)
-        assign_name='ANALYSIS/TEST/assign.h5',  # Name of output assign.h5 file
-        rcfile='west.cfg', # west.cfg file
-        assign_args=argparse.Namespace(  # These are arguments for w_assign
-            verbosity='verbose',  # Verbose or debug
-            rcfile='west.cfg',  # west.cfg
-            max_queue_length=None,
-            we_h5filename='west.h5',  # west.h5 path
-            construct_dataset=None,  # If you need some custom auxiliary dataset
-            dsspecs=None,
-            output='assign.h5',  # Output file
-            subsample=None,
-            config_from_file=True,  # Read config from rcfile
-            scheme='TEST',  # Scheme name
-        ),
-    )
-    main(args)

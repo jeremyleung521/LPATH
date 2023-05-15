@@ -351,7 +351,7 @@ def expand_shorter_traj(pathways, dictionary):
                 step[2] = len(dictionary) - 1  # Mark with the last entry
 
 
-def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ_traj", remake=False, metric=True,
+def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ_traj", remake=True, metric=True,
                     n_jobs=None):
     """
     Generate the path_string to path_string similarity distance matrix.
@@ -815,8 +815,9 @@ def main(arguments):
     cluster_labels = hcluster(dist_matrix, ncluster)
 
     # Report statistics
-    log.debug('Reporting statistics')
-    report_statistics(ncluster, cluster_labels, weights)
+    if arguments.stats:
+        log.debug('Reporting statistics')
+        report_statistics(ncluster, cluster_labels, weights)
 
     # Output cluster labels and reassigned pickle object
     log.debug('Outputting files')
@@ -834,28 +835,3 @@ def main(arguments):
             file_pattern=arguments.file_pattern,
             west_name=arguments.west_name,
         )
-
-
-if __name__ == "__main__":
-    """
-    For calling `match.py` directly. Note all of the parameters are specified manually here.
-    
-    """
-    import argparse
-    args = argparse.Namespace(
-        input_pickle='succ_traj/output.pickle',  # Input file name of the pickle from `extract.py`
-        west_name='multi.h5',  # Name of input HDF5 file (e.g., west.h5)
-        assign_name='ANALYSIS/ALL/assign.h5',  # Name of input assign.h5 file
-        dmatrix_remake=True,  # Enable to remake the distance Matrix
-        dmatrix_save='distmap.npy',  # If dmatrix_remake is False, load this file instead. Assumed located in {out_dir}.
-        dmatrix_parallel=None,  # Number of jobs to run as part of the pairwise_distances() calculation.
-        dendrogram_threshold=0.5,  # Threshold for the Dendrogram
-        dendrogram_show=True,  # Show the Dendrogram using plt.show()
-        out_dir='succ_traj',  # Output for the distance Matrix
-        cl_output='succ_traj/cluster_labels.npy',  # Output path for cluster labels
-        file_pattern='west_succ_c{}.h5',  # Pattern to name cluster files
-        clusters=None,  # Cluster index to output... otherwise None --> All
-        reassign_method='reassign_identity',  # Reassign method. Could be a module to be loaded.
-    )
-
-    main(args)

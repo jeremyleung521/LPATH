@@ -1002,34 +1002,3 @@ def main(arguments):
     else:
         log.debug('Running Extract Standard mode.')
         standard(arguments)
-
-
-if __name__ == "__main__":
-    """
-    For calling `extract.py` directly. Note all of the parameters are specified manually here.
-    """
-    import argparse
-
-    args = argparse.Namespace(
-        we=True,  # Analyzing a WE simulation
-        west_name="west.h5",  # Name of input HDF5 file (e.g., west.h5)
-        assign_name="ANALYSIS/C7_EQ/assign.h5",  # Name of input assign.h5 file
-        source_state_num=0,  # Index of the source state as defined in discretize.
-        target_state_num=1,  # Index of the target state as defined in discretize.
-        first_iter=1,  # First iteration to analyze. Inclusive
-        last_iter=200,  # Last iteration to analyze. Inclusive. 0 implies it will analyze all labeled iterations.
-        trace_basis=True,  # Option to analyze each successful trajectory up till its basis state.
-        out_traj=False,  # Option to output trajectory files into `out_dir`. Will take much longer.
-        out_traj_ext=".nc",  # Extension of the segment files. Defaults to `seg{out_traj_ext}`.
-        out_state_ext=".ncrst",  # Extension of the restart files. Defaults to `seg{out_state_ext}`.
-        out_top="system.prmtop",  # Name of the parameter file. Name relative to `$WEST_SIM_ROOT/common_files`.
-        out_dir="succ_traj",  # Name of directory to output the trajectories.
-        extract_output="output.pickle",  # Name of the pickle file to be outputted.
-        hdf5=False,  # Enable if trajectories are saved with the HDF5 Framework in WESTPA.
-        rewrite_weights=False,  # Option to zero out the weights of all segments that are not a successful trajectory.
-        pcoord=True,  # Option to output the pcoord into the `output.pickle`.
-        auxdata=["phi", "psi"],  # Additional auxiliary data to save into `output.pickle`.
-        use_ray=True,  # Enable Ray.
-        threads=0,  # How many Ray threads/actors to use. Defaults to 0, which wil use all auto-detected resources.
-    )
-    main(args)
