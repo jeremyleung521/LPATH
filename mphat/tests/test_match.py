@@ -4,6 +4,7 @@ Unit and regression test for the mPHAT package.
 
 # Import package, test suite, and other packages as needed
 import sys
+import mphat.match
 
 
 def test_mphat_match_imported():

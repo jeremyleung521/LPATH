@@ -4,9 +4,7 @@ Unit and regression test for the mPHAT package.
 
 # Import package, test suite, and other packages as needed
 import sys
-
 import numpy
-
 import mphat.extract
 
 
