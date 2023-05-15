@@ -407,7 +407,7 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
 
     if not exists(new_name) or remake is True:
         log.debug(f'Proceeding to calculate distance matrix.')
-        pbar = tqdm(total=int((len(pathways) * (len(pathways) - 1)) / 2))
+        pbar = tqdm(total=int((len(path_strings) * (len(path_strings) - 1)) / 2))
         if metric:
             distmat = pairwise_distances(
                 X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary, pbar), n_jobs=n_jobs,
