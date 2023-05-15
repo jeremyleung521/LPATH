@@ -17,7 +17,7 @@ import pylcs
 import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import squareform
 from sklearn.metrics import pairwise_distances
-from tqdm.auto import trange
+from tqdm.auto import tqdm, trange
 
 from mphat.extloader import *
 
@@ -38,7 +38,7 @@ def tostr(b):
         return str(b)
 
 
-def calc_dist(seq1, seq2, dictionary):
+def calc_dist(seq1, seq2, dictionary, pbar):
     """
     Pattern match and calculate the similarity between two ``state string`` sequences.
 
@@ -52,6 +52,9 @@ def calc_dist(seq1, seq2, dictionary):
 
     dictionary : dict
         Dictionary mapping ``state_id`` (float/int) to ``state string`` (characters).
+
+    pbar : tqdm.tqdm
+        A tqdm.tqdm object for the progress bar.
 
     Returns
     -------
@@ -68,10 +71,12 @@ def calc_dist(seq1, seq2, dictionary):
     km = int(pylcs.lcs_sequence_length(seq1_str, seq2_str))
     similarity = (2 * km) / (int(len(seq1_str) + len(seq2_str)))
 
+    pbar.update(1)
+
     return 1 - similarity
 
 
-def calc_dist_substr(seq1, seq2, dictionary):
+def calc_dist_substr(seq1, seq2, dictionary, pbar):
     """
     Pattern match and calculate the similarity between two ``state string`` substrings.
     Used when you're comparing segment ids.
@@ -87,6 +92,9 @@ def calc_dist_substr(seq1, seq2, dictionary):
     dictionary : dict
         Dictionary mapping ``state_id`` (float/int) to ``state string`` (characters).
 
+    pbar : tqdm.tqdm
+        A tqdm.tqdm object for the progress bar.
+
     Returns
     -------
     1 - similarity : float
@@ -101,6 +109,8 @@ def calc_dist_substr(seq1, seq2, dictionary):
 
     km = int(pylcs.lcs_string_length(seq1_str, seq2_str))
     similarity = (2 * km) / (int(len(seq1_str) + len(seq2_str)))
+
+    pbar.update(1)
 
     return 1 - similarity
 
@@ -133,6 +143,8 @@ def load_data(file_name):
 
     pathways = numpy.zeros((npathways, lpathways, n), dtype=object)
     # This "Pathways" array should be Iter/Seg/State/auxdata_or_pcoord/frame#/weight
+
+    log.debug(f'Loaded pickle object.')
 
     return data, pathways
 
@@ -394,17 +406,20 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
     weights = numpy.asarray(weights)
 
     if not exists(new_name) or remake is True:
+        log.debug(f'Proceeding to calculate distance matrix.')
+        pbar = tqdm(total=int((len(pathways) * (len(pathways) - 1)) / 2))
         if metric:
             distmat = pairwise_distances(
-                X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary), n_jobs=n_jobs,
+                X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary, pbar), n_jobs=n_jobs,
             )
         else:
             distmat = pairwise_distances(
-                X=path_strings, metric=lambda x, y: calc_dist_substr(x, y, dictionary), n_jobs=n_jobs,
+                X=path_strings, metric=lambda x, y: calc_dist_substr(x, y, dictionary, pbar), n_jobs=n_jobs,
             )
         numpy.save(file_name, distmat)
     else:
         distmat = numpy.load(file_name)
+        log.debug(f'Loaded precalculated distance matrix.')
 
     return distmat, weights
 
@@ -425,7 +440,7 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
         import matplotlib.pyplot as plt
     except (ModuleNotFoundError, ImportError) as e:
         log.debug(e)
-        log.debug(f"Can not import matplotlib.")
+        log.debug(f'Can not import matplotlib.')
         return
 
     # Clean slate.
@@ -780,14 +795,18 @@ def main(arguments):
                       This will likely produce bad clustering results and you should considering reassigning to more \
                       intermediate states using a modified ``--reassign-method``.')
 
+    log.debug(f'Completed reassignment.')
+
     # Cleanup
     expand_shorter_traj(pathways, dictionary)  # Necessary if pathways are of variable length
+    log.debug(f'Cleaned up trajectories.')
     dist_matrix, weights = gen_dist_matrix(pathways, dictionary, file_name=arguments.dmatrix_save,
                                            out_dir=arguments.out_dir,
                                            remake=arguments.dmatrix_remake,  # Calculate distance matrix
                                            metric=arguments.longest_subsequence,  # Which metric to use
                                            n_jobs=arguments.dmatrix_parallel)  # Number of jobs for pairwise_distance
 
+    log.debug(f'Generated distance matrix.')
     # Visualize the Dendrogram and determine how clusters used to group successful trajectories
     visualize(dist_matrix, threshold=arguments.dendrogram_threshold, out_dir=arguments.out_dir,
               show=arguments.dendrogram_show)  # Visualize
