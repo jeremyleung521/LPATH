@@ -10,7 +10,7 @@ import numpy
 import mphat.extract
 
 
-def test_mphat_imported():
+def test_mphat_extract_imported():
     """
     Sample test. This will always pass so long as import statements worked.
 

@@ -670,7 +670,7 @@ def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="w
         exclusive_set = {tuple(pair) for ilist in trace_out_list for pair in ilist}
         with h5py.File(new_file, "r+") as h5file:
             for n_iter in tqdm_iter:
-                for n_seg in trange(len(h5file[f'iteration/{n_iter:>08}/seg_index'])):
+                for n_seg in trange(len(h5file[f'iteration/{n_iter:>08}/seg_index']), leave=False):
                     if (n_iter, n_seg) not in exclusive_set:
                         h5file[f"iterations/iter_{n_iter:>08}/seg_index"]["weight", n_seg] = 0
 

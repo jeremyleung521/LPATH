@@ -6,9 +6,9 @@ Unit and regression test for the mPHAT package.
 import sys
 
 
-def test_mphat_imported():
+def test_mphat_plot_imported():
     """
     Sample test. This will always pass so long as import statements worked.
 
     """
-    assert "mphat.mphat" in sys.modules
+    assert "mphat.plot" in sys.modules
