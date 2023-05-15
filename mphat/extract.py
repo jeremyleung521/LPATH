@@ -233,7 +233,10 @@ def raise_warnings(output_array, statistics):
     Parameters
     ----------
     output_array : list
-       A list of lists containing traced trajectories
+        A list of lists containing traced trajectories
+
+    statistics : bool, default: False
+        A flag to report statistics.
 
     """
     # If no successful trajectories...
