@@ -392,8 +392,11 @@ def add_plot_args(parser=None):
     plot_io = parser.add_argument_group('Plot Specific Parameters')
 
     plot_io.add_argument('-ipl', '--IPL', '--plot', '--input-plot', dest='output_pickle',
-                         default='succ_traj/pathways.pickle', type=str, help='Path to pickle object from the `extract` \
+                         default='succ_traj/pathways.pickle', type=str, help='Path to pickle object from the `match` \
                          step.')
+    plot_io.add_argument('-icl', '--ICL', '--plot-cl', '--input-cluster-label', dest='cl_output',
+                          default='succ_traj/cluster_labels.npy', type=str,
+                          help='Input file location for cluster labels.')
 
     return parser
 

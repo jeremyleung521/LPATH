@@ -1,3 +1,4 @@
 include CODE_OF_CONDUCT.md
+include data/default.mplstyle
 
 global-exclude *.py[cod] __pycache__ *.so

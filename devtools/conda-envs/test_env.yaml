@@ -8,6 +8,7 @@ dependencies:
   - pip
   - scikit-learn
   - tqdm
+  - matplotlib
   - pip:
     - pylcs
     - ray
