@@ -43,7 +43,7 @@ jobs:
             channels: 
               - conda-forge
               - defaults
-          create-args: |
+          create-args: >-
             python=${{ matrix.python-version }}
 
       - name: Install package
