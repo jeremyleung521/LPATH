@@ -3,9 +3,14 @@ Plot your lpath results.
 """
 import logging
 import numpy
+import lpath
 import matplotlib
 import matplotlib.pyplot as plt
 from lpath.io import load_file
+try:
+    from importlib.resources import files
+except ImportError:
+    from importlib_resources import files
 log = logging.getLogger(__name__)
 
 
@@ -21,7 +26,8 @@ def plot(input_array):
     Returns
     -------
     """
-    pass
+    inp_file = (files(lpath) / 'data/styles/default.mplstyle')
+    print(inp_file)
 
 
 def main(arguments):

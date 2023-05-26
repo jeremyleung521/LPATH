@@ -26,7 +26,8 @@ dependencies = [
     "scikit-learn",
     "pylcs",
     "ray",
-    "tqdm"
+    "tqdm",
+    "importlib-resources;python_version<'3.10'"
 ]
 
 # Update the urls once the hosting is set up.
@@ -67,7 +68,7 @@ zip-safe = false
 # (instead of using 'find'). With 'find', the 'tests' subpackage is discovered
 # recursively because of its __init__.py file, but the data subdirectory is excluded
 # with include-package-data = false and namespaces = false.
-include-package-data = false
+include-package-data = true
 [tool.setuptools.packages.find]
 namespaces = false
 where = ["."]

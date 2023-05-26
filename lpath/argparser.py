@@ -576,5 +576,6 @@ def check_argv():
 
     """
     import sys
-    if len(sys.argv) < 3 and sys.argv[1] in all_options:
+
+    if 1 < len(sys.argv) < 3 and sys.argv[1] in all_options:
         log.warning(f'WARNING: Running {sys.argv[1]} with all default values. Make sure you\'re sure of this!')
