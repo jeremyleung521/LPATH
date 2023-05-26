@@ -39,7 +39,10 @@ jobs:
         with:
           environment-file: devtools/conda-envs/test_env.yaml
           environment-name: test
-          channels: conda-forge,defaults
+          condarc: |
+            channels: 
+              - conda-forge
+              - defaults
           extra-specs: |
             python=${{ matrix.python-version }}
 
