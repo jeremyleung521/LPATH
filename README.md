@@ -1,6 +1,6 @@
 ![lpath_logo.png](lpath_logo.png)
 
-lPATH: Linguistics Pathway Analysis of Trajectories using Hierarchical clustering
+Linguistics Pathway Analysis of Trajectories using Hierarchical clustering
 ==============================
 [//]: # (Badges)
 [![GitHub Actions Build Status](https://github.com/jeremyleung521/mphat/workflows/CI/badge.svg)](https://github.com/jeremyleung521/mphat/actions?query=workflow%3ACI)
@@ -22,6 +22,7 @@ Copyright (c) 2023, Anthony Bogetti, Jeremy Leung, Lillian Chong
 - [x] command line interface/argparser
 - [x] Sphinx/Read the Docs autodoc
 - [x] Run each tool directly
+- [ ] Rename Repo
 
 #### Acknowledgements
  
