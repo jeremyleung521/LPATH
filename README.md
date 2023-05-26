@@ -1,4 +1,6 @@
-mPHAT: minimal Pathway Histogram Analysis of Trajectories
+![lpath_logo.png](lpath_logo.png)
+
+lPATH: Linguistics Pathway Analysis of Trajectories using Hierarchical clustering
 ==============================
 [//]: # (Badges)
 [![GitHub Actions Build Status](https://github.com/jeremyleung521/mphat/workflows/CI/badge.svg)](https://github.com/jeremyleung521/mphat/actions?query=workflow%3ACI)
