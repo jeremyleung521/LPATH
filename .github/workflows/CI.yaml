@@ -22,7 +22,7 @@ jobs:
     strategy:
       matrix:
         os: [macOS-latest, ubuntu-latest, windows-latest]
-        python-version: [3.8, 3.9, "3.10"]
+        python-version: [3.8, 3.9, 3.10]
 
     steps:
       - uses: actions/checkout@v3
@@ -54,7 +54,7 @@ jobs:
         # conda setup requires this special shell
         shell: bash -l {0}
         run: |
-          pytest -v --cov=mphat --cov-report=xml --color=yes mphat/tests/
+          pytest -v --cov=lpath --cov-report=xml --color=yes lpath/tests/
 
       - name: CodeCov
         uses: codecov/codecov-action@v3

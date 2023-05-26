@@ -1,11 +1,11 @@
-![lpath_logo.png](lpath_logo.png)
+![lpath_logo.png](logo/lpath_logo.png)
 
 Linguistics Pathway Analysis of Trajectories using Hierarchical clustering
 ==============================
 [//]: # (Badges)
-[![GitHub Actions Build Status](https://github.com/jeremyleung521/mphat/workflows/CI/badge.svg)](https://github.com/jeremyleung521/mphat/actions?query=workflow%3ACI)
-[![Documentation Status](https://readthedocs.org/projects/mphat/badge/?version=latest)](https://mphat.readthedocs.io/en/latest/?badge=latest)
-[![codecov](https://codecov.io/gh/jeremyleung521/mphat/branch/main/graph/badge.svg?token=5SS08RH1MO)](https://codecov.io/gh/jeremyleung521/mphat)
+[![GitHub Actions Build Status](https://github.com/jeremyleung521/lpath/workflows/CI/badge.svg)](https://github.com/jeremyleung521/lpath/actions?query=workflow%3ACI)
+[![Documentation Status](https://readthedocs.org/projects/lpath/badge/?version=latest)](https://lpath.readthedocs.io/en/latest/?badge=latest)
+[![codecov](https://codecov.io/gh/jeremyleung521/lpath/branch/main/graph/badge.svg?token=5SS08RH1MO)](https://codecov.io/gh/jeremyleung521/lpath)
 
 A user-friendly, Python tool for clustering pathways from molecular dynamics and weighted ensemble simulations.
 

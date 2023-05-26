@@ -17,12 +17,12 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
-import mphat
+import lpath
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'mPHAT'
+project = 'lpath'
 copyright = ("2023, Anthony Bogetti, Jeremy Leung, Lillian Chong. Project structure based on the "
              "Computational Molecular Science Python Cookiecutter version 1.1")
 author = 'Anthony Bogetti, Jeremy Leung, Lillian Chong'
@@ -118,7 +118,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'mphatdoc'
+htmlhelp_basename = 'lpathdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -145,8 +145,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'mphat.tex', 'mphat Documentation',
-     'mphat', 'manual'),
+    (master_doc, 'lpath.tex', 'lpath Documentation',
+     'lpath', 'manual'),
 ]
 
 
@@ -155,7 +155,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'mphat', 'mphat Documentation',
+    (master_doc, 'lpath', 'lpath Documentation',
      [author], 1)
 ]
 
@@ -166,8 +166,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'mphat', 'mphat Documentation',
-     author, 'mphat', 'A user-friendly, Python tool for clustering pathways from molecular dynamics simulations',
+    (master_doc, 'lpath', 'lpath Documentation',
+     author, 'lpath', 'A user-friendly, Python tool for clustering pathways from molecular dynamics simulations',
      'Miscellaneous'),
 ]
 

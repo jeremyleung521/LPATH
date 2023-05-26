@@ -1,14 +1,14 @@
 """
-Unit and regression test for the mPHAT package.
+Unit and regression test for the lpath package.
 """
 
 # Import package, test suite, and other packages as needed
 import sys
-import mphat.discretize
+import lpath.plot
 
-def test_mphat_discretize_imported():
+def test_lpath_plot_imported():
     """
     Sample test. This will always pass so long as import statements worked.
 
     """
-    assert "mphat.discretize" in sys.modules
+    assert "lpath.plot" in sys.modules

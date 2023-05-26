@@ -1,14 +1,14 @@
-mPHAT API Documentation
+lpath API Documentation
 =======================
 
 .. autosummary::
    # :toctree: autosummary
    :recursive:
 
-   mphat.discretize
-   mphat.extract
-   mphat.match
-   mphat.mphat
+   lpath.discretize
+   lpath.extract
+   lpath.match
+   lpath.lpath
 
 
 Common Parameters
@@ -16,9 +16,9 @@ Common Parameters
 All steps take the following parameters.
 
 .. argparse::
-   :module: mphat.argparser
+   :module: lpath.argparser
    :func: add_common_args
-   :prog: mphat {discretize,extract,match,all}
+   :prog: lpath {discretize,extract,match,all}
 
 
 Discretization Step
@@ -26,11 +26,11 @@ Discretization Step
 The ``discretize`` step allows you to assign MD trajectories (or WE simulations) into discrete states.
 
 .. argparse::
-   :module: mphat.argparser
+   :module: lpath.argparser
    :func: add_discretize_args
-   :prog: mphat discretize
+   :prog: lpath discretize
 
-.. automodule:: mphat.discretize
+.. automodule:: lpath.discretize
     :members:
 
 
@@ -39,11 +39,11 @@ Extract Step
 The ``extract`` step allows you to extract successful trajectories from MD trajectories (or WE simulations) based on definitions from ``disretize``.
 
 .. argparse::
-   :module: mphat.argparser
+   :module: lpath.argparser
    :func: add_extract_args
-   :prog: mphat extract
+   :prog: lpath extract
 
-.. automodule:: mphat.extract
+.. automodule:: lpath.extract
     :members:
 
 
@@ -52,27 +52,27 @@ Match Step
 The ``match`` step allows you to compare and cluster pathways from the ``extract`` step.
 
 .. argparse::
-   :module: mphat.argparser
+   :module: lpath.argparser
    :func: add_match_args
-   :prog: mphat match
+   :prog: lpath match
 
 
-.. automodule:: mphat.match
+.. automodule:: lpath.match
     :members:
 
 
-All mPHAT Steps
+All lpath Steps
 ---------------
 .. argparse::
-   :module: mphat.argparser
+   :module: lpath.argparser
    :func: add_all_args
-   :prog: mphat all
+   :prog: lpath all
 
-.. automodule:: mphat.main
+.. automodule:: lpath.main
     :members:
 
 
 argparser
 ---------
-.. automodule:: mphat.argparser
+.. automodule:: lpath.argparser
     :members:

@@ -27,7 +27,7 @@ from shutil import copyfile
 import numpy
 from tqdm.auto import tqdm, trange
 
-from mphat.io import load_file, expanded_load, EmptyOutputError
+from lpath.io import load_file, expanded_load, EmptyOutputError
 
 log = logging.getLogger(__name__)
 

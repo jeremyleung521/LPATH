@@ -19,7 +19,7 @@ from scipy.spatial.distance import squareform
 from sklearn.metrics import pairwise_distances
 from tqdm.auto import tqdm, trange
 
-from mphat.extloader import *
+from lpath.extloader import *
 
 log = logging.getLogger(__name__)
 
@@ -748,7 +748,7 @@ def report_statistics(nclusters, cluster_labels, weights):
         final_dictionary[cl] += weight
         counts[cl] += 1
 
-    report = f'===mPHAT Pattern Matching Statistics===\n'
+    report = f'===lpath Pattern Matching Statistics===\n'
     report += f'Total Number of clusters: {nclusters}\n'
     for (key, val) in final_dictionary.items():
         report += f'Weight/count of cluster {key}: {val} / {counts[key]}\n'

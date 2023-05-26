@@ -1,5 +1,5 @@
 """
-Plot your mPHAT results.
+Plot your lpath results.
 """
 import logging
 

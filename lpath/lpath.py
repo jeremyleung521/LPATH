@@ -4,7 +4,7 @@ Discretize, extract, match, in that order.
 """
 import logging
 
-import mphat
+import lpath
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ def main(arguments):
         A namespace with all the parameter arguments
 
     """
-    from mphat import discretize, extract, match, plot
+    from lpath import discretize, extract, match, plot
 
     discretize.main(arguments)
     extract.main(arguments)
@@ -32,13 +32,13 @@ def entry_point():
     Entry point for discretize, extract, match steps
 
     """
-    from mphat import argparser
-    from mphat import discretize, extract, match, plot
+    from lpath import argparser
+    from lpath import discretize, extract, match, plot
 
     # Creating the subparsers for each subcommand
     subparsers = []
     parser = argparser.create_parser()
-    parser, subparsers = mphat.argparser.create_subparsers(parser, subparsers)
+    parser, subparsers = lpath.argparser.create_subparsers(parser, subparsers)
 
     # Functions to be mapped to each subparser
     functions = [discretize.main, extract.main, match.main, plot.main, main]

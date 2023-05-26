@@ -3,8 +3,8 @@ Discretize your MD trajectories (or WE simulations) into states.
 """
 import numpy
 
-from mphat.extloader import *
-from mphat.io import expanded_load, output_file
+from lpath.extloader import *
+from lpath.io import expanded_load, output_file
 
 log = logging.getLogger(__name__)
 
@@ -107,9 +107,9 @@ def main(arguments):
         n_states = len(set(out_array))
         if n_states < 3:
             log.info(f'Only {n_states} defined, including the "unknown" state. This should be fine for \
-                       ``mphat extract`` purposes but will likely produce bad quality pattern matching results \
-                       further downstream. Please consider running ``mphat discretize`` with more states or \
-                       plan to reassign the trajectory using the ``reassign-method`` option in ``mphat match``.')
+                       ``lpath extract`` purposes but will likely produce bad quality pattern matching results \
+                       further downstream. Please consider running ``lpath discretize`` with more states or \
+                       plan to reassign the trajectory using the ``reassign-method`` option in ``lpath match``.')
 
         # Output
         output_file(out_array, arguments.output_name)

@@ -7,7 +7,7 @@ import logging
 log = logging.getLogger(__name__)
 
 arg_desc = """
-mPHAT: minimal Pathway Analysis Histogram Analysis of Trajectories
+lpath: minimal Pathway Analysis Histogram Analysis of Trajectories
 =================================================================="""
 
 all_options = ['discretize', 'extract', 'match', 'plot', 'all']

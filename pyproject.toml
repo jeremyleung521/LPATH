@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 # Self-descriptive entries which should always be present
 # https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 [project]
-name = "mphat"
+name = "lpath"
 description = "A user-friendly, Python tool for clustering pathways from molecular dynamics simulations"
 dynamic = ["version"]
 readme = "README.md"
@@ -31,8 +31,8 @@ dependencies = [
 
 # Update the urls once the hosting is set up.
 #[project.urls]
-#"Source" = "https://github.com/<username>/mphat/"
-#"Documentation" = "https://mphat.readthedocs.io/"
+#"Source" = "https://github.com/<username>/lpath/"
+#"Documentation" = "https://lpath.readthedocs.io/"
 
 [project.optional-dependencies]
 test = [
@@ -44,7 +44,7 @@ westpa = [
 ]
 
 dev = [
-    "mphat[test,westpa]"
+    "lpath[test,westpa]"
 ]
 
 [tool.setuptools]
@@ -74,7 +74,7 @@ where = ["."]
 
 # Ref https://setuptools.pypa.io/en/latest/userguide/datafiles.html#package-data
 [tool.setuptools.package-data]
-mphat = [
+lpath = [
     "py.typed"
 ]
 
@@ -91,7 +91,7 @@ distance-dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
 method = "git"  # <- The method name
 # Parameters to pass to the method:
 match = ["*"]
-default-tag = "1.0.0"
+default-tag = "0.1.0"
 
 [tool.versioningit.write]
-file = "mphat/_version.py"
+file = "lpath/_version.py"
