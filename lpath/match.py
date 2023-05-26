@@ -784,7 +784,7 @@ def main(arguments):
         log.info(f'INFO: Replaced reassign() with {arguments.reassign_method}')
 
     # Prepping the data + Calculating the distance matrix
-    data, pathways = load_data(arguments.input_pickle)
+    data, pathways = load_data(arguments.extract_output)
 
     dictionary = {}
     # Reassignment... (or not) Make sure `dictionary` is declared globally since calc_distances() requires it.

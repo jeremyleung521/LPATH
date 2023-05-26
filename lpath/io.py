@@ -21,20 +21,22 @@ def load_file(input_file, stride):
         A numpy array of data used to assign states.
 
     """
-    if input_file.endswith(('.npy', '.npz')):
-        # if Numpy (array) format
-        data = numpy.load(input_file)[::stride]
-    else:
-        # Assumes it's a text file otherwise...
+    try:
+        # Treat it as text first.
         data = numpy.loadtxt(input_file)[::stride]
         # data = numpy.loadtxt(input_file, usecols=(1,2), skiprows=1)
+    except UnicodeDecodeError:
+        # Assumes it's a binary file otherwise...
+        log.debug('DEBUG: Not a unicode text file. Attempting to load file like a binary')
+        data = numpy.load(input_file, allow_pickle=True)[::stride]
 
     return data
 
 
 def expanded_load(input, stride):
     """
-    The expanded loading function that actually deals with lists. Attempts to literal_eval a
+    The expanded loading function that actually deals with lists. Attempts to literal_eval
+    it before processing.
 
     Parameters
     ----------

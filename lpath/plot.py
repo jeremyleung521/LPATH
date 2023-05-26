@@ -2,9 +2,10 @@
 Plot your lpath results.
 """
 import logging
-
 import numpy
-
+import matplotlib
+import matplotlib.pyplot as plt
+from lpath.io import load_file
 log = logging.getLogger(__name__)
 
 
@@ -33,4 +34,7 @@ def main(arguments):
         A Namespace object will all the necessary parameters.
 
     """
+    cluster_labels = load_file(arguments.cl_output, 1)
     pass
+
+

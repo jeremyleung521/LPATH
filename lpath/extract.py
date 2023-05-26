@@ -340,7 +340,7 @@ def standard(arguments):
 
     raise_warnings(final_obj, arguments.stats)
 
-    with open(f"{arguments.out_dir}/{arguments.extract_output}", "wb") as fo:
+    with open(arguments.match_input, "wb") as fo:
         pickle.dump(final_obj, fo)
 
 
@@ -850,7 +850,7 @@ def we(arguments):
             Auxiliary data set you would like to include in the ``output.pickle`` file.
             None means you don't want any. Only includes the last frame.
 
-        output_name : str, default: 'output.pickle'
+        output_name : str, default: 'succ_traj/output.pickle'
             Name of the output pickle file.
 
         stride : int, default: 1
@@ -974,7 +974,7 @@ def we(arguments):
         # Output list
         trace_out_list = sorted(trace_out_list, key=lambda x: (-x[0][0], x[0][1]))
 
-        with open(f"{out_dir}/{output_name}", "wb") as fo:
+        with open(f"{output_name}", "wb") as fo:
             pickle.dump(trace_out_list, fo)
 
         # Finally, zero out (iter,seg) that do not fall in this "successful" list.

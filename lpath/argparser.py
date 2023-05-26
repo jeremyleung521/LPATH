@@ -172,7 +172,7 @@ def add_discretize_args(parser=None):
                                file or a NumPy file with the features use to define source and target states. \
                                If the `-WE`` flag is specified, ``w_assign`` will run on ``--west-h5file`` instead \
                                to label your states.')
-    discretize_io.add_argument('-o', '-O', '-do', '-DO', '--output', dest='output_name', default='states.npy',
+    discretize_io.add_argument('-o', '-O', '-do', '-DO', '--output', dest='extract_input', default='states.npy',
                                help='The path to your output numpy file for after discretization. If ``-WE`` flag is \
                                      specified, ``--assign-h5file`` will be used instead.')
     discretize_io.add_argument('-af', '--assign-function', '--assign-func', dest='assign_func', type=str,
@@ -217,8 +217,8 @@ def add_extract_args(parser=None):
                             help='The path to your output numpy file from ``discretize`` step. If the ``-WE`` flag is \
                                   specified, this will be ignored as ``--west-h5file`` and ``--assign-h5file`` will be \
                                   used instead.')
-    extract_io.add_argument('-eo', '-EO', '--extract-output', dest='extract_output', default='output.pickle',
-                            help='Name of the output pickle object file. This will be saved in ``--out-dir``.')
+    extract_io.add_argument('-eo', '-EO', '--extract-output', dest='extract_output', default='succ_traj/output.pickle',
+                            help='Name of the output pickle object file. This will be saved relative to $pwd.')
     extract_io.add_argument('-ss', '--source', '--source-state', '--SOURCE-STATE', dest='source_state_num',
                             type=check_non_neg, default=0, help='Index of the source state. If the ``-WE`` flag is \
                                                                 specified, this should match the index specified in \
@@ -313,7 +313,7 @@ def add_match_args(parser=None):
 
     match_io = parser.add_argument_group('Match Specific Parameters')
 
-    match_io.add_argument('-ip', '--IP', '--pickle', '--input-pickle', dest='input_pickle',
+    match_io.add_argument('-ip', '--IP', '--pickle', '--input-pickle', dest='extract_output',
                           default='succ_traj/output.pickle', type=str, help='Path to pickle object from the `extract` \
                           step.')
     match_io.add_argument('-op', '--OP', '--output-pickle', dest='output_pickle',
@@ -391,7 +391,7 @@ def add_plot_args(parser=None):
 
     plot_io = parser.add_argument_group('Plot Specific Parameters')
 
-    plot_io.add_argument('-im', '--IM', '--match-plot', '--input-match', dest='output_pickle',
+    plot_io.add_argument('-ipl', '--IPL', '--plot', '--input-plot', dest='output_pickle',
                          default='succ_traj/pathways.pickle', type=str, help='Path to pickle object from the `extract` \
                          step.')
 
@@ -507,6 +507,25 @@ def process_assign_args(arguments):
     return arguments
 
 
+def process_extract_output(arguments):
+    """
+    Process discrepancy in arguments where `extract_output` does not contain `out-dir` while everything else does.
+
+    Parameters
+    ----------
+    arguments : argparse.Namespace
+        Parsed arguments by parser.
+
+    """
+    if arguments.step_name in ['extract', 'match', 'all']:
+        argsplit = arguments.extract_output.split('/')
+        if len(argsplit) == 1 and argsplit[0] != args.out_dir:
+            expanded_arg = f'{arguments.out_dir}/{arguments.extract_output}'
+            setattr(arguments, 'extract_output', expanded_arg)
+            log.warning(f'WARNING: Modified it so `extract` output file path is in `out-dir`: {expanded_arg}.')
+
+    return arguments
+
 def process_args(parser):
     """
     Actually process whatever passed to the parser.
@@ -525,6 +544,9 @@ def process_args(parser):
     args = parser.parse_args()
     # Automatically parse arguments for w_assign
     args = process_assign_args(args)
+
+    #
+    args = process_extract_output(args)
 
     # Process extract arguments
     if args.step_name in ['extract', 'all']:
