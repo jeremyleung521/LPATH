@@ -312,6 +312,11 @@ def standard(arguments):
     input_array = load_file(arguments.extract_input, arguments.stride)
     n_states = len(input_array) - 1
 
+    try:
+        mkdir(arguments.out_dir)
+    except FileExistsError:
+        print(f"Folder {arguments.out_dir} already exists. Files within might be overwritten.")
+
     if arguments.pcoord is True:
         if arguments.featurization_name is None:
             log.warning('WARNING: The --pcoord flag is specified but no file is \
