@@ -395,8 +395,18 @@ def add_plot_args(parser=None):
                          default='succ_traj/pathways.pickle', type=str, help='Path to pickle object from the `match` \
                          step.')
     plot_io.add_argument('-icl', '--ICL', '--plot-cl', '--input-cluster-label', dest='cl_output',
-                          default='succ_traj/cluster_labels.npy', type=str,
-                          help='Input file location for cluster labels.')
+                         default='succ_traj/cluster_labels.npy', type=str,
+                         help='Input file location for cluster labels.')
+    plot_io.add_argument('-sty', '--STY', '--mpl-styles', '--matplotlib-styles', dest='mpl_styles',
+                         default='default', type=str,
+                         help='Path to custom style script. Defaults to our recommendations.')
+    plot_io.add_argument('-mpl', '--MPL', '--matplotlib', '--mpl-args', dest='plt_args',
+                         type=str, default='',
+                         help='A string of arguments to pass onto matplotlib axis object.')
+    plot_io.add_argument('-col', '--colors', '--mpl-col', '--mpl-colors', dest='mpl-colors',
+                         type=str, nargs='+', default=["tomato", "dodgerblue", "red", "purple"],
+                         help='A sequence of matplotlib colors names separated by spaces.')
+
 
     return parser
 
@@ -522,12 +532,13 @@ def process_extract_output(arguments):
     """
     if arguments.step_name in ['extract', 'match', 'all']:
         argsplit = arguments.extract_output.split('/')
-        if len(argsplit) == 1 and argsplit[0] != args.out_dir:
+        if len(argsplit) == 1 and argsplit[0] != arguments.out_dir:
             expanded_arg = f'{arguments.out_dir}/{arguments.extract_output}'
             setattr(arguments, 'extract_output', expanded_arg)
-            log.warning(f'WARNING: Modified it so `extract` output file path is in `out-dir`: {expanded_arg}.')
+            log.warning(f'WARNING: Modified it so `extract` output file path is in `out-dir`: \'{expanded_arg}\'.')
 
     return arguments
+
 
 def process_args(parser):
     """
@@ -547,13 +558,12 @@ def process_args(parser):
     args = parser.parse_args()
     # Automatically parse arguments for w_assign
     args = process_assign_args(args)
-
-    #
+    # Fix cases where extract_output doesn't contain out_dir
     args = process_extract_output(args)
 
     # Process extract arguments
     if args.step_name in ['extract', 'all']:
-        # Automatically turn on Ray unless no_ray is specified. A
+        # Automatically turn on Ray unless no_ray is specified
         if args.use_ray:
             try:
                 import ray
