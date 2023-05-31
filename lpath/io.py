@@ -1,9 +1,11 @@
 """
 I/O Operations
 """
+import numpy
+import logging
 from ast import literal_eval
 
-import numpy
+log = logging.getLogger(__name__)
 
 
 def load_file(input_file, stride):
