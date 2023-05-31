@@ -477,7 +477,7 @@ def hcluster(distmat, n_clusters):
     # (Hyper Parameter t=number of cluster)
     cluster_labels = sch.fcluster(z, t=n_clusters, criterion="maxclust")
 
-    return cluster_labels
+    return cluster_labels-1
 
 
 def determine_clusters(cluster_labels, clusters=None):
@@ -499,7 +499,7 @@ def determine_clusters(cluster_labels, clusters=None):
 
     """
     if clusters is None:
-        clusters = list(range(0, max(cluster_labels) + 1))
+        clusters = list(range(0, max(cluster_labels)+1))
     elif not isinstance(clusters, list):
         try:
             list(clusters)

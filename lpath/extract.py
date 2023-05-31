@@ -340,7 +340,7 @@ def standard(arguments):
 
     raise_warnings(final_obj, arguments.stats)
 
-    with open(arguments.match_input, "wb") as fo:
+    with open(arguments.extract_output, "wb") as fo:
         pickle.dump(final_obj, fo)
 
 
