@@ -72,7 +72,7 @@ def calc_dist(seq1, seq2, dictionary, pbar, condense=False):
     pbar : tqdm.tqdm
         A tqdm.tqdm object for the progress bar.
 
-    condense : bool
+    condense : bool, default: False
         Set True to shorten consecutive characters in state strings.
 
     Returns
@@ -118,7 +118,7 @@ def calc_dist_substr(seq1, seq2, dictionary, pbar, condense=False):
     pbar : tqdm.tqdm
         A tqdm.tqdm object for the progress bar.
 
-    condense : bool, Default: False
+    condense : bool, default: False
         Set True to shorten consecutive characters in state strings.
 
     Returns
@@ -132,6 +132,10 @@ def calc_dist_substr(seq1, seq2, dictionary, pbar, condense=False):
     seq1_str = "".join(dictionary[x] for x in seq1)
     # seq2 = seq2[seq2 > 0]
     seq2_str = "".join(dictionary[x] for x in seq2)
+
+    if condense:
+        seq1_str = remove_consec_states(seq1_str)
+        seq2_str = remove_consec_states(seq2_str)
 
     km = int(pylcs.lcs_string_length(seq1_str, seq2_str))
     similarity = (2 * km) / (int(len(seq1_str) + len(seq2_str)))
@@ -183,7 +187,7 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
     using ``reassign_identity``.
 
     In this example, the dictionary maps state idx to its corresponding ``state_string``.
-    I suggest using alphabets as states.
+    We suggest using alphabets as states.
 
     Parameters
     ----------
@@ -239,7 +243,7 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
     into new states.
 
     In this example, the dictionary maps state idx to its ``statelabels``,
-    as defined in the assign.h5. I suggest using alphabets as ``statelabels``
+    as defined in the assign.h5. We suggest using alphabets as ``statelabels``
     to allow for more than 9 states.
 
     Parameters
@@ -357,7 +361,7 @@ def reassign_identity(data, pathways, dictionary, assign_file=None):
     return dictionary
 
 
-def expand_shorter_traj(pathways, dictionary):
+def process_shorter_traj(pathways, dictionary, threshold_length):
     """
     Assigns a non-state to pathways which are shorter than
     the max length.
@@ -371,10 +375,23 @@ def expand_shorter_traj(pathways, dictionary):
         Maps each state_id to a corresponding string.
 
     """
-    for pathway in pathways:
+    del_list = []
+    for idx, pathway in enumerate(pathways):
+        count = 0
         for step in pathway:
             if step[0] == 0:  # If no iteration number (i.e., a dummy frame)
                 step[2] = len(dictionary) - 1  # Mark with the last entry
+            else:
+                count += 1
+        if count < threshold_length:
+            del_list.append(idx)
+
+    if len(del_list) > 0:
+        pathways = numpy.delete(pathways, del_list, axis=0)
+        log.debug(f'Indices of trajectories removed: {del_list}.')
+        log.warning(f'Removed {len(del_list)} trajectories of length < {threshold_length} frames.')
+
+    return pathways
 
 
 def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ_traj", remake=True, metric=True,
@@ -404,7 +421,7 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
         If False, the ``longest common substring`` metric will be used. The latter should only be used
         when comparing states where ``trace_basis`` set as True, such as with segment IDs.
 
-    condense : bool
+    condense : bool, default : False
         Set True to shorten consecutive characters in state strings.
 
     n_jobs : int, default : None
@@ -830,11 +847,11 @@ def main(arguments):
     log.debug(f'Completed reassignment.')
 
     # Cleanup
-    expand_shorter_traj(pathways, dictionary)  # Necessary if pathways are of variable length
+    test_obj = process_shorter_traj(pathways, dictionary, arguments.exclude_short)  # Necessary if pathways are of variable length
     log.debug(f'Cleaned up trajectories.')
 
     if arguments.remove_ends:
-        test_obj = numpy.asarray([i[1:-1] for i in pathways])
+        test_obj = numpy.asarray([i[1:-1] for i in test_obj])
     else:
         test_obj = pathways
 
@@ -860,7 +877,7 @@ def main(arguments):
 
     # Output cluster labels and reassigned pickle object
     log.debug('Outputting files')
-    export_pickle(pathways, arguments.output_pickle)
+    export_pickle(test_obj, arguments.output_pickle)
     numpy.save(arguments.cl_output, cluster_labels)
 
     # Following exports each cluster to its own h5 file, all weights of segments not in that group = 0.

@@ -322,6 +322,9 @@ def add_match_args(parser=None):
     match_io.add_argument('-co', '--cl-output', '--cluster-label-output', dest='cl_output',
                           default='succ_traj/cluster_labels.npy', type=str,
                           help='Output file location for cluster labels.')
+    match_io.add_argument('--exclude-min-length', '-el', '--exclude-length', '--exclude-short', dest='exclude_short',
+                          type=check_non_neg, default=0, help='Exclude trajectories shorter than provided value during \
+                          matching. Default is 0, which will include trajectories of all length.')
     match_io.add_argument('--reassign', '-ra', '--reassign-method', dest='reassign_method',
                           default='reassign_identity', type=str,
                           help='Reassign Method to use. Could be one of the defaults or a module to load. Defaults are \
