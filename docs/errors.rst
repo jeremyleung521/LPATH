@@ -65,7 +65,7 @@ The following tracebacks imply that your states have all accidentally been clear
     
 
 There are two common cause for this problem due to the custom reassign function:
-    1. The most common cause is that you have utilized a custom reassign function but forgot to include an "unknown state" in the dictionary. By lpath conventions, the last entry in the dictionary is always reserved for this state, represented by ``!`` (or ``chr(33)``). During string comparison, any states assigned "unknown" are concatenated. Adding the following line into your custom reassign function will typically solve it::
+    1. The most common cause is that you have utilized a custom reassign function but forgot to include an "unknown state" in the dictionary. By lpath conventions, the last entry in the dictionary is always reserved for this state, represented by ``!`` (or ``chr(33)``). During string comparison, any states assigned "unknown" are removed. Adding the following line into your custom reassign function will typically solve it::
         dictionary[len(dictionary)] = '!'
 
     2. Another potential cause is that you forgot to copy the other columns of data (iteration, seg_id etc.) into the ``pathways`` array during reassignment. The ``expand_shorter_traj()`` function assumes all segments with iteration 0 are there for padding (i.e., there because the length of the transition is < the longest successful trajectory extracted) and are assigned to the "unknown state". Include the following line within the second ``for`` loop to copy all columns before reassignment::

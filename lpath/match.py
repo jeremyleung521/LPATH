@@ -23,7 +23,6 @@ from lpath.extloader import *
 
 log = logging.getLogger(__name__)
 
-
 def tostr(b):
     """
     Convert a nonstandard string object ``b`` to str with the handling of the
@@ -38,7 +37,24 @@ def tostr(b):
         return str(b)
 
 
-def calc_dist(seq1, seq2, dictionary, pbar):
+def remove_consec_states(string):
+    """
+    Function that takes in a string and remove any consecutive duplicates.
+    """
+    string = tostr(string)
+    new_string = prev_chara = string[0]
+
+    # Loop through each character and return final str
+    for chara in string[1:]:
+        if chara == prev_chara:
+            continue
+        else:
+            new_string += chara
+            prev_chara = chara
+    return new_string
+
+
+def calc_dist(seq1, seq2, dictionary, pbar, condense=False):
     """
     Pattern match and calculate the similarity between two ``state string`` sequences.
 
@@ -56,6 +72,9 @@ def calc_dist(seq1, seq2, dictionary, pbar):
     pbar : tqdm.tqdm
         A tqdm.tqdm object for the progress bar.
 
+    condense : bool
+        Set True to shorten consecutive characters in state strings.
+
     Returns
     -------
     1 - similarity : float
@@ -68,6 +87,10 @@ def calc_dist(seq1, seq2, dictionary, pbar):
     seq2 = seq2[seq2 < len(dictionary) - 1]
     seq2_str = "".join(dictionary[x] for x in seq2)
 
+    if condense:
+        seq1_str = remove_consec_states(seq1_str)
+        seq2_str = remove_consec_states(seq2_str)
+
     km = int(pylcs.lcs_sequence_length(seq1_str, seq2_str))
     similarity = (2 * km) / (int(len(seq1_str) + len(seq2_str)))
 
@@ -76,7 +99,7 @@ def calc_dist(seq1, seq2, dictionary, pbar):
     return 1 - similarity
 
 
-def calc_dist_substr(seq1, seq2, dictionary, pbar):
+def calc_dist_substr(seq1, seq2, dictionary, pbar, condense=False):
     """
     Pattern match and calculate the similarity between two ``state string`` substrings.
     Used when you're comparing segment ids.
@@ -94,6 +117,9 @@ def calc_dist_substr(seq1, seq2, dictionary, pbar):
 
     pbar : tqdm.tqdm
         A tqdm.tqdm object for the progress bar.
+
+    condense : bool, Default: False
+        Set True to shorten consecutive characters in state strings.
 
     Returns
     -------
@@ -352,7 +378,7 @@ def expand_shorter_traj(pathways, dictionary):
 
 
 def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ_traj", remake=True, metric=True,
-                    n_jobs=None):
+                    condense=False, n_jobs=None):
     """
     Generate the path_string to path_string similarity distance matrix.
 
@@ -410,11 +436,11 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
         pbar = tqdm(total=int((len(path_strings) * (len(path_strings) - 1)) / 2))
         if metric:
             distmat = pairwise_distances(
-                X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary, pbar), n_jobs=n_jobs,
+                X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary, pbar, condense), n_jobs=n_jobs,
             )
         else:
             distmat = pairwise_distances(
-                X=path_strings, metric=lambda x, y: calc_dist_substr(x, y, dictionary, pbar), n_jobs=n_jobs,
+                X=path_strings, metric=lambda x, y: calc_dist_substr(x, y, dictionary, pbar, condense), n_jobs=n_jobs,
             )
         numpy.save(file_name, distmat)
     else:
@@ -692,7 +718,10 @@ def determine_rerun(dist_matrix):
             ans = input('Do you want to regenerate the graph with a new threshold (y/[n])?\n')
             if ans == 'y' or ans == 'Y':
                 ans2 = input('What new threshold would you like?\n')
-                visualize(dist_matrix, threshold=float(ans2), show=True)
+                try:
+                    visualize(dist_matrix, threshold=float(ans2), show=True)
+                except ValueError:
+                    determine_rerun(dist_matrix)
             elif ans == 'n' or ans == 'N' or ans == '':
                 break
             else:
@@ -810,6 +839,7 @@ def main(arguments):
                                            out_dir=arguments.out_dir,
                                            remake=arguments.dmatrix_remake,  # Calculate distance matrix
                                            metric=arguments.longest_subsequence,  # Which metric to use
+                                           condense=arguments.condense,  # Whether to condense consecutive state strings
                                            n_jobs=arguments.dmatrix_parallel)  # Number of jobs for pairwise_distance
 
     log.debug(f'Generated distance matrix.')

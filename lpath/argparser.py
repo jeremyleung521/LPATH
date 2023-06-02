@@ -337,8 +337,10 @@ def add_match_args(parser=None):
                                 continuous characters. This is not the default and (probably) should only be used when \
                                 comparing segment ids with ``trace_basis`` turned on in ``extract``. Overrides \
                                 ``--longest-common-subsequence``.')
-    match_io.add_argument('-re', '--remove-ends', dest='remove_ends', action='store_true',
+    match_io.add_argument('--remove-ends', '-re', dest='remove_ends', action='store_true',
                           help='Remove the end states (source and sink) during matching.')
+    match_io.add_argument('--condense', '-cc', '--condense-consecutive', dest='condense', action='store_true',
+                          help='Condense consecutively occuring states in state string during matching.')
 
     match_io.add_argument('--remake', '-dR', dest='dmatrix_remake', default=True, action='store_true',
                           help=argparse.SUPPRESS)
