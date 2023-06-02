@@ -800,7 +800,13 @@ def main(arguments):
     # Cleanup
     expand_shorter_traj(pathways, dictionary)  # Necessary if pathways are of variable length
     log.debug(f'Cleaned up trajectories.')
-    dist_matrix, weights = gen_dist_matrix(pathways, dictionary, file_name=arguments.dmatrix_save,
+
+    if arguments.remove_ends:
+        test_obj = numpy.asarray([i[1:-1] for i in pathways])
+    else:
+        test_obj = pathways
+
+    dist_matrix, weights = gen_dist_matrix(test_obj, dictionary, file_name=arguments.dmatrix_save,
                                            out_dir=arguments.out_dir,
                                            remake=arguments.dmatrix_remake,  # Calculate distance matrix
                                            metric=arguments.longest_subsequence,  # Which metric to use

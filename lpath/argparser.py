@@ -337,14 +337,16 @@ def add_match_args(parser=None):
                                 continuous characters. This is not the default and (probably) should only be used when \
                                 comparing segment ids with ``trace_basis`` turned on in ``extract``. Overrides \
                                 ``--longest-common-subsequence``.')
+    match_io.add_argument('-re', '--remove-ends', dest='remove_ends', action='store_true',
+                          help='Remove the end states (source and sink) during matching.')
 
     match_io.add_argument('--remake', '-dR', dest='dmatrix_remake', default=True, action='store_true',
                           help=argparse.SUPPRESS)
     match_io.add_argument('--no-remake', '-dN', '-nd', dest='dmatrix_remake', action='store_false',
-                          help='Do not remake distance matrix. This overrides `--remake.`')
+                          help='Do not remake distance matrix.')
     match_io.add_argument('--remake-file', '--remade-file', '-dF', dest='dmatrix_save', type=str, default='distmat.npy',
                           help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
-                                specified. Assumed to be in ``out-dir``.')
+                                specified. Assumed to be in ``--out-dir``.')
     match_io.add_argument('--remake-parallel', '-dP', dest='dmatrix_parallel', type=int,
                           help='Number of jobs to run with the pairwise distance calculations. The default=None issues \
                                 one job. A value of -1 uses all available resources. This is directly passed to the \
