@@ -407,7 +407,6 @@ def add_plot_args(parser=None):
                          type=str, nargs='+', default=["tomato", "dodgerblue", "red", "purple"],
                          help='A sequence of matplotlib colors names separated by spaces.')
 
-
     return parser
 
 

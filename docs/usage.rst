@@ -123,7 +123,7 @@ If you are looking to compare using segment IDs in the next step (not recommende
 1. From the command line, run the following::
 
     lpath extract -we -W multi.h5 -A ANALYSIS/TEST/assign.h5 --source-state 1 \
-        --target-state 2 --exctract-output output.pickle --out-dir succ_traj
+        --target-state 2 --extract-output output.pickle --out-dir succ_traj
 
 
 Match
