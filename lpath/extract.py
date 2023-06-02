@@ -439,7 +439,6 @@ def we(arguments):
 
         """
         base_frames = range(n_frames - 1, -1, -stride_step)
-        flag = True
 
         if (source_frame_num, term_frame_num) != (-1, n_frames):
             base_frames = list(base_frames)
@@ -447,21 +446,15 @@ def we(arguments):
                 # Source frame and every base frame after
                 if source_frame_num not in base_frames:
                     base_frames = base_frames + [source_frame_num]
-                frame_loop = sorted([frame for frame in base_frames if frame >= source_frame_num], reverse=True)
-                flag = False
+                base_frames = sorted([frame for frame in base_frames if frame >= source_frame_num], reverse=True)
+
             if term_frame_num != n_frames:
                 # Every base frame before (and including) term frame
                 if term_frame_num not in base_frames:
                     base_frames = base_frames + [term_frame_num]
-                frame_loop = sorted([frame for frame in base_frames if frame <= term_frame_num], reverse=True)
-                flag = False
-            if flag:
-                frame_loop = base_frames
-        else:
-            # Normal iteration. Output all steps
-            frame_loop = base_frames
+                base_frames = sorted([frame for frame in base_frames if frame <= term_frame_num], reverse=True)
 
-        return frame_loop
+        return base_frames
 
     def check_west_assign(west_name, assign_name, first_iter, last_iter):
         """
