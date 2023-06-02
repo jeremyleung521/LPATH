@@ -443,14 +443,17 @@ def we(arguments):
 
         if (source_frame_num, term_frame_num) != (-1, n_frames):
             base_frames = list(base_frames)
-            if source_frame_num != -1 and (source_frame_num not in base_frames):
+            if source_frame_num != -1:
                 # Source frame and every base frame after
-                base_frames = base_frames + [source_frame_num]
+                if source_frame_num not in base_frames:
+                    base_frames = base_frames + [source_frame_num]
                 frame_loop = sorted([frame for frame in base_frames if frame >= source_frame_num], reverse=True)
+                print(frame_loop)
                 flag = False
-            if term_frame_num != n_frames and (term_frame_num not in base_frames):
+            if term_frame_num != n_frames:
                 # Every base frame before (and including) term frame
-                base_frames = base_frames + [term_frame_num]
+                if term_frame_num not in base_frames:
+                    base_frames = base_frames + [term_frame_num]
                 frame_loop = sorted([frame for frame in base_frames if frame <= term_frame_num], reverse=True)
                 flag = False
             if flag:
@@ -460,6 +463,24 @@ def we(arguments):
             frame_loop = base_frames
 
         return frame_loop
+
+    def check_west_assign(west_name, assign_name, first_iter, last_iter):
+        """
+        A function to check if the assign.h5 corresponds with west.h5.
+
+        Parameters
+        ----------
+        west_name : str
+            Name of `west.h5` file. Identical from what's inputted to the argparser.
+
+        assign_name : str
+            Name of `assign.h5` file. Identical from what's inputted to the argparser.
+
+        """
+        with h5py.File(west_name) as west_file, h5py.File(assign_name) as assign_file:
+            for iter_num in range(first_iter, last_iter):
+                assert west_file['summary']['n_particles', iter_num] == assign_file['nsegs'][iter_num], (
+                    f"The assign.h5 file provided doesn't match the west.h5 file provided at iteration {iter_num +1}.")
 
     # Defining functions if we're using ray...
     if arguments.use_ray:
@@ -517,10 +538,21 @@ def we(arguments):
                 )  # Length is number of frames in traj + 1 (parent); only caring about the number of frames
 
                 # Going through segs in reverse order
+                if iteration_num == 104 and segment_num == 1:
+                    print(list(trace))
                 for iwalker in reversed(trace):
                     # Grabbing relevant datasets
                     ad_arr = process_ad_arr(pcoord, auxdata, iwalker)
                     weight = iwalker.weight
+                    if iwalker.iteration.summary.name == 104 and iwalker.segment_summary.name == 1:
+                        print(iwalker)
+                        print(iwalker.iteration.summary.name)
+                        print(assign_file['statelabels'][
+                            iwalker.iteration.summary.name, iwalker.segment_summary.name
+                        ])
+                        print(assign_file['statelabels'][
+                                  iwalker.iteration.summary.name -1, iwalker.segment_summary.name
+                              ])
                     corr_assign = assign_file["statelabels"][
                         iwalker.iteration.summary.name - 1, iwalker.segment_summary.name
                     ]
@@ -533,18 +565,28 @@ def we(arguments):
                         # Dealing with cases where this is the first iteration we're looking at
                         # If multiple, taking only the first instance we reached target state
                         term_frame_num = numpy.where(corr_assign == target_state_num)[0][0]
+                        if iwalker.iteration.summary.name == 104 and iwalker.segment_summary.name == 1:
+                            print('first')
+                            print(corr_assign)
                         if source_state_num in corr_assign[:term_frame_num + 1]:
                             # Went from source to target in one iteration. neat.
                             # Grabbing last instance it exited source state
                             source_frame_num = numpy.where(corr_assign == source_state_num)[0][-1]
+                            # print(source_frame_num, term_frame_num)
                             frame_loop = frame_range(source_frame_num, term_frame_num, total_frames, stride_step)
+                            # print(frame_loop)
                             for frame_index in frame_loop:
                                 indv_trace.append([iteration_num, segment_num, corr_assign[frame_index],
                                                    *ad_arr[frame_index], frame_index, weight])
                             break
                         else:
                             # Just a normal iteration where we reached target state. Output everything in stride.
+                            if iwalker.iteration.summary.name == 104 and iwalker.segment_summary.name == 1:
+                                print(source_state_num, term_frame_num)
                             frame_loop = frame_range(-1, term_frame_num, total_frames, stride_step)
+                            if iwalker.iteration.summary.name == 104 and iwalker.segment_summary.name == 1:
+                                print('first-no')
+                                print(corr_assign)
                             for frame_index in frame_loop:
                                 indv_trace.append([iteration_num, segment_num, corr_assign[frame_index],
                                                    *ad_arr[frame_index], frame_index, weight])
@@ -576,6 +618,11 @@ def we(arguments):
                             else:
                                 # Final case where it's definitely source -> target
                                 frame_loop = frame_range(source_frame_num, total_frames, total_frames, stride_step)
+                                if iwalker.iteration.summary.name == 104 and iwalker.segment_summary.name == 1:
+                                    print('no')
+                                    print(corr_assign)
+                                    print(source_frame_num)
+                                    print(frame_loop)
                                 for frame_index in frame_loop:
                                     indv_trace.append(
                                         [iwalker.iteration.summary.name, iwalker.segment_summary.name,
@@ -615,7 +662,7 @@ def we(arguments):
                 else:
                     indv_traj = None
 
-                # print(f'{indv_trace}')
+                print(f'{indv_trace}')
 
                 return indv_trace, indv_traj
     else:
@@ -875,13 +922,6 @@ def we(arguments):
             list runs backwards from the target iteration.
 
         """
-        # Variables validation
-        if last_iter == 0:
-            with h5py.File(assign_name, "r") as assign_file:
-                last_iter = len(assign_file["nsegs"])
-        else:
-            assert type(last_iter) is int, "last_iter is not legal and must be int."
-
         # Create Output file
         try:
             mkdir(out_dir)
@@ -996,6 +1036,15 @@ def we(arguments):
                         if (n_iter, n_seg) not in exclusive_set:
                             h5file[f"iterations/iter_{n_iter:>08}/seg_index"]["weight", n_seg] = 0
 
+
+    # Variables validation
+    if arguments.last_iter == 0:
+        with h5py.File(assign_name, "r") as assign_file:
+            setattr(arguments, 'last_iter', len(assign_file["nsegs"]))
+    else:
+        assert type(arguments.last_iter) is int, "last_iter is not legal and must be int."
+
+    check_west_assign(arguments.west_name, arguments.assign_name, arguments.first_iter, arguments.last_iter)
     retain_succ()
 
 
