@@ -404,6 +404,9 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
         If False, the ``longest common substring`` metric will be used. The latter should only be used
         when comparing states where ``trace_basis`` set as True, such as with segment IDs.
 
+    condense : bool
+        Set True to shorten consecutive characters in state strings.
+
     n_jobs : int, default : None
         Number of jobs to run for the pairwise_distances() calculation. The default issues one job.
 
