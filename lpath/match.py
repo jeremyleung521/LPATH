@@ -23,6 +23,7 @@ from lpath.extloader import *
 
 log = logging.getLogger(__name__)
 
+
 def tostr(b):
     """
     Convert a nonstandard string object ``b`` to str with the handling of the
@@ -143,6 +144,42 @@ def calc_dist_substr(seq1, seq2, dictionary, pbar, condense=False):
     pbar.update(1)
 
     return 1 - similarity
+
+
+def determine_reassign(reassign_method):
+    """
+    Argument processing to determine function to reassign trajectories.
+
+    Parameters
+    ----------
+    reassign_method : str , default: 'reassign_identity'
+        String from argument.reassign_identity, straight from argparser.
+
+    Returns
+    -------
+    reassign : function
+        The reassignment function.
+
+    """
+    # Dealing with the preset assign_method
+    preset_reassign = {
+        'reassign_identity': reassign_identity,
+        'reassign_statelabel': reassign_statelabel,
+        'reassign_custom': reassign_custom,
+        'reassign_segid': reassign_segid,
+    }
+
+    if reassign_method in preset_reassign.keys():
+        reassign = preset_reassign[reassign_method]
+    else:
+        import sys
+        import os
+        sys.path.append(os.getcwd())
+
+        reassign = get_object(reassign_method)
+        log.info(f'INFO: Replaced reassign() with {reassign_method}')
+
+    return reassign
 
 
 def load_data(file_name):
@@ -815,28 +852,13 @@ def main(arguments):
 
     """
     # Dealing with the preset assign_method
-    preset_reassign = {
-        'reassign_identity': reassign_identity,
-        'reassign_statelabel': reassign_statelabel,
-        'reassign_custom': reassign_custom,
-        'reassign_segid': reassign_segid,
-    }
-
-    if arguments.reassign_method in preset_reassign.keys():
-        reassign = preset_reassign[arguments.reassign_method]
-    else:
-        import sys
-        import os
-        sys.path.append(os.getcwd())
-
-        reassign = get_object(arguments.reassign_method)
-        log.info(f'INFO: Replaced reassign() with {arguments.reassign_method}')
+    reassign = determine_reassign(arguments.reassign_method)
 
     # Prepping the data + Calculating the distance matrix
     data, pathways = load_data(arguments.extract_output)
 
     dictionary = {}
-    # Reassignment... (or not) Make sure `dictionary` is declared globally since calc_distances() requires it.
+    # Reassignment... (or not)
     dictionary = reassign(data, pathways, dictionary, arguments.assign_name)  # system-specific reassignment of states
 
     if len(dictionary) < 3:
@@ -852,8 +874,6 @@ def main(arguments):
 
     if arguments.remove_ends:
         test_obj = numpy.asarray([i[1:-1] for i in test_obj])
-    else:
-        test_obj = pathways
 
     dist_matrix, weights = gen_dist_matrix(test_obj, dictionary, file_name=arguments.dmatrix_save,
                                            out_dir=arguments.out_dir,

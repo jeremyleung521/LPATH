@@ -328,7 +328,7 @@ def add_match_args(parser=None):
     match_io.add_argument('--reassign', '-ra', '--reassign-method', dest='reassign_method',
                           default='reassign_identity', type=str,
                           help='Reassign Method to use. Could be one of the defaults or a module to load. Defaults are \
-                                ``reassign_identity``, ``reassign_statelabel``, ``reassign_segid`` , \
+                                ``reassign_identity``, ``reassign_statelabel``, ``reassign_segid``, \
                                 and ``reassign_custom``.')
     match_io.add_argument('--subsequence', '-seq', '--longest-common-subsequence', dest='longest_subsequence',
                           action='store_true', default=True,
@@ -343,15 +343,15 @@ def add_match_args(parser=None):
     match_io.add_argument('--remove-ends', '-re', dest='remove_ends', action='store_true',
                           help='Remove the end states (source and sink) during matching.')
     match_io.add_argument('--condense', '-cc', '--condense-consecutive', dest='condense', action='store_true',
-                          help='Condense consecutively occuring states in state string during matching.')
+                          help='Condense consecutively occurring states in state string during matching.')
 
     match_io.add_argument('--remake', '-dR', dest='dmatrix_remake', default=True, action='store_true',
                           help=argparse.SUPPRESS)
     match_io.add_argument('--no-remake', '-dN', '-nd', dest='dmatrix_remake', action='store_false',
                           help='Do not remake distance matrix.')
-    match_io.add_argument('--remake-file', '--remade-file', '-dF', dest='dmatrix_save', type=str, default='distmat.npy',
-                          help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
-                                specified. Assumed to be in ``--out-dir``.')
+    match_io.add_argument('--remake-file', '--remade-file', '-dF', dest='dmatrix_save', type=str,
+                          default='succ_traj/distmat.npy', help='Path to pre-calculated distance matrix. Make sure \
+                                   the ``--no-remake`` flag is specified.')
     match_io.add_argument('--remake-parallel', '-dP', dest='dmatrix_parallel', type=int,
                           help='Number of jobs to run with the pairwise distance calculations. The default=None issues \
                                 one job. A value of -1 uses all available resources. This is directly passed to the \
@@ -411,8 +411,47 @@ def add_plot_args(parser=None):
                          type=str, default='',
                          help='A string of arguments to pass onto matplotlib axis object.')
     plot_io.add_argument('-col', '--colors', '--mpl-col', '--mpl-colors', dest='mpl-colors',
-                         type=str, nargs='+', default=["tomato", "dodgerblue", "red", "purple"],
-                         help='A sequence of matplotlib colors names separated by spaces.')
+                         type=str, nargs='*', default=["tomato", "dodgerblue", "red", "purple"],
+                         help='A sequence of matplotlib colors names separated by spaces. E.g., \
+                              ``--colors blue tab:green``.')
+    plot_io.add_argument('-co', '--cl-output', '--cluster-label-output', dest='cl_output',
+                         default='succ_traj/cluster_labels.npy', type=str,
+                         help='Output file location for cluster labels in ``plot`` step.')
+    plot_io.add_argument('--exclude-min-length', '-el', '--exclude-length', '--exclude-short', dest='exclude_short',
+                         type=check_non_neg, default=0, help='Exclude trajectories shorter than provided value during \
+                          matching. Default is 0, which will include trajectories of all lengths.')
+    plot_io.add_argument('--plot-reassign', '-pra', '--plot-reassign-method', dest='plot_reassign_method',
+                         default='reassign_identity', type=str,
+                         help='Reassign Method to use in ``plot`` step. Could be one of the defaults or a module to \
+                                load. Defaults are ``reassign_identity``, ``reassign_statelabel``, ``reassign_segid``, \
+                                and ``reassign_custom``.')
+    plot_io.add_argument('--plot-subsequence', '-psq', '--plot-longest-common-subsequence',
+                         dest='plot_longest_subsequence', action='store_true', default=True,
+                         help='Use the longest common subsequence metric. The final answer is a total of common \
+                               discontinuous characters. This is the default.')
+    plot_io.add_argument('--plot-substring', '-pst', '--plot-longest-common-substring',
+                         dest='plot_longest_subsequence',
+                         action='store_false',
+                         help='Use the longest common substring metric. The final answer is a length of common \
+                               continuous characters. This is not the default and (probably) should only be used when \
+                               comparing segment ids with ``trace_basis`` turned on in ``extract``. Overrides \
+                               ``--longest-common-subsequence``.')
+    plot_io.add_argument('--plot-remove-ends', '-pre', dest='plot_remove_ends', action='store_true',
+                         help='Remove the end states (source and sink) during matching.')
+    plot_io.add_argument('--plot-condense', '-pcc', '--plot-condense-consecutive', dest='plot_condense',
+                         action='store_true', help='Condense consecutively occurring states in state string \
+                                                    during matching.')
+
+    plot_io.add_argument('--plot-dmatrix-remake', '-pdR', dest='plot_dmatrix_remake', action='store_true',
+                         help='Remake Distance Matrix. Defaults to False by reading what\'s provided in \
+                               ``--plot-dmatrix-file``')
+    plot_io.add_argument('--plot-dmatrix-file', '-pdF', dest='dmatrix_save', type=str,
+                         help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
+                               specified. This is defaulted to what\'s provided in ``match`` step.')
+    plot_io.add_argument('--plot-remake-parallel', '-pdP', dest='plot_dmatrix_parallel', type=int,
+                         help='Number of jobs to run with the pairwise distance calculations. The default=None issues \
+                               one job. A value of -1 uses all available resources. This is directly passed to the \
+                               n_jobs parameter for ``sklearn.metrics.pairwise_distances()``.')
 
     return parser
 
@@ -469,7 +508,7 @@ def create_subparsers(parser, subparser_list):
     match = add_common_args(match)
     subparser_list.append(add_match_args(match))
 
-    # Plot
+    # Plot, which is intrinsically tied to match.
     plot = add_common_args(plot)
     subparser_list.append(add_plot_args(plot))
 
