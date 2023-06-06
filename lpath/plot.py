@@ -6,7 +6,8 @@ import numpy
 import lpath
 import matplotlib
 import matplotlib.pyplot as plt
-from lpath.match import load_data, visualize, determine_rerun, ask_number_cluster, hcluster
+from lpath.io import load_file
+from lpath.match import visualize, determine_rerun, ask_number_cluster, hcluster
 from os.path import exists
 
 try:
@@ -19,7 +20,51 @@ log = logging.getLogger(__name__)
 default_dendrogram_colors = ['tomato', 'dodgerblue', 'red', 'purple', 'grey']
 
 
-def relabel_identity(pathways):
+class plotData:
+    """
+    A class consisting of a bunch of pre-made data for plotting.
+
+    """
+    def __init__(self, arguments):
+        """
+        Loads in and organizes data...
+
+        """
+        # Loading in things
+        cluster_labels = load_file(arguments.cl_output)
+        loaded_data = load_file(arguments.output_pickle)
+        loaded_dmatrix = load_file(arguments.dmatrix_save)
+
+        # Preparing variables
+        data = dict()
+        weights, durations, path_indices, iter_num = [], [], [], []
+
+        # Report pathways.
+        n_pathways = len(loaded_data)
+        log.info(f'There are {n_pathways} pathways.')
+
+        for pathway in loaded_data:
+            weights.append(pathway[0][-1])
+            durations.append(len(pathway[:]))
+            iter_num += [frame[0] for frame in pathway]
+        iter_num = numpy.asarray(iter_num)
+
+        for cluster in set(cluster_labels):
+            path_indices.append(numpy.where(cluster_labels == cluster)[0])
+
+        # Precalculating stuff for later...
+        self.weights = numpy.asarray(weights)
+        self.durations = numpy.asarray(durations)
+        self.pathways = loaded_data
+        self.path_indices = path_indices
+        self.dist_matrix = loaded_dmatrix
+        self.cluster_labels = cluster_labels
+        self.n_pathways = len(loaded_data)
+        self.min_max_iter = [min(iter_num[numpy.nonzero(iter_num)]), max(iter_num)]
+
+
+
+def relabel_identity(pathways, cluster_labels):
     """
     Use ``lpath.match`` states as is. Does not attempt to relabel anything.
 
@@ -37,7 +82,7 @@ def relabel_identity(pathways):
     return pathways
 
 
-def relabel_custom(pathways):
+def relabel_custom(pathways, cluster_labels):
     """
     Relabel pathways (pcoord or states) from ``lpath.match`` frames into different values. This is highly
     specific to the system. If ``lpath.match``'s definition is sufficient,
@@ -63,7 +108,7 @@ def relabel_custom(pathways):
     for cidx, cluster in range(n_states):
         path_idxs_c = path_idxs[cluster_labels == cluster]
         for idx, pathway in enumerate(pathways):
-            if _ in path_idxs_c:
+            if idx in path_idxs_c:
                 pathway = numpy.array(pathway)
                 pcoord1 = pathway[:, 3]
                 pcoord2 = pathway[:, 4]
@@ -83,9 +128,9 @@ def relabel_custom(pathways):
 
 
 def plot_custom(fig, ax):
-    abs_pcoord = np.abs(np.diff(pcoord))
-    mask = np.hstack([abs_pcoord > 250, [False]])
-    output[jdx] = np.ma.MaskedArray(pcoord1, mask)
+    abs_pcoord = numpy.abs(numpy.diff(pcoord))
+    mask = numpy.hstack([abs_pcoord > 250, [False]])
+    output[jdx] = numpy.ma.MaskedArray(pcoord1, mask)
 
     plt.plot(masked_pcoord1, masked_pcoord2, color=colors[cidx], alpha=0.25)
 
@@ -184,29 +229,51 @@ def plt_config(arguments):
 
 
 def organize_data(arguments):
-    cluster_labels = load_data(arguments.cl_output)
-    loaded_data = load_data(arguments.output_pickle)
-    loaded_dmatrix = load_data(arguments.dmatrix_save)
+    """
+    Catch all function for organizing the data loaded in for plotting.
 
+    Parameters
+    ----------
+    arguments : argparse.Namespace
+        An argparse.Namespace object straight from argparser.
+
+    """
+
+    data = plotData(load_file(arguments.cl_output), load_file(arguments.output_pickle), load_file(arguments.dmatrix_save))
+
+    # Loading in things
+    cluster_labels = load_file(arguments.cl_output)
+    loaded_data = load_file(arguments.output_pickle)
+    loaded_dmatrix = load_file(arguments.dmatrix_save)
+
+    # Preparing variables
     data = dict()
+    weights, durations, path_indices, iter_num = [], [], [], []
 
-    npathways = len(loaded_data)
-    log.info(f'There are {npathways} pathways.')
-    path_idxs = numpy.arange(0, npathways)
+    # Report pathways.
+    n_pathways = len(loaded_data)
+    log.info(f'There are {n_pathways} pathways.')
 
-    weights, durations, pathways = [], [], []
     for pathway in loaded_data:
         weights.append(pathway[0][-1])
-        durations.append(int(len(pathway[:])))
-        pathways.append(pathway)
+        durations.append(len(pathway[:]))
+        iter_num += [frame[0] for frame in pathway]
+    iter_num = numpy.asarray(iter_num)
 
+    for cluster in set(cluster_labels):
+        path_indices.append(numpy.where(cluster_labels == cluster)[0])
+
+    # Precalculating stuff for later...
     data['weights'] = numpy.asarray(weights)
     data['durations'] = numpy.asarray(durations)
-    data['pathways'] = numpy.asarray(pathways)
-    data['path_idxs'] = numpy.asarray(path_idxs)
+    data['pathways'] = loaded_data
+    data['path_indices'] = path_indices
+    data['dist_matrix'] = loaded_dmatrix
     data['cluster_labels'] = cluster_labels
+    data['n_pathways'] = len(loaded_data)
+    data['min_max_iter'] = [min(iter_num[numpy.nonzero(iter_num)]), max(iter_num)]
 
-    return data, pathways, loaded_dmatrix
+    return data
 
 
 def plot(data, arguments):
@@ -238,7 +305,7 @@ def plot_branch_colors(fig, ax, labels, mpl_colors=default_dendrogram_colors):
         # Temporarily override the default line width:
         with plt.rc_context({'lines.linewidth': 3}):
             sch.dendrogram(z, no_labels=True, color_threshold=threshold, link_color_func=lambda x: mpl_colors[x],
-                           above_threshold_color=mpl_colors[-1])
+                           above_threshold_color=mpl_colors[-1], ax=ax)
     except RecursionError as e:
         # Catch cases where are too many branches in the dendrogram for default recursion to work.
         import sys
@@ -248,7 +315,7 @@ def plot_branch_colors(fig, ax, labels, mpl_colors=default_dendrogram_colors):
         log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
         with plt.rc_context({'lines.linewidth': 3}):
             sch.dendrogram(z, no_labels=True, color_threshold=threshold, link_color_func=lambda x: mpl_colors[x],
-                           above_threshold_color=mpl_colors[-1])
+                           above_threshold_color=mpl_colors[-1], ax=ax)
 
     plt.axhline(y=threshold, c="k", linestyle="--", linewidth=2.5)
     plt.ylabel("distance")
@@ -257,24 +324,24 @@ def plot_branch_colors(fig, ax, labels, mpl_colors=default_dendrogram_colors):
     plt.savefig("dendrogram_edit.pdf")
 
 
-def plot_hist_iter_num(fig, ax):
+def plot_hist_iter_num(pathways, fig, ax, out_path):
     for cidx, cluster in enumerate([1, 2]):
         iteration_target = []
         path_idxs_c = path_idxs[cluster_labels == cluster]
         for idx, pathway in enumerate(pathways):
             if idx in path_idxs_c:
-                pathway = np.array(pathway[0])
+                pathway = numpy.array(pathway[0])
                 iteration_target.append(pathway[0])
-        plt.hist(iteration_target, bins=np.arange(0, 600, 10), weights=weights[cluster_labels == cluster],
-                 color=colors[cidx], alpha=0.7)
+        ax.hist(iteration_target, bins=numpy.arange(0, 600, 10), weights=weights[cluster_labels == cluster],
+                color=colors[cidx], alpha=0.7, ax=ax)
 
-    plt.xlim(0, 600)
-    plt.xlabel("we iteration of arrival")
-    plt.ylabel("probability")
-    plt.yscale("log")
-    plt.savefig("iteration.pdf")
+    ax.set_xlim(0, 600)
+    ax.set_xlabel("we iteration of arrival")
+    ax.set_ylabel("probability")
+    ax.set_yscale("log")
 
-    plt.clf()
+    fig.savefig(f"{out_path}/iteration.pdf")
+    log.info(f'Outputted Graph in {out_path}/iteration.pdf.')
 
 
 def main(arguments):
@@ -288,17 +355,18 @@ def main(arguments):
 
     """
     # I/O and stuff...
-    data, pathways, dist_matrix = organize_data(arguments)
+    data = organize_data(arguments)
     relabel = process_plot_args(arguments)
 
     # Reassignment... (or not).
-    new_pathways = relabel(pathways)  # system-specific relabeling of states
+    data['new_pathways'] = relabel(data['pathways'])  # system-specific relabeling of things
 
     if arguments.regen_cl:
         visualize(dist_matrix, threshold=arguments.dendrogram_threshold, out_dir=arguments.out_dir,
-                  show=arguments.dendrogram_show)  # Visualize
-        determine_rerun(dist_matrix)
+                  show=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors)  # Visualize
+        determine_rerun(dist_matrix, mpl_colors=arguments.mpl_colors)
         ncluster = ask_number_cluster()
+        cluster_labels = hcluster(dist_matrix, ncluster)
 
     # if len(dictionary) < 3:
     #     log.warning(f'WARNING: Only {len(dictionary)} states defined, including the "unknown" state. \

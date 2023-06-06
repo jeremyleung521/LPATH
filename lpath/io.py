@@ -8,7 +8,7 @@ from ast import literal_eval
 log = logging.getLogger(__name__)
 
 
-def load_file(input_file, stride):
+def load_file(input_file, stride=1):
     """
     The actual loading function.
 
@@ -16,6 +16,9 @@ def load_file(input_file, stride):
     ----------
     input_file: str
         Path (or lists of paths) of the data file used to assign states.
+
+    stride: int, default : 1
+        Step to stride file. Defaults to 1, which returns everything.
 
     Returns
     -------
