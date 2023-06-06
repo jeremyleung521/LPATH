@@ -252,10 +252,10 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
     for idx, val in enumerate(data):
         # The following shows how you can "merge" multiple states into
         # a single one.
-        flipped_val = numpy.asarray(val)[::-1]
+        val = numpy.asarray(val)
         # Further downsizing... to if pcoord is less than 5
-        first_contact = numpy.where(flipped_val[:, 3] < 5)[0][0]
-        for idx2, val2 in enumerate(flipped_val):
+        first_contact = numpy.where(val[:, 3] < 5)[0][0]
+        for idx2, val2 in enumerate(val):
             # First copy all columns over
             pathways[idx, idx2] = val2
             # ortho is assigned to state 0
@@ -305,8 +305,8 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
 
     """
     for idx, val in enumerate(data):
-        flipped_val = numpy.asarray(val)[::-1]
-        for idx2, val2 in enumerate(flipped_val):
+        val = numpy.asarray(val)
+        for idx2, val2 in enumerate(val):
             pathways[idx, idx2] = val2
 
     try:
@@ -346,8 +346,8 @@ def reassign_segid(data, pathways, dictionary, assign_file=None):
 
     """
     for idx, val in enumerate(data):
-        flipped_val = numpy.asarray(val)[::-1]
-        for idx2, val2 in enumerate(flipped_val):
+        val = numpy.asarray(val)
+        for idx2, val2 in enumerate(val):
             pathways[idx, idx2] = val2  # Copy everything...
             pathways[idx, idx2, 2] = val2[1]  # Replace states with seg_id
 
@@ -386,8 +386,8 @@ def reassign_identity(data, pathways, dictionary, assign_file=None):
 
     """
     for idx, val in enumerate(data):
-        flipped_val = numpy.asarray(val)[::-1]
-        for idx2, val2 in enumerate(flipped_val):
+        val = numpy.asarray(val)
+        for idx2, val2 in enumerate(val):
             pathways[idx, idx2] = val2
 
     n_states = int(max([seg[2] for traj in pathways for seg in traj])) + 1
