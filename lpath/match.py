@@ -20,6 +20,8 @@ from sklearn.metrics import pairwise_distances
 from tqdm.auto import tqdm, trange
 
 from lpath.extloader import *
+from lpath.io import load_file
+from lpath.plot import default_dendrogram_colors
 
 log = logging.getLogger(__name__)
 
@@ -200,8 +202,7 @@ def load_data(file_name):
         An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
     """
-    with open(file_name, "rb") as f:
-        data = pickle.load(f)
+    data = load_file(file_name, 1)
 
     npathways = len(data)
     assert npathways, "Pickle object is empty. Are you sure there are transitions?"
@@ -468,7 +469,6 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
     -------
 
     """
-    out_dir = f'{out_dir.rsplit("/", 1)[0]}'
     new_name = f"{out_dir}/{file_name}"
 
     weights = []
@@ -507,13 +507,14 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
     return distmat, weights
 
 
-def visualize(distmat, threshold, out_dir="succ_traj", show=True):
+def visualize(distmat, threshold, out_dir="succ_traj", show=True, mpl_colors=default_dendrogram_colors):
     """
     Visualize the Dendrogram to determine hyper-parameters (n-clusters).
     Theoretically done only once to check.
 
     """
-    out_dir = f'{out_dir.rsplit("/", 1)[0]}'
+    color_args = lambda x: mpl_colors[x]
+    above_threshold = mpl_colors[-1]
 
     distmat_condensed = squareform(distmat, checks=False)
 
@@ -531,14 +532,16 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True):
 
     # Plot dendrogram
     try:
-        sch.dendrogram(z, no_labels=True, color_threshold=threshold)
+        sch.dendrogram(z, no_labels=True, color_threshold=threshold, link_color_func=color_args,
+                       above_threshold_color=above_threshold)
     except RecursionError as e:
         # Catch cases where are too many branches in the dendrogram for default recursion to work.
         import sys
         sys.setrecursionlimit(100000)
         log.warning(e)
         log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
-        sch.dendrogram(z, no_labels=True, color_threshold=threshold)
+        sch.dendrogram(z, no_labels=True, color_threshold=threshold, link_color_func=color_args,
+                       above_threshold_color=above_threshold)
 
     plt.axhline(y=threshold, c="k")
     plt.ylabel("distance")
@@ -560,7 +563,7 @@ def hcluster(distmat, n_clusters):
     # (Hyper Parameter t=number of cluster)
     cluster_labels = sch.fcluster(z, t=n_clusters, criterion="maxclust")
 
-    return cluster_labels-1
+    return cluster_labels - 1
 
 
 def determine_clusters(cluster_labels, clusters=None):
@@ -582,7 +585,7 @@ def determine_clusters(cluster_labels, clusters=None):
 
     """
     if clusters is None:
-        clusters = list(range(0, max(cluster_labels)+1))
+        clusters = list(range(0, max(cluster_labels) + 1))
     elif not isinstance(clusters, list):
         try:
             list(clusters)
@@ -672,7 +675,7 @@ def export_std_files(data_arr, weights, cluster_labels, clusters=None, out_dir="
     """
     clusters = determine_clusters(cluster_labels, clusters)
 
-    representative_file = f'{out_dir.rsplit("/", 1)[0]}' + '/representative_segments.txt'
+    representative_file = f'{out_dir}/representative_segments.txt'
     representative_list = []
 
     for icluster in clusters:
@@ -723,7 +726,6 @@ def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="w
         raise ModuleNotFoundError('Could not import h5py. Exiting out.')
 
     clusters = determine_clusters(cluster_labels, clusters)
-    out_dir = out_dir.rsplit("/", 1)[0]
 
     representative_file = f'{out_dir}' + '/representative_segments.txt'
     representative_list = []
@@ -761,7 +763,7 @@ def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="w
         f.writelines(representative_list)
 
 
-def determine_rerun(dist_matrix):
+def determine_rerun(dist_matrix, mpl_colors=default_dendrogram_colors):
     """
     Asks if you want to regenerate the dendrogram.
 
@@ -769,6 +771,10 @@ def determine_rerun(dist_matrix):
     ----------
     dist_matrix : numpy.ndarray
         A Numpy array of the distance matrix.
+
+    mpl_colors : list or default_dendrogram_colors
+        A list of colors for coloring the dendrogram.
+
     """
     while True:
         try:
@@ -776,9 +782,9 @@ def determine_rerun(dist_matrix):
             if ans == 'y' or ans == 'Y':
                 ans2 = input('What new threshold would you like?\n')
                 try:
-                    visualize(dist_matrix, threshold=float(ans2), show=True)
+                    visualize(dist_matrix, threshold=float(ans2), show=True, mpl_colors=mpl_colors)
                 except ValueError:
-                    determine_rerun(dist_matrix)
+                    determine_rerun(dist_matrix, mpl_colors)
             elif ans == 'n' or ans == 'N' or ans == '':
                 break
             else:
@@ -804,13 +810,13 @@ def ask_number_cluster():
             sys.exit(0)
 
 
-def report_statistics(nclusters, cluster_labels, weights):
+def report_statistics(n_clusters, cluster_labels, weights, segid_status=False):
     """
     Report statistics about the final clusters.
 
     Parameters
     ----------
-    nclusters : int
+    n_clusters : int
         Number of clusters.
 
     cluster_labels : numpy.ndarray
@@ -819,14 +825,15 @@ def report_statistics(nclusters, cluster_labels, weights):
     weights : numpy.ndarray
         Weight information
 
-    Returns
-    -------
+    segid_status : bool, default: False
+        Status of whether we're using seg_ids or not.
 
     """
     # Initialize the dictionary with 0 weight. 1-based for cl.
     final_dictionary = dict()
     counts = dict()
-    for j in range(1, nclusters + 1):
+    uniques = dict()
+    for j in range(1, n_clusters + 1):
         final_dictionary[j] = 0
         counts[j] = 0
 
@@ -834,10 +841,17 @@ def report_statistics(nclusters, cluster_labels, weights):
         final_dictionary[cl] += weight
         counts[cl] += 1
 
+    if segid_status:
+        for cluster, unique_count in zip(*numpy.unique(cluster_labels, return_counts=True)):
+            uniques[cluster] = unique_count
+    else:
+        for cl in cluster_labels:
+            uniques[cl] = 'N/A'
+
     report = f'===lpath Pattern Matching Statistics===\n'
-    report += f'Total Number of clusters: {nclusters}\n'
+    report += f'Total Number of clusters: {n_clusters}\n'
     for (key, val) in final_dictionary.items():
-        report += f'Weight/count of cluster {key}: {val} / {counts[key]}\n'
+        report += f'Weight/count/unique count of cluster {key}: {val} / {counts[key]} / {uniques[key]}\n'
     log.info(report)
 
 
@@ -869,7 +883,8 @@ def main(arguments):
     log.debug(f'Completed reassignment.')
 
     # Cleanup
-    test_obj = process_shorter_traj(pathways, dictionary, arguments.exclude_short)  # Necessary if pathways are of variable length
+    test_obj = process_shorter_traj(pathways, dictionary,
+                                    arguments.exclude_short)  # Necessary if pathways are of variable length
     log.debug(f'Cleaned up trajectories.')
 
     if arguments.remove_ends:
@@ -883,17 +898,22 @@ def main(arguments):
                                            n_jobs=arguments.dmatrix_parallel)  # Number of jobs for pairwise_distance
 
     log.debug(f'Generated distance matrix.')
+
     # Visualize the Dendrogram and determine how clusters used to group successful trajectories
     visualize(dist_matrix, threshold=arguments.dendrogram_threshold, out_dir=arguments.out_dir,
-              show=arguments.dendrogram_show)  # Visualize
-    determine_rerun(dist_matrix)
+              show=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors)
+    determine_rerun(dist_matrix, arguments.mpl_colors)
     ncluster = ask_number_cluster()
     cluster_labels = hcluster(dist_matrix, ncluster)
 
     # Report statistics
     if arguments.stats:
         log.debug('Reporting statistics')
-        report_statistics(ncluster, cluster_labels, weights)
+        if arguments.reassign_method == 'reassign_segid':
+            segid_status = True
+        else:
+            segid_status = False
+        report_statistics(ncluster, cluster_labels, weights, segid_status)
 
     # Output cluster labels and reassigned pickle object
     log.debug('Outputting files')
