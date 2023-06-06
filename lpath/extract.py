@@ -947,9 +947,9 @@ def we(arguments):
                         results = ray.get(finished)
                         for each_return in results:
                             (trace_output, traj_output) = each_return
-                            if trace_output is not None:
-                                trace_out_list.append(trace_output)
-                            if traj_output is not None:
+                            if trace_output:
+                                trace_out_list.append(trace_output[::-1])
+                            if traj_output:
                                 traj_output.save(f"{out_dir}/{n_iter}_{n_seg}{out_traj_ext}")
 
             # Shutting down ray since we're done with parallelization
@@ -981,16 +981,16 @@ def we(arguments):
                                 stride,
                             )
 
-                            if trace_output is not None:
-                                trace_out_list.append(trace_output)
-                            if traj_output is not None:
+                            if trace_output:
+                                trace_out_list.append(trace_output[::-1])
+                            if traj_output:
                                 traj_output.save(f"{out_dir}/{n_iter}_{n_seg}{out_traj_ext}")
 
         # Failure modes and warnings... and result stats!
         raise_warnings(trace_out_list, arguments.stats)
 
         # Output list
-        trace_out_list = sorted(trace_out_list, key=lambda x: (-x[0][0], x[0][1]))
+        trace_out_list = sorted(trace_out_list, key=lambda x: (-x[-1][0], x[-1][1]))
 
         with open(f"{output_name}", "wb") as fo:
             pickle.dump(trace_out_list, fo)
