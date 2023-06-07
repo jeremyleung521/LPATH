@@ -367,7 +367,6 @@ def add_match_args(parser=None):
     match_io.add_argument('-c', '--clusters', dest='clusters', default=None, nargs='*',
                           help='Clusters to export. 0-indexed. The default ``None`` will output all clusters.')
 
-
     match_we = parser.add_argument_group('WE-specific Match Parameters')
 
     match_we.add_argument('-ex', '--ex-h5', '--export-h5', dest='export_h5',
@@ -400,11 +399,13 @@ def add_plot_args(parser=None):
 
     plot_io = parser.add_argument_group('Plot Specific Parameters')
 
-    plot_io.add_argument('-ipl', '--IPL', '--plot', '--input-plot', dest='output_pickle',
+    plot_io.add_argument('-ipl', '--IPL', '--plot', '--plot-input', dest='output_pickle',
                          type=str, help='Path to pickle object from the `match` \
                          step.')
-    plot_io.add_argument('-icl', '--ICL', '--plot-cl', '--input-cluster-label', dest='cl_output',
+    plot_io.add_argument('-icl', '--ICL', '--plot-cl', '--plot-cluster-label', dest='cl_output',
                          type=str, help='Input file location for cluster labels.')
+    plot_io.add_argument('-pod', '--plot-out-path', '--plot-output-path', dest='out_path', default='plots',
+                         type=str, help='Directory to save your plotting output files. Path relative to ``$PWD``.')
     plot_io.add_argument('-sty', '--STY', '--mpl-styles', '--matplotlib-styles', dest='mpl_styles',
                          default='default', type=str,
                          help='Path to custom style script. Defaults to our recommendations.')
@@ -415,6 +416,13 @@ def add_plot_args(parser=None):
                          type=str, nargs='*', default=default_dendrogram_colors,
                          help='A sequence of matplotlib colors names separated by spaces. E.g., \
                               ``--colors blue tab:green``.')
+    plot_io.add_argument('-pdt', '--plot-dendro-threshold', '--plot-dendrogram-threshold', dest='dendrogram_threshold',
+                          type=check_non_neg, help='Horizontal threshold line for the dendrogram in ``lpath.plot``. \
+                                                    Default is 0.5')
+    plot_io.add_argument('--plot-regen-cl', '-rcl', '--plot-regenerate-cluster-labels', dest='regen_cl',
+                         action='store_true',
+                         help='Generate new cluster labels after relabeling. ``--plot-cluster-labels`` options can be \
+                               left empty if this is called.')
 
     plot_io.add_argument('--plot-dmatrix-file', '-pdF', dest='dmatrix_save', type=str,
                          help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
@@ -423,6 +431,8 @@ def add_plot_args(parser=None):
                          default='relabel_identity', type=str,
                          help='Relabel method to use. Could be one of the defaults or a module to load. Defaults are \
                                ``relabel_identity``, and ``relabel_custom``.')
+    plot_io.add_argument('--regen-cl', '-prc', '--regen-cluster-label', dest='regen_cl', action='store_true',
+                         help='Option to regenerate cluster labels.')
 
     return parser
 
@@ -592,7 +602,8 @@ def process_args(parser):
 
     # Turn Debugging on!
     if args.debug is True:
-        logging.basicConfig(level=logging.DEBUG)
+        logger = logging.getLogger('lpath')
+        logger.setLevel(logging.DEBUG)
 
     return args
 

@@ -20,8 +20,7 @@ from sklearn.metrics import pairwise_distances
 from tqdm.auto import tqdm, trange
 
 from lpath.extloader import *
-from lpath.io import load_file
-from lpath.plot import default_dendrogram_colors
+from lpath.io import load_file, default_dendrogram_colors
 
 log = logging.getLogger(__name__)
 
@@ -518,7 +517,7 @@ def visualize(distmat, threshold, out_dir="succ_traj", show=True, mpl_colors=def
 
     distmat_condensed = squareform(distmat, checks=False)
 
-    z = sch.linkage(distmat_condensed, method="ward")
+    z = sch.linkage(distmat_condensed, method='ward')
 
     try:
         import matplotlib.pyplot as plt
