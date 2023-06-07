@@ -168,15 +168,15 @@ def add_discretize_args(parser=None):
 
     discretize_io = parser.add_argument_group('Discretize Specific Parameters')
 
-    discretize_io.add_argument('-i', '-I', '-di', '-DI', '--input', dest='input_name', default='input.dat',
+    discretize_io.add_argument('--input', '-i', '-I', '-di', '-DI', dest='input_name', default='input.dat',
                                help='The path to your input file for discretization. Ideally, this would be a text \
                                file or a NumPy file with the features use to define source and target states. \
                                If the `-WE`` flag is specified, ``w_assign`` will run on ``--west-h5file`` instead \
                                to label your states.')
-    discretize_io.add_argument('-o', '-O', '-do', '-DO', '--output', dest='extract_input', default='states.npy',
+    discretize_io.add_argument('--output', '-o', '-O', '-do', '-DO', dest='extract_input', default='states.npy',
                                help='The path to your output numpy file for after discretization. If ``-WE`` flag is \
                                      specified, ``--assign-h5file`` will be used instead.')
-    discretize_io.add_argument('-af', '--assign-function', '--assign-func', dest='assign_func', type=str,
+    discretize_io.add_argument('--assign-func', '-af', '--assign-function', dest='assign_func', type=str,
                                default='default_assign',
                                help='User provided function used to discretize MD trajectories.')
 
@@ -214,17 +214,17 @@ def add_extract_args(parser=None):
 
     extract_io = parser.add_argument_group('Extract Specific Parameters')
 
-    extract_io.add_argument('-ei', '-EI', '--extract-input', dest='extract_input', default='states.npy',
+    extract_io.add_argument('--extract-input', '-ei', '-EI', dest='extract_input', default='states.npy',
                             help='The path to your output numpy file from ``discretize`` step. If the ``-WE`` flag is \
                                   specified, this will be ignored as ``--west-h5file`` and ``--assign-h5file`` will be \
                                   used instead.')
-    extract_io.add_argument('-eo', '-EO', '--extract-output', dest='extract_output', default='succ_traj/output.pickle',
+    extract_io.add_argument('--extract-output', '-eo', '-EO', dest='extract_output', default='succ_traj/output.pickle',
                             help='Name of the output pickle object file. This will be saved relative to $pwd.')
-    extract_io.add_argument('-ss', '--source', '--source-state', '--SOURCE-STATE', dest='source_state_num',
+    extract_io.add_argument('--source', '-ss', '--source-state', '--SOURCE-STATE', dest='source_state_num',
                             type=check_non_neg, default=0, help='Index of the source state. If the ``-WE`` flag is \
                                                                 specified, this should match the index specified in \
                                                                 ``w_assign``.')
-    extract_io.add_argument('-ts', '--target', '--target-state', '--TARGET-STATE', dest='target_state_num',
+    extract_io.add_argument('--target', '-ts', '--target-state', '--TARGET-STATE', dest='target_state_num',
                             type=check_non_neg, default=1, help='Index of the target state. If the ``-WE`` flag is \
                                                                 specified, this should match the index specified in \
                                                                 ``w_assign``.')
@@ -232,13 +232,13 @@ def add_extract_args(parser=None):
                             help='Output progress coordinate (or featurization) into the pickle file. If the \
                                   ``-WE`` flag is specified, the data will be obtained from the H5 file. Otherwise, \
                                   do specify a file name using the ``--extract-featurization`` flag.')
-    extract_io.add_argument('-ef', '-EF', '--extract-pcoord', '--extract-featurization', dest='featurization_name',
+    extract_io.add_argument('--extract-pcoord', '-ef', '-EF', '--extract-featurization', dest='featurization_name',
                             default=None,
                             help='The path to your feature dataset to be saved in the output pickle file. For most \
                                   people, this would be the input used for the ``discretize`` step. This option \
                                   is only for standard simulations. You MUST manually specify the ``--pcoord`` flag \
                                   for this to work.')
-    extract_io.add_argument('-fs', '--feature-stride', dest='feature_stride', default=1, type=check_positive,
+    extract_io.add_argument('--feature-stride', '-fs', dest='feature_stride', default=1, type=check_positive,
                             help='Dictates the step size to which the ``--extract-featurization`` is read in. \
                                    You will want this to match ``--stride`` used in ``discretize``. \
                                    Ignored for a WE simulation.')
@@ -255,19 +255,19 @@ def add_extract_args(parser=None):
                           help='Use Ray work manager. On by default.')
     raygroup.add_argument('--no-ray', '-NR', dest='use_ray', action='store_false',
                           help='Do not use Ray. This overrides ``--use-ray``.')
-    raygroup.add_argument('-t', '--threads', type=check_non_neg, default=0, help='Number of threads to use \
+    raygroup.add_argument('--threads', '-t', type=check_non_neg, default=0, help='Number of threads to use \
                           with Ray. The default of ``0`` uses all available resources detected.')
 
     extract_we = parser.add_argument_group('WE-specific Extract Parameters')
 
-    extract_we.add_argument('--first', '--first-iter', '--FIRST-ITER', dest='first_iter', type=check_non_neg,
+    extract_we.add_argument('--first-iter', '--first', '--FIRST-ITER', dest='first_iter', type=check_non_neg,
                             default=1, help='First iteration to look for successful trajectories, inclusive.')
-    extract_we.add_argument('--last', '--last-iter', '--LAST-ITER', dest='last_iter', type=check_non_neg,
+    extract_we.add_argument('--last-iter', '--last', '--LAST-ITER', dest='last_iter', type=check_non_neg,
                             default=0, help='Last iteration to look for successful trajectories, inclusive. \
                                             Default is 0, which will use all available iterations.')
-    extract_we.add_argument('-hdf5', '--hdf5', dest='hdf5', action='store_true', help='')
+    extract_we.add_argument('--hdf5', '-hdf5', dest='hdf5', action='store_true', help='')
 
-    extract_we.add_argument('-a', '--aux', '--AUX', '--auxdata', '--AUXDATA', dest='auxdata', nargs='*',
+    extract_we.add_argument('--aux', '-a', '--AUX', '--auxdata', '--AUXDATA', dest='auxdata', nargs='*',
                             action='extend', help='Names of additional auxiliary datasets to be combined.')
     extract_we.add_argument('-aa', '--auxall', nargs='?', dest='auxdata', const=[],
                             help='Combine all auxiliary datasets.')
@@ -276,17 +276,17 @@ def add_extract_args(parser=None):
                                  trajectory ensemble. Note this generates a new H5 file with the ``_succ`` suffix \
                                  added, meaning the default name is ``west_succ.h5``.')
 
-    extract_we.add_argument('-oj', '--out-traj', '--output-trajectory', dest='out_traj',
+    extract_we.add_argument('--out-traj', '-oj', '--output-trajectory', dest='out_traj',
                             action='store_true', help='Option to output trajectory files into ``out_dir``.')
-    extract_we.add_argument('-oe', '--out-traj-ext', '--output-trajectory-extension', dest='out_traj_ext',
+    extract_we.add_argument('--out-traj-ext', '-oe', '--output-trajectory-extension', dest='out_traj_ext',
                             default='.nc', type=str, help='Extension of the segment files. The name of the file is \
                                                            assumed to be ``seg``, meaning the default name of the file \
                                                            is ``seg.nc``.')
-    extract_we.add_argument('-se', '--out-state-ext', '--output-state-extension', dest='out_state_ext',
+    extract_we.add_argument('--out-state-ext', '-se', '--output-state-extension', dest='out_state_ext',
                             default='.ncrst', type=str, help='Extension of the restart files. The name of the file is \
                                                               assumed to be ``seg``, meaning the default name the file \
                                                               is ``seg.ncrst``.')
-    extract_we.add_argument('-ot', '--out-top', '--output-topology', dest='out_top', default='system.prmtop',
+    extract_we.add_argument('--out-top', '-ot', '--output-topology', dest='out_top', default='system.prmtop',
                             type=str, help='Name of the topology file. Name is relative to ``$PWD/common_files``.')
 
     return parser
@@ -314,13 +314,13 @@ def add_match_args(parser=None):
 
     match_io = parser.add_argument_group('Match Specific Parameters')
 
-    match_io.add_argument('-ip', '--IP', '--pickle', '--input-pickle', dest='extract_output',
+    match_io.add_argument('--input-pickle', '-ip', '--IP', '--pickle', dest='extract_output',
                           default='succ_traj/output.pickle', type=str, help='Path to pickle object from the `extract` \
                           step.')
-    match_io.add_argument('-op', '--OP', '--output-pickle', dest='output_pickle',
+    match_io.add_argument('--output-pickle', '-op', '--OP', dest='output_pickle',
                           default='succ_traj/pathways.pickle', type=str, help='Path to reassigned object to be \
                           outputted from the `match` step.')
-    match_io.add_argument('-co', '--cl-output', '--cluster-label-output', dest='cl_output',
+    match_io.add_argument('--cl-output', '-co', '--cluster-label-output', dest='cl_output',
                           default='succ_traj/cluster_labels.npy', type=str,
                           help='Output file location for cluster labels.')
     match_io.add_argument('--exclude-min-length', '-el', '--exclude-length', '--exclude-short', dest='exclude_short',
@@ -357,14 +357,14 @@ def add_match_args(parser=None):
                           help='Number of jobs to run with the pairwise distance calculations. The default=None issues \
                                 one job. A value of -1 uses all available resources. This is directly passed to the \
                                 n_jobs parameter for ``sklearn.metrics.pairwise_distances()``.')
-    match_io.add_argument('-c', '--clusters', dest='clusters', default=None, nargs='*',
+    match_io.add_argument('--clusters', '-c', dest='clusters', default=None, nargs='*',
                           help='Clusters to export. 0-indexed. The default ``None`` will output all clusters.')
 
     match_we = parser.add_argument_group('WE-specific Match Parameters')
 
-    match_we.add_argument('-ex', '--ex-h5', '--export-h5', dest='export_h5',
+    match_we.add_argument('--ex-h5', '-ex', '--export-h5', dest='export_h5',
                           action='store_true', help='Export each cluster as an independent H5 file.')
-    match_we.add_argument('-fp', '--fp', '--file-pattern', dest='file_pattern',
+    match_we.add_argument('--file-pattern', '-fp', '--fp', dest='file_pattern',
                           default="west_succ_c{}.h5", type=str, help='Pattern to name per-cluster HDF5 files.')
 
     return parser
@@ -411,20 +411,18 @@ def add_plot_args(parser=None):
                               ``--colors blue tab:green``. The last color should be reserved for branches above the \
                               threshold horizontal line.')
 
-    plot_io.add_argument('-pdt', '--dendro-threshold', '-dt', '--dendrogram-threshold', '--plot-dendro-threshold',
+    plot_io.add_argument('--dendrogram-threshold', '-pdt', '--dendro-threshold', '-dt', '--plot-dendro-threshold',
                          '--plot-dendrogram-threshold', dest='dendrogram_threshold',
                          type=check_non_neg, default=0.5, help='Horizontal threshold line for the dendrogram.')
-    plot_io.add_argument('-pds', '--dendro-show', '-ds', '--dendrogram-show', dest='dendrogram_show', default=True,
+    plot_io.add_argument('--dendrogram-show', '-pds', '--dendro-show', '-ds', dest='dendrogram_show', default=True,
                          action='store_true', help=argparse.SUPPRESS)
-    plot_io.add_argument('-pdh', '--dendro-hide', '-dh', '--dendrogram-hide', dest='dendrogram_show',
+    plot_io.add_argument( '--dendrogram-hide', '-pdh', '--dendro-hide', '-dh', dest='dendrogram_show',
                          action='store_false', help='Do not show dendrogram. Overrides ``--dendrogram-show``.')
 
     plot_io.add_argument('--plot-regen-cl', '-rcl', '--plot-regenerate-cluster-labels', dest='regen_cl',
                          action='store_true',
                          help='Option to regenerate new cluster labels after relabeling. ``--plot-cluster-labels`` \
-                               options can be left empty if this is called. This will overwrite the distance matrix \
-                               file provided by ``--plot-dmatrix-file`` (or if None is provided, \
-                               ``succ_traj/distmat.npy``).')
+                               options can be left empty if this is called.')
     plot_io.add_argument('--plot-dmatrix-file', '-pdF', dest='dmatrix_save', type=str,
                          help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
                                specified. This is defaulted to what\'s provided in ``match`` step.')
