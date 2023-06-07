@@ -7,6 +7,8 @@ from ast import literal_eval
 
 log = logging.getLogger(__name__)
 
+default_dendrogram_colors = ['tomato', 'dodgerblue', 'red', 'purple', 'grey']
+
 
 def load_file(input_file, stride=1):
     """
