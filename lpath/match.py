@@ -411,6 +411,9 @@ def process_shorter_traj(pathways, dictionary, threshold_length):
     dictionary: dict
         Maps each state_id to a corresponding string.
 
+    threshold_length: int or float, default: 0
+        A parameter such that trajectories < threshold_length are excluded from pattern matching.
+
     """
     del_list = []
     for idx, pathway in enumerate(pathways):
@@ -431,8 +434,8 @@ def process_shorter_traj(pathways, dictionary, threshold_length):
     return pathways
 
 
-def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ_traj", remake=True, metric=True,
-                    condense=False, n_jobs=None):
+def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', out_dir='succ_traj', remake=True,
+                    metric=True, condense=False, n_jobs=None):
     """
     Generate the path_string to path_string similarity distance matrix.
 
@@ -466,6 +469,11 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
 
     Returns
     -------
+    distmat : numpy.ndarray
+        A condensed form of the distance matrix (Upper Triangle).
+
+    weights : ndarray
+        An array of the weights of each successful pathway (as taken from the last frame).
 
     """
     new_name = f"{out_dir}/{file_name}"
@@ -503,51 +511,59 @@ def gen_dist_matrix(pathways, dictionary, file_name="distmat.npy", out_dir="succ
         distmat = numpy.load(file_name)
         log.debug(f'Loaded precalculated distance matrix.')
 
+    distmat = squareform(distmat, checks=False)
+
     return distmat, weights
 
 
-def visualize(distmat, threshold, out_dir="succ_traj", show=True, mpl_colors=default_dendrogram_colors):
+def visualize(distmat, threshold, out_path="plots", show_fig=True, mpl_colors=None, ax=None):
     """
     Visualize the Dendrogram to determine hyper-parameters (n-clusters).
     Theoretically done only once to check.
 
+    Returns
+    -------
+    plt.gca() : matplotlib.Axes
+        A matplotlib.Axes object, which should be the axes which is used to plot the dendrogram.
+
     """
-    color_args = lambda x: mpl_colors[x]
-    above_threshold = mpl_colors[-1]
-
-    distmat_condensed = squareform(distmat, checks=False)
-
-    z = sch.linkage(distmat_condensed, method='ward')
+    z = sch.linkage(distmat, method='ward')
 
     try:
         import matplotlib.pyplot as plt
     except (ModuleNotFoundError, ImportError) as e:
         log.debug(e)
-        log.debug(f'Can not import matplotlib.')
+        log.warning(f'Can not import matplotlib. Proceeding to not plot anything.')
         return
 
     # Clean slate.
-    plt.cla()
+    if ax is not None:
+        log.debug('Clearing current axis.')
+        plt.cla()
 
     # Plot dendrogram
     try:
-        sch.dendrogram(z, no_labels=True, color_threshold=threshold, link_color_func=color_args,
-                       above_threshold_color=above_threshold)
+        sch.set_link_color_palette(mpl_colors)
+        with plt.rc_context({'lines.linewidth': 3}):
+            sch.dendrogram(z, no_labels=True, color_threshold=threshold, ax=ax)
     except RecursionError as e:
         # Catch cases where are too many branches in the dendrogram for default recursion to work.
         import sys
+
         sys.setrecursionlimit(100000)
         log.warning(e)
         log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
-        sch.dendrogram(z, no_labels=True, color_threshold=threshold, link_color_func=color_args,
-                       above_threshold_color=above_threshold)
+        with plt.rc_context({'lines.linewidth': 3}):
+            sch.dendrogram(z, no_labels=True, color_threshold=threshold, ax=ax)
 
     plt.axhline(y=threshold, c="k")
     plt.ylabel("distance")
     plt.xlabel("pathways")
-    plt.savefig(f"{out_dir}/dendrogram.pdf")
-    if show:
+    plt.savefig(f"{out_path}/dendrogram.pdf")
+    if show_fig:
         plt.show()
+
+    return plt.gca()
 
 
 def hcluster(distmat, n_clusters):
@@ -555,9 +571,7 @@ def hcluster(distmat, n_clusters):
     Scikit-learn Hierarchical Clustering of the different pathways.
 
     """
-    distmat_condensed = squareform(distmat, checks=False)
-
-    z = sch.linkage(distmat_condensed, method="ward")
+    z = sch.linkage(distmat, method="ward")
 
     # (Hyper Parameter t=number of cluster)
     cluster_labels = sch.fcluster(z, t=n_clusters, criterion="maxclust")
@@ -762,7 +776,7 @@ def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="w
         f.writelines(representative_list)
 
 
-def determine_rerun(dist_matrix, mpl_colors=default_dendrogram_colors):
+def determine_rerun(dist_matrix, mpl_colors=default_dendrogram_colors, ax=None):
     """
     Asks if you want to regenerate the dendrogram.
 
@@ -774,6 +788,8 @@ def determine_rerun(dist_matrix, mpl_colors=default_dendrogram_colors):
     mpl_colors : list or default_dendrogram_colors
         A list of colors for coloring the dendrogram.
 
+    ax : matplotlib.Axes, Default: None
+        Matplotlib.Axes object to be inherited.
     """
     while True:
         try:
@@ -781,9 +797,9 @@ def determine_rerun(dist_matrix, mpl_colors=default_dendrogram_colors):
             if ans == 'y' or ans == 'Y':
                 ans2 = input('What new threshold would you like?\n')
                 try:
-                    visualize(dist_matrix, threshold=float(ans2), show=True, mpl_colors=mpl_colors)
+                    ax = visualize(dist_matrix, threshold=float(ans2), show_fig=True, mpl_colors=mpl_colors, ax=ax)
                 except ValueError:
-                    determine_rerun(dist_matrix, mpl_colors)
+                    determine_rerun(dist_matrix, mpl_colors, ax=ax)
             elif ans == 'n' or ans == 'N' or ans == '':
                 break
             else:
@@ -851,7 +867,7 @@ def report_statistics(n_clusters, cluster_labels, weights, segid_status=False):
     report += f'Total Number of clusters: {n_clusters}\n'
     for (key, val) in final_dictionary.items():
         report += f'Weight/count/unique count of cluster {key}: {val} / {counts[key]} / {uniques[key]}\n'
-    log.info(report)
+    print(report)
 
 
 def main(arguments):
@@ -899,9 +915,9 @@ def main(arguments):
     log.debug(f'Generated distance matrix.')
 
     # Visualize the Dendrogram and determine how clusters used to group successful trajectories
-    visualize(dist_matrix, threshold=arguments.dendrogram_threshold, out_dir=arguments.out_dir,
-              show=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors)
-    determine_rerun(dist_matrix, arguments.mpl_colors)
+    ax = visualize(dist_matrix, threshold=arguments.dendrogram_threshold, out_path=arguments.out_path,
+                   show_fig=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors)
+    determine_rerun(dist_matrix, arguments.mpl_colors, ax=ax)
     ncluster = ask_number_cluster()
     cluster_labels = hcluster(dist_matrix, ncluster)
 

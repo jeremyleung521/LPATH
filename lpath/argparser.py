@@ -3,7 +3,7 @@ All argument parsing from commandline is dealt here.
 """
 import argparse
 import logging
-from lpath.plot import default_dendrogram_colors
+from lpath.io import default_dendrogram_colors
 
 log = logging.getLogger(__name__)
 
@@ -357,13 +357,6 @@ def add_match_args(parser=None):
                           help='Number of jobs to run with the pairwise distance calculations. The default=None issues \
                                 one job. A value of -1 uses all available resources. This is directly passed to the \
                                 n_jobs parameter for ``sklearn.metrics.pairwise_distances()``.')
-
-    match_io.add_argument('-dt', '--dendro-threshold', '--dendrogram-threshold', dest='dendrogram_threshold',
-                          type=check_non_neg, default=0.5, help='Horizontal threshold line for the dendrogram.')
-    match_io.add_argument('-ds', '--dendro-show', '--dendrogram-show', dest='dendrogram_show', default=True,
-                          action='store_true', help=argparse.SUPPRESS)
-    match_io.add_argument('-dh', '--dendro-hide', '--dendrogram-hide', dest='dendrogram_show', action='store_false',
-                          help='Do not show dendrogram. Overrides ``--dendrogram-show``.')
     match_io.add_argument('-c', '--clusters', dest='clusters', default=None, nargs='*',
                           help='Clusters to export. 0-indexed. The default ``None`` will output all clusters.')
 
@@ -413,17 +406,25 @@ def add_plot_args(parser=None):
                          type=str, default='',
                          help='A string of arguments to pass onto matplotlib axis object.')
     plot_io.add_argument('-col', '--colors', '--mpl-col', '--mpl-colors', dest='mpl_colors',
-                         type=str, nargs='*', default=default_dendrogram_colors,
+                         type=str, nargs='+', default=default_dendrogram_colors,
                          help='A sequence of matplotlib colors names separated by spaces. E.g., \
-                              ``--colors blue tab:green``.')
-    plot_io.add_argument('-pdt', '--plot-dendro-threshold', '--plot-dendrogram-threshold', dest='dendrogram_threshold',
-                          type=check_non_neg, help='Horizontal threshold line for the dendrogram in ``lpath.plot``. \
-                                                    Default is 0.5')
+                              ``--colors blue tab:green``. The last color should be reserved for branches above the \
+                              threshold horizontal line.')
+
+    plot_io.add_argument('-pdt', '--dendro-threshold', '-dt', '--dendrogram-threshold', '--plot-dendro-threshold',
+                         '--plot-dendrogram-threshold', dest='dendrogram_threshold',
+                         type=check_non_neg, default=0.5, help='Horizontal threshold line for the dendrogram.')
+    plot_io.add_argument('-pds', '--dendro-show', '-ds', '--dendrogram-show', dest='dendrogram_show', default=True,
+                         action='store_true', help=argparse.SUPPRESS)
+    plot_io.add_argument('-pdh', '--dendro-hide', '-dh', '--dendrogram-hide', dest='dendrogram_show',
+                         action='store_false', help='Do not show dendrogram. Overrides ``--dendrogram-show``.')
+
     plot_io.add_argument('--plot-regen-cl', '-rcl', '--plot-regenerate-cluster-labels', dest='regen_cl',
                          action='store_true',
-                         help='Generate new cluster labels after relabeling. ``--plot-cluster-labels`` options can be \
-                               left empty if this is called.')
-
+                         help='Option to regenerate new cluster labels after relabeling. ``--plot-cluster-labels`` \
+                               options can be left empty if this is called. This will overwrite the distance matrix \
+                               file provided by ``--plot-dmatrix-file`` (or if None is provided, \
+                               ``succ_traj/distmat.npy``).')
     plot_io.add_argument('--plot-dmatrix-file', '-pdF', dest='dmatrix_save', type=str,
                          help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
                                specified. This is defaulted to what\'s provided in ``match`` step.')
@@ -431,8 +432,6 @@ def add_plot_args(parser=None):
                          default='relabel_identity', type=str,
                          help='Relabel method to use. Could be one of the defaults or a module to load. Defaults are \
                                ``relabel_identity``, and ``relabel_custom``.')
-    plot_io.add_argument('--regen-cl', '-prc', '--regen-cluster-label', dest='regen_cl', action='store_true',
-                         help='Option to regenerate cluster labels.')
 
     return parser
 

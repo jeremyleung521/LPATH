@@ -8,8 +8,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import squareform
-from lpath.io import load_file, default_dendrogram_colors
-from lpath.match import visualize, determine_rerun, ask_number_cluster, hcluster
+from lpath.io import load_file
+from lpath.match import gen_dist_matrix, visualize, determine_rerun, ask_number_cluster, hcluster
 from os.path import exists
 
 try:
@@ -115,6 +115,7 @@ class LPATHPlot:
     A class consisting of a bunch of pre-made data for plotting.
 
     """
+
     def __init__(self, arguments):
         """
         Loads in and organizes data...
@@ -124,15 +125,17 @@ class LPATHPlot:
         self.pathways = load_file(arguments.output_pickle)
         loaded_dmatrix = load_file(arguments.dmatrix_save) or None
         if isinstance(loaded_dmatrix, (numpy.ndarray, list)):
-            self.dist_matrix = squareform(loaded_dmatrix, checks=False) if loaded_dmatrix.ndim == 1 else loaded_dmatrix
+            # Turn into 1-D condensed distance matrix
+            self.dist_matrix = squareform(loaded_dmatrix, checks=False) if loaded_dmatrix.ndim == 2 else loaded_dmatrix
         else:
+            log.warning(f'No distance matrix inputted. Will proceed to rebuild.')
             self.dist_matrix = None
         self.cluster_labels = load_file(arguments.cl_output) if not arguments.regen_cl else None
 
-        # Preparing variables
+        # Preparing empty array variables
         weights, durations, path_indices, iter_num = [], [], [], []
 
-        # Report pathways.
+        # Report number of pathways.
         self.n_pathways = len(self.pathways)
         log.info(f'There are {self.n_pathways} pathways.')
 
@@ -154,14 +157,15 @@ class LPATHPlot:
 
         self.min_iter = min(iter_num[numpy.nonzero(iter_num)])
         self.max_iter = max(iter_num)
-        self.interval = 10 if self.max_iter - self.min_iter > 10 else 1
+        self.interval = 10 if self.max_iter - self.min_iter > 50 else 2
         self.dendrogram_threshold = arguments.dendrogram_threshold
         self.new_pathways = self.pathways
-        self.mpl_colors = arguments.mpl_colors or default_dendrogram_colors
+        self.mpl_colors = None if arguments.mpl_colors is ['None'] else arguments.mpl_colors
 
         # Set up dummy variables for the plots!
         self.fig = None
         self.ax = None
+        self.show_fig = arguments.dendrogram_show
 
     def plt_config(self):
         """
@@ -197,18 +201,19 @@ class LPATHPlot:
             self.plt_config()
 
         z = sch.linkage(self.dist_matrix, method='ward')
-        cluster_colors_array = [self.mpl_colors[label] for label in self.cluster_labels]
-        link_cols = {}
 
-        for i, i12 in enumerate(z[:, :2].astype(int)):
-            c1, c2 = (link_cols[x] if x > len(z) else cluster_colors_array[x] for x in i12)
-            link_cols[i + 1 + len(z)] = c1 if c1 == c2 else self.mpl_colors[-1]
+        sch.set_link_color_palette(self.mpl_colors)
+        # cluster_colors_array = [self.mpl_colors[label] for label in self.cluster_labels]
+        # link_cols = {}
+
+        # for i, i_pair in enumerate(z[:, :2].astype(int)):
+        #    c1, c2 = (link_cols[x] if x > len(z) else cluster_colors_array[x] for x in i_pair)
+        #    link_cols[i + 1 + len(z)] = c1 if c1 == c2 else self.mpl_colors[-1]
 
         try:
             # Temporarily override the default line width:
             with plt.rc_context({'lines.linewidth': 3}):
                 sch.dendrogram(z, no_labels=True, color_threshold=self.dendrogram_threshold,
-                               link_color_func=lambda x: self.mpl_colors[x],
                                above_threshold_color=self.mpl_colors[-1], ax=self.ax)
         except RecursionError as e:
             # Catch cases where are too many branches in the dendrogram for default recursion to work.
@@ -217,16 +222,19 @@ class LPATHPlot:
             sys.setrecursionlimit(100000)
             log.warning(e)
             log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
+            # Temporarily override the default line width:
             with plt.rc_context({'lines.linewidth': 3}):
                 sch.dendrogram(z, no_labels=True, color_threshold=self.dendrogram_threshold,
-                               link_color_func=lambda x: self.mpl_colors[x],
-                               above_threshold_color=self.mpl_colors[-1], ax=self.ax)
+                               above_threshold_color=self.mpl_colors[0], ax=self.ax)
 
         self.ax.axhline(y=self.dendrogram_threshold, c='k', linestyle='--', linewidth=2.5)
         self.ax.set_ylabel("distance")
         self.ax.set_xlabel("pathways")
         self.fig.set_layout_engine(layout='tight')
-        self.fig.savefig(f'{self.out_path}/dendrogram_edit.pdf')
+        self.fig.savefig(f'{self.out_path}/dendrogram_custom_color.pdf')
+
+        if self.show_fig:
+            plt.show()
 
 
 def plot_custom(fig, ax):
@@ -328,12 +336,24 @@ def main(arguments):
     data = LPATHPlot(arguments)
 
     # Reassignment... (or not).
-    data.new_pathways = relabel(data.pathways)  # system-specific relabeling of things
+    data.new_pathways, data.dictionary = relabel(data.pathways)  # system-specific relabeling of things
 
     if arguments.regen_cl:
-        visualize(data.dist_matrix, threshold=arguments.dendrogram_threshold, out_dir=arguments.out_dir,
-                  show=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors)  # Visualize
-        determine_rerun(data.dist_matrix, mpl_colors=arguments.mpl_colors)
+        # data.dist_matrix, data.weights = gen_dist_matrix(data.new_pathways, data.dictionary,
+        #                                                  file_name=arguments.dmatrix_save,
+        #                                                  out_dir=arguments.out_dir,
+        #                                                  remake=True,  # Calculate distance matrix
+        #                                                  metric=arguments.plot_longest_subsequence,  # Which metric to use
+        #                                                  condense=arguments.plot_condense,
+        #                                                  # Whether to condense consecutive state strings
+        #                                                  n_jobs=arguments.dmatrix_parallel,
+        #                                                  # Number of jobs for pairwise_distance
+        #                                                  )
+
+        # Attempt to visualize dendrogram with new the distance matrix.
+        data.ax = visualize(data.dist_matrix, threshold=arguments.dendrogram_threshold, out_dir=arguments.out_dir,
+                            show_fig=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors, ax=data.ax)
+        determine_rerun(data.dist_matrix, mpl_colors=arguments.mpl_colors, ax=data.ax)
         ncluster = ask_number_cluster()
         cluster_labels = hcluster(data.dist_matrix, ncluster)
         data.cluster_labels = cluster_labels
@@ -343,6 +363,4 @@ def main(arguments):
     # Necessary if pathways are of variable length
     # log.debug(f'Cleaned up trajectories.')
 
-    fig, ax = plot(data.new_pathways)
-
-    plot_branch_colors(fig, ax, data.cluster_labels, arguments.mpl_colors, arguments.out_dir)
+    data.plot_branch_colors()
