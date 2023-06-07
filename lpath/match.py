@@ -515,8 +515,15 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', out
 
     return distmat, weights
 
+def calc_linkage(distmat):
+    """
+    Given distance matrix, calculate and return the linkage.
 
-def visualize(distmat, threshold, out_path="plots", show_fig=True, mpl_colors=None, ax=None):
+    """
+
+    return sch.linkage(distmat, method='ward')
+
+def visualize(z, threshold, out_path="plots", show_fig=True, mpl_colors=None, ax=None):
     """
     Visualize the Dendrogram to determine hyper-parameters (n-clusters).
     Theoretically done only once to check.
@@ -527,8 +534,6 @@ def visualize(distmat, threshold, out_path="plots", show_fig=True, mpl_colors=No
         A matplotlib.Axes object, which should be the axes which is used to plot the dendrogram.
 
     """
-    z = sch.linkage(distmat, method='ward')
-
     try:
         import matplotlib.pyplot as plt
     except (ModuleNotFoundError, ImportError) as e:
@@ -566,13 +571,11 @@ def visualize(distmat, threshold, out_path="plots", show_fig=True, mpl_colors=No
     return plt.gca()
 
 
-def hcluster(distmat, n_clusters):
+def hcluster(z, n_clusters):
     """
     Scikit-learn Hierarchical Clustering of the different pathways.
 
     """
-    z = sch.linkage(distmat, method="ward")
-
     # (Hyper Parameter t=number of cluster)
     cluster_labels = sch.fcluster(z, t=n_clusters, criterion="maxclust")
 
@@ -776,14 +779,17 @@ def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="w
         f.writelines(representative_list)
 
 
-def determine_rerun(dist_matrix, mpl_colors=default_dendrogram_colors, ax=None):
+def determine_rerun(z, out_path='plots', mpl_colors=default_dendrogram_colors, ax=None):
     """
     Asks if you want to regenerate the dendrogram.
 
     Parameters
     ----------
-    dist_matrix : numpy.ndarray
-        A Numpy array of the distance matrix.
+    z : numpy.ndarray
+        A numpy.ndarray from sch.linkage.
+
+    out_path : str, default: 'plots'
+        Path to output plots.
 
     mpl_colors : list or default_dendrogram_colors
         A list of colors for coloring the dendrogram.
@@ -797,9 +803,11 @@ def determine_rerun(dist_matrix, mpl_colors=default_dendrogram_colors, ax=None):
             if ans == 'y' or ans == 'Y':
                 ans2 = input('What new threshold would you like?\n')
                 try:
-                    ax = visualize(dist_matrix, threshold=float(ans2), show_fig=True, mpl_colors=mpl_colors, ax=ax)
+                    ax = visualize(z, out_path=out_path, threshold=float(ans2),
+                                   show_fig=True, mpl_colors=mpl_colors, ax=ax)
+                    return ax
                 except ValueError:
-                    determine_rerun(dist_matrix, mpl_colors, ax=ax)
+                    determine_rerun(z, out_path=out_path, mpl_colors=mpl_colors, ax=ax)
             elif ans == 'n' or ans == 'N' or ans == '':
                 break
             else:
@@ -808,7 +816,7 @@ def determine_rerun(dist_matrix, mpl_colors=default_dendrogram_colors, ax=None):
             sys.exit(0)
 
 
-def ask_number_cluster():
+def ask_number_clusters():
     """
     Asks how many clusters you want to separate the trajectories into.
 
@@ -915,11 +923,12 @@ def main(arguments):
     log.debug(f'Generated distance matrix.')
 
     # Visualize the Dendrogram and determine how clusters used to group successful trajectories
-    ax = visualize(dist_matrix, threshold=arguments.dendrogram_threshold, out_path=arguments.out_path,
+    z = calc_linkage(dist_matrix)
+    ax = visualize(z, threshold=arguments.dendrogram_threshold, out_path=arguments.out_path,
                    show_fig=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors)
-    determine_rerun(dist_matrix, arguments.mpl_colors, ax=ax)
-    ncluster = ask_number_cluster()
-    cluster_labels = hcluster(dist_matrix, ncluster)
+    ax = determine_rerun(z, out_path=arguments.out_path, mpl_colors=arguments.mpl_colors, ax=ax)
+    n_clusters = ask_number_clusters()
+    cluster_labels = hcluster(z, n_clusters)
 
     # Report statistics
     if arguments.stats:
@@ -928,7 +937,7 @@ def main(arguments):
             segid_status = True
         else:
             segid_status = False
-        report_statistics(ncluster, cluster_labels, weights, segid_status)
+        report_statistics(n_clusters, cluster_labels, weights, segid_status)
 
     # Output cluster labels and reassigned pickle object
     log.debug('Outputting files')
