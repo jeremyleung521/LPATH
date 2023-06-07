@@ -9,6 +9,7 @@ dependencies:
   - scikit-learn
   - tqdm
   - matplotlib
+  - networkx
   - pip:
     - pylcs
     - ray

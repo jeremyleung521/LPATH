@@ -9,6 +9,7 @@ dependencies:
     - tqdm
     - sphinx-argparse
     - matplotlib
+    - networkx
     - pip
     - pip:
         - pylcs

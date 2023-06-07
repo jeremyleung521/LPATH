@@ -27,6 +27,7 @@ dependencies = [
     "pylcs",
     "ray",
     "tqdm",
+    "networkx",
     "importlib-resources;python_version<'3.10'"
 ]
 
