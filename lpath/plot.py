@@ -1,16 +1,16 @@
 """
 Plot your lpath results.
 """
-import logging
 import numpy
 import lpath
-import matplotlib
 import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import squareform
-from lpath.io import load_file
-from lpath.match import gen_dist_matrix, visualize, determine_rerun, ask_number_cluster, hcluster
 from os.path import exists
+
+from lpath.extloader import *
+from lpath.io import load_file
+from lpath.match import calc_linkage, visualize, determine_rerun, ask_number_clusters, hcluster
 
 try:
     from importlib.resources import files
@@ -20,25 +20,28 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 
-def relabel_identity(pathways, cluster_labels):
+def relabel_identity(data):
     """
     Use ``lpath.match`` states as is. Does not attempt to relabel anything.
 
     Parameters
     ----------
-    pathways : numpy.ndarray
-        An array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
+    data : LPATHPlot class
+        An LPATHPlot class object.
 
     Returns
     -------
     pathways : numpy.ndarray
-        A modified array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
+        A (not-modified) array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
+
+    cluster_labels : numpy.ndarray
+        A (not-modified) array of cluster labels. Passed here just in case you want to do something fancy.
 
     """
-    return pathways
+    return data.pathways, data.cluster_labels
 
 
-def relabel_custom(pathways, cluster_labels):
+def relabel_custom(data):
     """
     Relabel pathways (pcoord or states) from ``lpath.match`` frames into different values. This is highly
     specific to the system. If ``lpath.match``'s definition is sufficient,
@@ -48,33 +51,30 @@ def relabel_custom(pathways, cluster_labels):
 
     Parameters
     ----------
-    pathways : numpy.ndarray
-        An array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
+    data : LPATHPlot class
+        An LPATHPlot class object.
 
     Returns
     -------
     pathways : numpy.ndarray
         A modified array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
+    cluster_labels : numpy.ndarray
+        A modified array of cluster labels. Passed here just in case you want to do something fancy.
+
     """
-    # Example for relabeling pcoord and generating the mapping dictionary.
-    n_states = int(max([seg[2] for traj in pathways for seg in traj])) + 1
+    # Looping through pathways and modifying it
+    for pathway in data.pathways:
+        # For each pathway
+        for pcoord in [pathway[:, 3], pathway[:, 4]]:
+            # Changing forth and fifth column, which are the phi/psi values from pcoord.
+            for pidx, val in enumerate(pcoord):
+                # Looping through each frame
+                if val > 180:
+                    # If it's > 180, subtract 360
+                    pcoord[pidx] -= 360
 
-    # Looping through
-    for cidx, cluster in range(n_states):
-        path_idxs_c = path_idxs[cluster_labels == cluster]
-        for idx, pathway in enumerate(pathways):
-            if idx in path_idxs_c:
-                pathway = numpy.array(pathway)
-                pcoord1 = pathway[:, 3]
-                pcoord2 = pathway[:, 4]
-
-                for jdx, pcoord in enumerate([pcoord1, pcoord2]):
-                    for pidx, val in enumerate(pcoord):
-                        if val > 180:
-                            pcoord[pidx] -= 360
-
-    return pathways
+    return data.pathways, data.cluster_labels
 
 
 def determine_relabel(relabel_method):
@@ -127,9 +127,9 @@ class LPATHPlot:
         if isinstance(loaded_dmatrix, (numpy.ndarray, list)):
             # Turn into 1-D condensed distance matrix
             self.dist_matrix = squareform(loaded_dmatrix, checks=False) if loaded_dmatrix.ndim == 2 else loaded_dmatrix
+            self.linkage = calc_linkage(self.dist_matrix)
         else:
-            log.warning(f'No distance matrix inputted. Will proceed to rebuild.')
-            self.dist_matrix = None
+            raise ValueError
         self.cluster_labels = load_file(arguments.cl_output) if not arguments.regen_cl else None
 
         # Preparing empty array variables
@@ -139,7 +139,7 @@ class LPATHPlot:
         self.n_pathways = len(self.pathways)
         log.info(f'There are {self.n_pathways} pathways.')
 
-        for pathway in loaded_data:
+        for pathway in self.pathways:
             weights.append(pathway[0][-1])
             durations.append(len(pathway[:]))
             iter_num += [frame[0] for frame in pathway]
@@ -161,59 +161,76 @@ class LPATHPlot:
         self.dendrogram_threshold = arguments.dendrogram_threshold
         self.new_pathways = self.pathways
         self.mpl_colors = None if arguments.mpl_colors is ['None'] else arguments.mpl_colors
+        self.mpl_args = arguments.matplotlib_args or dict()
 
         # Set up dummy variables for the plots!
         self.fig = None
         self.ax = None
+        self.plotted_ax = []
         self.show_fig = arguments.dendrogram_show
 
-    def plt_config(self):
+    def plt_config(self, ax_idx=None, **kwargs):
         """
         Process matplotlib arguments and append fig/axis objects to class.
 
-        Returns
-        -------
-        self.fig : matplotlib.Figure
-            The matplotlib.Figure object for plotting.
-
-        self.ax : matplotlib.axes
-            The matplotlib.Axes object for plotting.
-
         """
-        if exists(self.arguments.mpl_styles):
-            plt.style.use(self.arguments.mpl_styles)
-        else:
-            style_f = (files(lpath) / 'data/styles/default.mplstyle')
-            plt.style.use(style_f)
-            log.debug(f'DEBUG: Using default {style_f}')
+        if self.fig is None or self.ax is None:
+            if exists(self.arguments.mpl_styles):
+                plt.style.use(self.arguments.mpl_styles)
+            else:
+                style_f = (files(lpath) / 'data/styles/default.mplstyle')
+                plt.style.use(style_f)
+                log.debug(f'DEBUG: Using default {style_f}')
 
-        self.fig, self.ax = plt.subplots()
+            self.fig, self.ax = plt.subplots(**kwargs)
+            if isinstance(self.ax, plt.Axes):
+                # If only a single axes, put into list.
+                self.ax = numpy.asarray([self.ax], dtype=object)
+        else:
+            if ax_idx is None:
+                # Clear everything by default
+                for ax in self.ax:
+                    ax.clear()
+            else:
+                # Clear just specified axes
+                for idx in ax_idx:
+                    try:
+                        self.ax[idx].clear()
+                    except IndexError:
+                        log.warning(f'{ax_idx} is not found')
 
     def plot(self):
         """
-        This is an example method for plotting things.
+        This is an example method for plotting things. You can set up subplots with
+        fig and ax first with plt_config().
 
         """
-        self.plt_config()
+        self.plt_config(**self.mpl_args)
 
-    def plot_branch_colors(self):
-        if self.fig is None or self.ax is None:
-            self.plt_config()
+        self.ax.plot(self.pathways[self.path_indices[0], 3], self.pathways[self.path_indices[0], 3])
+        self.fig.savefig('output.pdf', dpi=300)
 
-        z = sch.linkage(self.dist_matrix, method='ward')
+    def plot_branch_colors(self, ax_idx=None):
+        """
+        Plot dendrogram branches with customized colors defined by ``--mpl_colors``.
 
-        sch.set_link_color_palette(self.mpl_colors)
+        """
+        self.plt_config(**self.mpl_args)
+
+        # Code from stackoverflow to recolor each branch and node with specific colors.
+        # Setting link color palette is much simpler.
         # cluster_colors_array = [self.mpl_colors[label] for label in self.cluster_labels]
         # link_cols = {}
-
-        # for i, i_pair in enumerate(z[:, :2].astype(int)):
-        #    c1, c2 = (link_cols[x] if x > len(z) else cluster_colors_array[x] for x in i_pair)
-        #    link_cols[i + 1 + len(z)] = c1 if c1 == c2 else self.mpl_colors[-1]
+        # len_link = len(self.linkage)
+        # for i, i_pair in enumerate(self.linkage[:, :2].astype(int)):
+        #    c1, c2 = (link_cols[x] if x > len_link else cluster_colors_array[x] for x in i_pair)
+        #    link_cols[i + 1 + len(self.linkage)] = c1 if c1 == c2 else self.mpl_colors[-1]
+        sch.set_link_color_palette(self.mpl_colors)
 
         try:
             # Temporarily override the default line width:
             with plt.rc_context({'lines.linewidth': 3}):
-                sch.dendrogram(z, no_labels=True, color_threshold=self.dendrogram_threshold,
+                sch.dendrogram(self.linkage, no_labels=True, color_threshold=self.dendrogram_threshold,
                                above_threshold_color=self.mpl_colors[-1], ax=self.ax)
         except RecursionError as e:
             # Catch cases where are too many branches in the dendrogram for default recursion to work.
@@ -224,7 +241,7 @@ class LPATHPlot:
             log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
             # Temporarily override the default line width:
             with plt.rc_context({'lines.linewidth': 3}):
-                sch.dendrogram(z, no_labels=True, color_threshold=self.dendrogram_threshold,
+                sch.dendrogram(self.linkage, no_labels=True, color_threshold=self.dendrogram_threshold,
                                above_threshold_color=self.mpl_colors[0], ax=self.ax)
 
         self.ax.axhline(y=self.dendrogram_threshold, c='k', linestyle='--', linewidth=2.5)
@@ -236,13 +253,116 @@ class LPATHPlot:
         if self.show_fig:
             plt.show()
 
+    def plot_hist_iter_num(self, separate=False):
+        """
+        Plot histogram of target iteration vs. iteration number history number
+        with customized colors defined by ``--mpl_colors``.
 
-def plot_custom(fig, ax):
-    abs_pcoord = numpy.abs(numpy.diff(pcoord))
-    mask = numpy.hstack([abs_pcoord > 250, [False]])
-    output[jdx] = numpy.ma.MaskedArray(pcoord1, mask)
+        Parameter
+        ---------
+        separate : bool, default: False
+            Whether to plot each cluster in separate subplots or not.
 
-    plt.plot(masked_pcoord1, masked_pcoord2, color=colors[cidx], alpha=0.25)
+        """
+        self.plt_config(**self.mpl_args)
+        if separate is False:
+            # Plotting all into first axes.
+            plot_axes = [self.ax[0]]
+        else:
+            # Plot all into subsequent axes
+            plot_axes = self.ax
+            if len(plot_axes) >= len(self.path_indices):
+                log.warning(f'Not enough axes to plot each one individually. Plotting all into first one.')
+                plot_axes = [self.ax[0]]
+
+        for axes_idx, axes in enumerate(plot_axes):
+            for cluster in range(len(self.path_indices)):
+                iteration_target = []
+                for pathway in self.pathways[self.path_indices[cluster]]:
+                    iteration_target.append(numpy.array(pathway[0]))
+                axes.hist(iteration_target, bins=numpy.arange(self.min_iter - 1, self.max_iter, self.interval),
+                          weights=self.weights[self.path_indices], color=self.mpl_colors[cluster], alpha=0.7)
+
+            axes.set_xlim(self.min_iter - 1, self.max_iter)
+            axes.set_xlabel("we iteration of arrival")
+            axes.set_ylabel("probability")
+            axes.set_yscale("log")
+
+            # Removing from completed axes
+            self.ax_done.append(self.ax.pop(axes_idx))
+
+        self.fig.savefig(f"{self.out_path}/iteration.pdf")
+        log.info(f'Outputted Graph in {self.out_path}/iteration.pdf.')
+
+    def plot_hist_iter_num(self, separate=False):
+        """
+        Plot histogram of target iteration vs. iteration number history number
+        with customized colors defined by ``--mpl_colors``.
+
+        Parameter
+        ---------
+        separate : bool, default: False
+            Whether to plot each cluster in separate subplots or not.
+
+        """
+        if separate:
+            self.plt_config(**self.mpl_args)
+        else:
+            pass
+
+        for cluster in range(len(self.path_indices)):
+            iteration_target = []
+            for pathway in self.pathways[self.path_indices[cluster]]:
+                iteration_target.append(numpy.array(pathway[0]))
+            self.ax.hist(iteration_target, bins=numpy.arange(self.min_iter - 1, self.max_iter, self.interval),
+                         weights=self.weights[self.path_indices], color=self.mpl_colors[cluster], alpha=0.7)
+
+        self.ax.set_xlim(self.min_iter - 1, self.max_iter)
+        self.ax.set_xlabel("we iteration of arrival")
+        self.ax.set_ylabel("probability")
+        self.ax.set_yscale("log")
+
+        self.fig.savefig(f"{self.out_path}/iteration.pdf")
+        log.info(f'Outputted Graph in {self.out_path}/iteration.pdf.')
+
+
+def plot_custom():
+    """
+    Example custom function for custom plot script for plotting with the LPATHPlot class.
+    In here, we plot each cluster in a separate subplot, and pathway onto a phi
+
+    """
+    import argparse
+
+    args = argparse.Namespace(
+        output_pickle='succ_traj/pathways.pickle',  # Output pickle object from lpath.match
+        cl_output='succ_traj/cluster_labels.npy',  # Cluster label outputs from lpath.match
+        dmatrix_save='succ_traj/distmat.npy',  # Distance matrix output from lpath.match
+        matplotlib_args={'nrows': 1, 'ncols': 2},  # Arguments for subplots
+    )
+
+    data = LPATHPlot(args)
+
+    data.plt_config()
+
+    # Example for
+    n_states = int(max([seg[2] for traj in data.pathways for seg in traj])) + 1  # Plus 1 for 0-indexing
+
+    # Looping through
+    for cluster in range(n_states):
+        # Looping through each cluster
+        for p_idx in data.path_indices[cluster]:
+            # Looping through each pathway
+            output = []
+            for dimension in [3, 4]:
+                # Plotting both Phi / Psi, which is columns 3, 4 in the pickle object from lpath.match
+                pcoord = data.pathways[p_idx][:, dimension]
+                abs_pcoord = numpy.abs(numpy.diff(pcoord[dimension]))
+                mask = numpy.hstack([abs_pcoord > 250, [False]])
+                output.append(numpy.ma.MaskedArray(pcoord, mask))
+            data.ax[cluster].plot(output[0], output[1], color=data.mpl_colors[cluster], alpha=0.25)
+
+    data.fig.savefig('custom_graph.pdf', dpi=300)
 
 
 def process_plot_args(arguments):
@@ -257,7 +377,7 @@ def process_plot_args(arguments):
     Returns
     -------
     relabel : function
-        The relabel function.
+        The relabeling function.
 
     """
     relabel = determine_relabel(arguments.plot_relabel_method)
@@ -265,60 +385,22 @@ def process_plot_args(arguments):
     # In cases where you're not going through `match` first, some arguments might be empty.
     if arguments.dmatrix_save is None:
         setattr(arguments, 'dmatrix_save', 'succ_traj/distmat.npy')
-        log.debug('Setting distance matrix output to default.')
+        log.warning(f'Setting distance matrix output to default {arguments.dmatrix_save}. Make sure you\'re sure \
+                      of this, or remake the distance matrix with ``lpath.match``.')
 
     if arguments.cl_output is None:
         setattr(arguments, 'cl_output', 'succ_traj/cluster_labels.npy')
-        log.debug('Setting cluster label output to default.')
+        log.debug(f'Setting cluster label output to default {arguments.cl_output}.')
 
     if arguments.output_pickle is None:
         setattr(arguments, 'output_pickle', 'succ_traj/pathways.pickle')
-        log.debug('Setting match pickle output/plot pickle input to default.')
+        log.debug(f'Setting match pickle output/plot pickle input to default {arguments.arguments}.')
 
     if arguments.dendrogram_threshold is None:
         setattr(arguments, 'dendrogram_threshold', 0.5)
-        log.debug('Setting dendrogram threshold output to default 0.5.')
+        log.debug(f'Setting dendrogram threshold output to default {arguments.dendrogram_threshold}.')
 
     return relabel
-
-
-def plot_hist_iter_num(data, fig, ax, mpl_colors, out_path):
-    """
-
-    Parameters
-    ----------
-    data : LPATHPlot
-        A PlotData class containing a bunch of information for plotting.
-
-    fig : matplotlib.Figure
-        The matplotlib.Figure object for plotting.
-
-    ax : matplotlib.axes
-        The matplotlib.Axes object for plotting.
-
-    mpl_colors : list of colors
-        A list of colors for plotting. The last color is typically reserved for special graying out.
-
-    out_path : str, default: 'graphs'
-        Path to output the files.
-
-    """
-    for cluster in range(len(data.path_indices)):
-        iteration_target = []
-        path_idxs_c = data.pathways[data.path_indices[cluster]]
-        for idx, pathway in enumerate(data.pathways):
-            if idx in path_idxs_c:
-                iteration_target.append(pathway[0])
-        ax.hist(iteration_target, bins=numpy.arange(data.min_iter - 1, data.max_iter, data.interval),
-                weights=data.weights[data.path_indices], color=mpl_colors[cluster], alpha=0.7, ax=ax)
-
-    ax.set_xlim(data.min_iter - 1, data.max_iter)
-    ax.set_xlabel("we iteration of arrival")
-    ax.set_ylabel("probability")
-    ax.set_yscale("log")
-
-    fig.savefig(f"{out_path}/iteration.pdf")
-    log.info(f'Outputted Graph in {out_path}/iteration.pdf.')
 
 
 def main(arguments):
@@ -336,31 +418,17 @@ def main(arguments):
     data = LPATHPlot(arguments)
 
     # Reassignment... (or not).
-    data.new_pathways, data.dictionary = relabel(data.pathways)  # system-specific relabeling of things
+    data.new_pathways, data.new_cluster_labels = relabel(data.pathways)  # system-specific relabeling of things
 
     if arguments.regen_cl:
-        # data.dist_matrix, data.weights = gen_dist_matrix(data.new_pathways, data.dictionary,
-        #                                                  file_name=arguments.dmatrix_save,
-        #                                                  out_dir=arguments.out_dir,
-        #                                                  remake=True,  # Calculate distance matrix
-        #                                                  metric=arguments.plot_longest_subsequence,  # Which metric to use
-        #                                                  condense=arguments.plot_condense,
-        #                                                  # Whether to condense consecutive state strings
-        #                                                  n_jobs=arguments.dmatrix_parallel,
-        #                                                  # Number of jobs for pairwise_distance
-        #                                                  )
-
-        # Attempt to visualize dendrogram with new the distance matrix.
-        data.ax = visualize(data.dist_matrix, threshold=arguments.dendrogram_threshold, out_dir=arguments.out_dir,
+        # Attempt to re-visualize the dendrogram.
+        data.ax = visualize(data.linkage, threshold=arguments.dendrogram_threshold, out_path=arguments.out_path,
                             show_fig=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors, ax=data.ax)
-        determine_rerun(data.dist_matrix, mpl_colors=arguments.mpl_colors, ax=data.ax)
-        ncluster = ask_number_cluster()
-        cluster_labels = hcluster(data.dist_matrix, ncluster)
+        determine_rerun(data.linkage, out_path=data.out_path, mpl_colors=arguments.mpl_colors, ax=data.ax)
+        n_clusters = ask_number_clusters()
+        cluster_labels = hcluster(data.linkage, n_clusters)
         data.cluster_labels = cluster_labels
-
-    # Cleanup
-    # test_obj = process_shorter_traj(pathways, dictionary, arguments.plot_exclude_short)
-    # Necessary if pathways are of variable length
-    # log.debug(f'Cleaned up trajectories.')
+        numpy.save(f'{data.out_path}/new_cluster_labels.npy', data.cluster_labels)
 
     data.plot_branch_colors()
+    data.plot_hist_iter_num()

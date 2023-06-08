@@ -3,6 +3,7 @@ All argument parsing from commandline is dealt here.
 """
 import argparse
 import logging
+from ast import literal_eval
 from lpath.io import default_dendrogram_colors
 
 log = logging.getLogger(__name__)
@@ -397,14 +398,19 @@ def add_plot_args(parser=None):
                          step.')
     plot_io.add_argument('-icl', '--ICL', '--plot-cl', '--plot-cluster-label', dest='cl_output',
                          type=str, help='Input file location for cluster labels.')
+    plot_io.add_argument('--plot-dmatrix-file', '-pdF', dest='dmatrix_save', type=str,
+                         help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
+                               specified. This is defaulted to what\'s provided in ``match`` step.')
     plot_io.add_argument('-pod', '--plot-out-path', '--plot-output-path', dest='out_path', default='plots',
                          type=str, help='Directory to save your plotting output files. Path relative to ``$PWD``.')
     plot_io.add_argument('-sty', '--STY', '--mpl-styles', '--matplotlib-styles', dest='mpl_styles',
                          default='default', type=str,
                          help='Path to custom style script. Defaults to our recommendations.')
-    plot_io.add_argument('-mpl', '--MPL', '--matplotlib', '--mpl-args', dest='plt_args',
+    plot_io.add_argument('-mpl', '--MPL', '--matplotlib-args', '--mpl-subplot-args', dest='matplotlib_args',
                          type=str, default='',
-                         help='A string of arguments to pass onto matplotlib axis object.')
+                         help='A string of kwargs to pass onto matplotlib.pyplot.subplots() function. Keywords \
+                               should be separated by ``, ``, and the value should be assigned without space. \
+                               Example: ``-mpl "nrows=1, ncols=5"``.')
     plot_io.add_argument('-col', '--colors', '--mpl-col', '--mpl-colors', dest='mpl_colors',
                          type=str, nargs='+', default=default_dendrogram_colors,
                          help='A sequence of matplotlib colors names separated by spaces. E.g., \
@@ -416,16 +422,13 @@ def add_plot_args(parser=None):
                          type=check_non_neg, default=0.5, help='Horizontal threshold line for the dendrogram.')
     plot_io.add_argument('--dendrogram-show', '-pds', '--dendro-show', '-ds', dest='dendrogram_show', default=True,
                          action='store_true', help=argparse.SUPPRESS)
-    plot_io.add_argument( '--dendrogram-hide', '-pdh', '--dendro-hide', '-dh', dest='dendrogram_show',
+    plot_io.add_argument('--dendrogram-hide', '-pdh', '--dendro-hide', '-dh', dest='dendrogram_show',
                          action='store_false', help='Do not show dendrogram. Overrides ``--dendrogram-show``.')
 
     plot_io.add_argument('--plot-regen-cl', '-rcl', '--plot-regenerate-cluster-labels', dest='regen_cl',
                          action='store_true',
                          help='Option to regenerate new cluster labels after relabeling. ``--plot-cluster-labels`` \
                                options can be left empty if this is called.')
-    plot_io.add_argument('--plot-dmatrix-file', '-pdF', dest='dmatrix_save', type=str,
-                         help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
-                               specified. This is defaulted to what\'s provided in ``match`` step.')
     plot_io.add_argument('--relabel', '-prl', '--plot-relabel-method', '--plot-relabel-method', dest='relabel_method',
                          default='relabel_identity', type=str,
                          help='Relabel method to use. Could be one of the defaults or a module to load. Defaults are \
@@ -540,6 +543,26 @@ def process_assign_args(arguments):
 
     else:
         log.debug('Not using w_assign.')
+
+    return arguments
+
+
+def process_matplotlib_config(arguments):
+    """
+    Process arguments for matplotlib.subplots.
+
+    """
+    if arguments.step_name in ['plot', 'all']:
+        plt_dict = dict()
+        plt_args = arguments.matplotlib_args.split(', ')
+        for term in plt_args:
+            split = term.split('=')[0]
+            try:
+                plt_dict[split[0]] = literal_eval(split[1])
+            except:
+                plt_dict[split[0]] = split[1]
+
+        setattr(arguments, 'matplotlib_args', plt_dict)
 
     return arguments
 

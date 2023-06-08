@@ -398,7 +398,7 @@ def reassign_identity(data, pathways, dictionary, assign_file=None):
     return dictionary
 
 
-def process_shorter_traj(pathways, dictionary, threshold_length):
+def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
     """
     Assigns a non-state to pathways which are shorter than
     the max length.
@@ -414,8 +414,13 @@ def process_shorter_traj(pathways, dictionary, threshold_length):
     threshold_length: int or float, default: 0
         A parameter such that trajectories < threshold_length are excluded from pattern matching.
 
+    remove_ends: bool, default: False
+        If True, remove the first and last frames (source and target frames).
+
     """
     del_list = []
+    empty_row = numpy.zeros(len(pathways[0][0]))
+    empty_row[2] = len(dictionary) - 1
     for idx, pathway in enumerate(pathways):
         count = 0
         for step in pathway:
@@ -425,6 +430,10 @@ def process_shorter_traj(pathways, dictionary, threshold_length):
                 count += 1
         if count < threshold_length:
             del_list.append(idx)
+        if remove_ends:
+            pathways[idx][0] = empty_row
+            pathways[idx][count] = empty_row
+            pathways = numpy.delete(pathways, [0, -1], axis=1)
 
     if len(del_list) > 0:
         pathways = numpy.delete(pathways, del_list, axis=0)
@@ -515,13 +524,14 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', out
 
     return distmat, weights
 
+
 def calc_linkage(distmat):
     """
     Given distance matrix, calculate and return the linkage.
 
     """
-
     return sch.linkage(distmat, method='ward')
+
 
 def visualize(z, threshold, out_path="plots", show_fig=True, mpl_colors=None, ax=None):
     """
@@ -542,7 +552,7 @@ def visualize(z, threshold, out_path="plots", show_fig=True, mpl_colors=None, ax
         return
 
     # Clean slate.
-    if ax is not None:
+    if ax is None:
         log.debug('Clearing current axis.')
         plt.cla()
 
@@ -882,6 +892,12 @@ def main(arguments):
     """
     Main function that executes the whole `match` step.
 
+    Pathways are processed in the following order:
+        1. Assign extra "padding" frames as unknown state for segments too short.
+        2. Remove pathways that are too short (if specified).
+        3. Remove end frames (source and target states).
+        4. During pairwise calculation, condense the frames during comparison and remove frames in "unknown" state.
+
     Parameters
     ----------
     arguments : argparse.Namespace
@@ -907,11 +923,8 @@ def main(arguments):
 
     # Cleanup
     test_obj = process_shorter_traj(pathways, dictionary,
-                                    arguments.exclude_short)  # Necessary if pathways are of variable length
+                                    arguments.exclude_short, arguments.remove_ends)
     log.debug(f'Cleaned up trajectories.')
-
-    if arguments.remove_ends:
-        test_obj = numpy.asarray([i[1:-1] for i in test_obj])
 
     dist_matrix, weights = gen_dist_matrix(test_obj, dictionary, file_name=arguments.dmatrix_save,
                                            out_dir=arguments.out_dir,
