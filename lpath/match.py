@@ -248,25 +248,25 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
 
     """
     # Other example for grouping multiple states into one.
-    for idx, val in enumerate(data):
+    for idx, pathway in enumerate(data):
         # The following shows how you can "merge" multiple states into
         # a single one.
-        val = numpy.asarray(val)
+        pathway = numpy.asarray(pathway)
         # Further downsizing... to if pcoord is less than 5
-        first_contact = numpy.where(val[:, 3] < 5)[0][0]
-        for idx2, val2 in enumerate(val):
+        first_contact = numpy.where(pathway[:, 3] < 5)[0][0]
+        for jdx, frame in enumerate(pathway):
             # First copy all columns over
-            pathways[idx, idx2] = val2
+            pathways[idx, jdx] = frame
             # ortho is assigned to state 0
-            if val2[2] in [1, 3, 4, 6, 7, 9]:
-                val2[2] = 0
+            if frame[2] in [1, 3, 4, 6, 7, 9]:
+                frame[2] = 0
             # para is assigned to state 1
-            elif val2[2] in [2, 5, 8]:
-                val2[2] = 1
+            elif frame[2] in [2, 5, 8]:
+                frame[2] = 1
             # Unknown state is assigned 2
-            if idx2 < first_contact:
-                val2[2] = 2
-            pathways[idx, idx2] = val2
+            if jdx < first_contact:
+                frame[2] = 2
+            pathways[idx, jdx] = frame
 
     # Generating a dictionary mapping each state
     dictionary = {0: 'A', 1: 'B', 2: '!'}
@@ -303,16 +303,16 @@ def reassign_statelabel(data, pathways, dictionary, assign_file):
         A dictionary mapping each ``state_id`` (float/int) with a state string (character).
 
     """
-    for idx, val in enumerate(data):
-        val = numpy.asarray(val)
-        for idx2, val2 in enumerate(val):
-            pathways[idx, idx2] = val2
+    for idx, pathway in enumerate(data):
+        pathway = numpy.asarray(pathway)
+        for jdx, frame in enumerate(pathway):
+            pathways[idx, jdx] = frame
 
     try:
         import h5py
         with h5py.File(assign_file) as f:
-            for idx, val in enumerate(f['state_labels'][:]):
-                dictionary[idx] = tostr(val)
+            for idx, state in enumerate(f['state_labels'][:]):
+                dictionary[idx] = tostr(state)
         dictionary[len(dictionary)] = '!'  # Unknown state
     except ModuleNotFoundError:
         raise ModuleNotFoundError('Could not import h5py. Exiting out.')
@@ -344,11 +344,11 @@ def reassign_segid(data, pathways, dictionary, assign_file=None):
         A dictionary mapping each ``state_id`` (float/int) with a `state string` (character).
 
     """
-    for idx, val in enumerate(data):
-        val = numpy.asarray(val)
-        for idx2, val2 in enumerate(val):
-            pathways[idx, idx2] = val2  # Copy everything...
-            pathways[idx, idx2, 2] = val2[1]  # Replace states with seg_id
+    for idx, pathway in enumerate(data):
+        pathway = numpy.asarray(pathway)
+        for jdx, frame in enumerate(pathway):
+            pathways[idx, jdx] = frame  # Copy everything...
+            pathways[idx, jdx, 2] = frame[1]  # Replace states with seg_id
 
     n_states = int(max([seg[2] for traj in pathways for seg in traj])) + 1
     for idx in range(n_states):
@@ -384,10 +384,10 @@ def reassign_identity(data, pathways, dictionary, assign_file=None):
         A dictionary mapping each ``state_id`` (float/int) with a `state string` (character).
 
     """
-    for idx, val in enumerate(data):
-        val = numpy.asarray(val)
-        for idx2, val2 in enumerate(val):
-            pathways[idx, idx2] = val2
+    for idx, pathway in enumerate(data):
+        pathway = numpy.asarray(pathway)
+        for jdx, frame in enumerate(pathway):
+            pathways[idx, jdx] = frame
 
     n_states = int(max([seg[2] for traj in pathways for seg in traj])) + 1
     for idx in range(n_states):
@@ -419,7 +419,7 @@ def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
 
     """
     del_list = []
-    empty_row = numpy.zeros(len(pathways[0][0]))
+    empty_row = numpy.zeros(len(pathways[0, 0]))
     empty_row[2] = len(dictionary) - 1
     for idx, pathway in enumerate(pathways):
         count = 0
@@ -431,8 +431,8 @@ def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
         if count < threshold_length:
             del_list.append(idx)
         if remove_ends:
-            pathways[idx][0] = empty_row
-            pathways[idx][count-1] = empty_row
+            pathways[idx, 0] = empty_row
+            pathways[idx, count-1] = empty_row
             pathways = numpy.delete(pathways, [0, -1], axis=1)
 
     if len(del_list) > 0:
