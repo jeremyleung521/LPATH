@@ -10,7 +10,14 @@ dependencies:
     - sphinx-argparse
     - matplotlib
     - networkx
+    - mock
+    - pillow
+    - sphinx==6.2.1 # sphinx 7 breaks "style"
+    - sphinx_rtd_theme
     - pip
     - pip:
         - pylcs
         - ray
+        - recommonmark
+        - readthedocs-sphinx-ext
+
