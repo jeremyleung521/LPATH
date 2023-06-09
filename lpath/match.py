@@ -431,10 +431,9 @@ def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
         if count < threshold_length:
             del_list.append(idx)
         if remove_ends:
-            print(f'{idx} {count} : {len(pathways[idx])}')
-            if count > len(pathways[idx]):
-                print(pathways[idx])
-            #print(pathways[idx])
+            # print(f'{idx} {count} : {len(pathways[idx])}')
+            # if count > len(pathways[idx]):
+            #     print(pathways[idx])
             pathways[idx, 0] = empty_row
             pathways[idx, count-1] = empty_row
 
