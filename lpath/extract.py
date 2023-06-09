@@ -794,6 +794,7 @@ def we(arguments):
             auxdata=arguments.auxdata,
             output_name=arguments.extract_output,
             stride=arguments.stride,
+            exclude_short=arguments.exclude_short,
     ):
         """
         Code that goes through an assign file (assign_name) and extracts iteration
@@ -991,6 +992,20 @@ def we(arguments):
 
         # Output list
         trace_out_list = sorted(trace_out_list, key=lambda x: (-x[-1][0], x[-1][1]))
+
+        if exclude_short:
+            del_list = []
+            for idx, pathway in enumerate(trace_out_list):
+                if len(pathway) < exclude_short:
+                    del_list.append(idx)
+
+            if len(del_list) > 0:
+                for jdx in del_list[::-1]:
+                    # Deleting from larger to lower
+                    deleted = trace_out_list.pop(jdx)
+                    log.debug(f'Deleting pathway index {jdx}: {deleted}')
+                log.warning(f'Indices of pathway removed: {del_list}.')
+                log.warning(f'Removed {len(del_list)} trajectories of length < {exclude_short} frames.')
 
         with open(f"{output_name}", "wb") as fo:
             pickle.dump(trace_out_list, fo)

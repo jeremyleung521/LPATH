@@ -400,6 +400,10 @@ def process_plot_args(arguments):
         setattr(arguments, 'dendrogram_threshold', 0.5)
         log.debug(f'Setting dendrogram threshold output to default {arguments.dendrogram_threshold}.')
 
+    if arguments.exclude_short is None:
+        setattr(arguments, 'exclude_short', 0)
+        log.debug(f'Setting trajectory length exclusion threshold to default {arguments.exclude_short}.')
+
     return relabel
 
 

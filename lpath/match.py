@@ -437,7 +437,7 @@ def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
 
     if len(del_list) > 0:
         pathways = numpy.delete(pathways, del_list, axis=0)
-        log.debug(f'Indices of trajectories removed: {del_list}.')
+        log.debug(f'Indices of pathways removed: {del_list}.')
         log.warning(f'Removed {len(del_list)} trajectories of length < {threshold_length} frames.')
 
     return pathways

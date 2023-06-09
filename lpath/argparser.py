@@ -249,6 +249,10 @@ def add_extract_args(parser=None):
                                   to the basis state. For standard simulations, This will either be the first frame of \
                                   the trajectory or, if it had previously reached the target state, the first time it \
                                   returned to the source state after it has left the target state.')
+    extract_io.add_argument('--exclude-min-length', '-el', '--exclude-length', '--exclude-short', dest='exclude_short',
+                            type=check_non_neg, default=0,
+                            help='Exclude trajectories shorter than provided value during matching. Default is 0, \
+                                  which will include trajectories of all lengths.')
 
     raygroup = parser.add_argument_group('Extract Ray options')
 
@@ -324,8 +328,9 @@ def add_match_args(parser=None):
     match_io.add_argument('--cl-output', '-co', '--cluster-label-output', dest='cl_output',
                           default='succ_traj/cluster_labels.npy', type=str,
                           help='Output file location for cluster labels.')
-    match_io.add_argument('--exclude-min-length', '-el', '--exclude-length', '--exclude-short', dest='exclude_short',
-                          type=check_non_neg, default=0, help='Exclude trajectories shorter than provided value during \
+    match_io.add_argument('--match-exclude-min-length', '-me', '--match-exclude-length', '--match-exclude-short',
+                          dest='exclude_short', type=check_non_neg,
+                          help='Exclude trajectories shorter than provided value during \
                           matching. Default is 0, which will include trajectories of all lengths.')
     match_io.add_argument('--reassign', '-ra', '--reassign-method', dest='reassign_method',
                           default='reassign_identity', type=str,
