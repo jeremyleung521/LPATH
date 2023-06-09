@@ -129,8 +129,8 @@ class LPATHPlot:
             self.dist_matrix = squareform(loaded_dmatrix, checks=False) if loaded_dmatrix.ndim == 2 else loaded_dmatrix
             self.linkage = calc_linkage(self.dist_matrix)
         else:
-            raise ValueError(f'No distance matrix provided. Please generate one with ``lpath match [...]`` and pass it to \
-                               ``lpath plot`` with the ``--plot-input`` flag.')
+            raise ValueError(f'No distance matrix provided. Please generate one with ``lpath match [...]`` and \
+                               pass it to ``lpath plot`` with the ``--plot-input`` flag.')
         self.cluster_labels = load_file(arguments.cl_output) if not arguments.regen_cl else None
 
         # Preparing empty array variables
@@ -141,7 +141,7 @@ class LPATHPlot:
         log.info(f'There are {self.n_pathways} pathways.')
 
         for pathway in self.pathways:
-            non_zero = pathway[numpy.nonzero(pathway[:, 0])] # Removing padding frames...
+            non_zero = pathway[numpy.nonzero(pathway[:, 0])]  # Removing padding frames...
             weights.append(non_zero[-1, -1])
             durations.append(len(non_zero))
             iter_num += [frame[0] for frame in non_zero]
@@ -353,7 +353,7 @@ class LPATHPlot:
                 for cluster_id, c_indices in enumerate(self.path_indices):
                     axes.hist(self.durations[c_indices], bins=self.bins,
                               weights=self.weights[c_indices], density=True,
-                              color=self.mpl_colors[cluster % len(self.mpl_colors)-1])
+                              color=self.mpl_colors[cluster_id % len(self.mpl_colors)-1])
             axes.set_xlim(0, max(self.durations))
             axes.set_ylim(0, max(self.weights))
             axes.set_xlabel(r'event duration time ($\tau$)')
