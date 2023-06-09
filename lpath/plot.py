@@ -245,12 +245,17 @@ class LPATHPlot:
         self.ax.plot(self.pathways[self.path_indices[0], 3], self.pathways[self.path_indices[0], 3])
         self.fig.savefig('output.pdf', dpi=300)
 
-    def plot_branch_colors(self, ax_idx=None):
+    def plotdendro_branch_colors(self, ax_idx=None):
         """
         Plot dendrogram branches with customized colors defined by ``--mpl_colors``.
 
+        Parameters
+        ----------
+        ax_idx : list of int or None, default: None
+            Which axes index to plot the graph.
+
         """
-        self.plt_config()
+        self.plt_config(ax_idx)
 
         # Code from stackoverflow to recolor each branch and node with specific colors.
         # Setting link color palette is much simpler.
@@ -277,7 +282,7 @@ class LPATHPlot:
             # Temporarily override the default line width:
             with plt.rc_context({'lines.linewidth': 2}):
                 sch.dendrogram(self.linkage, no_labels=True, color_threshold=self.dendrogram_threshold,
-                               above_threshold_color=self.mpl_colors[0], ax=self.ax)
+                               above_threshold_color=self.mpl_colors[-1], ax=self.ax)
 
         self.ax.axhline(y=self.dendrogram_threshold, c='k', linestyle='--', linewidth=2.5)
         self.ax.set_ylabel("distance")
@@ -288,9 +293,9 @@ class LPATHPlot:
         if self.show_fig:
             plt.show()
 
-    def plothist_iter_num(self, ax_idx=None, separate=False):
+    def plothist_weight_cluster(self, ax_idx=None):
         """
-        Plot histogram of target iteration vs. iteration number history number
+        Plot histogram of vent duration time vs. iteration number history number
         with customized colors defined by ``--mpl_colors``.
 
         Parameter
@@ -298,29 +303,27 @@ class LPATHPlot:
         ax_idx : list of int or None, default: None
             Which axes index to plot the graph.
 
-        separate : bool, default: False
-            Whether to plot each cluster in separate subplots or not.
-
         """
-        self.plt_config()
-        plot_axes = self.determine_plot_axes(ax_idx, separate)
+        self.plt_config(ax_idx)
+        plot_axes = self.determine_plot_axes(ax_idx)
 
-        for axes_idx, axes in enumerate(plot_axes):
-            for cluster in range(len(self.path_indices)):
-                iteration_target = []
-                for pathway in self.pathways[self.path_indices[cluster]]:
-                    iteration_target.append(self.num_iter[numpy.nonzero(iter_num)])
-                axes.hist(iteration_target, bins=numpy.arange(self.min_iter - 1, self.max_iter, self.interval),
-                          weights=self.weights[self.path_indices],
-                          color=self.mpl_colors[cluster % len(self.mpl_colors)-1], alpha=0.7)
+        for axes in plot_axes:
+            x_list = []
+            y_list = []
+            for c_idx, cluster_indices in enumerate(self.path_indices):
+                x_list.append(c_idx+1)
+                y_list.append(numpy.sum(self.weights[cluster_indices]))
 
-            axes.set_xlim(self.min_iter - 1, self.max_iter)
-            axes.set_xlabel("we iteration of arrival")
-            axes.set_ylabel("probability")
-            axes.set_yscale("log")
+            axes.bar(x_list, y_list, width=0.75, color=self.mpl_colors[:-1])
+            axes.set_xlim(0, max(x_list)+1)
+            axes.set_ylim(0, max(self.weights))
+            axes.xticks(ticks=x_list, labels=[f'{x}' for x in x_list])
+            axes.set_xlabel(r'pathway classes')
+            axes.set_ylabel('probability')
 
-        self.fig.savefig(f"{self.out_path}/iteration.pdf")
-        log.info(f'Outputted Graph in {self.out_path}/iteration.pdf.')
+        self.fig.set_layout_engine(layout='tight')
+        self.fig.savefig("weight_histogram.pdf", dpi=300)
+        log.info(f'Outputted Graph in {self.out_path}/weight_histogram.pdf.')
 
     def plothist_event_duration(self, ax_idx=None, separate=False):
         """
@@ -336,7 +339,7 @@ class LPATHPlot:
             Whether to plot each cluster in separate subplots or not.
 
         """
-        self.plt_config()
+        self.plt_config(ax_idx)
         plot_axes = self.determine_plot_axes(ax_idx, separate)
 
         for n_axes, axes in enumerate(plot_axes):
@@ -358,6 +361,7 @@ class LPATHPlot:
 
         self.fig.set_layout_engine(layout='tight')
         self.fig.savefig("durations.pdf", dpi=300)
+        log.info(f'Outputted Graph in {self.out_path}/durations.pdf.')
 
     def plothist_target_iter(self, ax_idx=None, separate=False):
         """
@@ -373,7 +377,7 @@ class LPATHPlot:
             Whether to plot each cluster in separate subplots or not.
 
         """
-        self.plt_config()
+        self.plt_config(ax_idx)
         plot_axes = self.determine_plot_axes(ax_idx, separate)
 
         for n_axes, axes in enumerate(plot_axes):
@@ -396,7 +400,7 @@ class LPATHPlot:
 
         self.fig.set_layout_engine(layout='tight')
         self.fig.savefig(f"{self.out_path}/target_iteration.pdf")
-        log.info(f'Outputted Graph in {self.out_path}/target_iteration.pdf.')
+        log.info(f'Outputted graph in {self.out_path}/target_iteration.pdf.')
 
 
 def plot_custom():
@@ -504,5 +508,7 @@ def main(arguments):
         data.cluster_labels = cluster_labels
         numpy.save(f'{data.out_path}/new_cluster_labels.npy', data.cluster_labels)
 
-    data.plot_branch_colors()
-    data.plot_hist_iter_num()
+    data.plotdendro_branch_colors()
+    data.plothist_weight_cluster()
+    data.plothist_target_iter()
+    data.plothist_event_duration()
