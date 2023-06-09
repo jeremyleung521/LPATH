@@ -432,7 +432,7 @@ def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
             del_list.append(idx)
         if remove_ends:
             pathways[idx][0] = empty_row
-            pathways[idx][count] = empty_row
+            pathways[idx][count-1] = empty_row
             pathways = numpy.delete(pathways, [0, -1], axis=1)
 
     if len(del_list) > 0:
