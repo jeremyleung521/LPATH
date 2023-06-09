@@ -423,17 +423,24 @@ def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
     empty_row[2] = len(dictionary) - 1
     for idx, pathway in enumerate(pathways):
         count = 0
-        for step in pathway:
-            if step[0] == 0:  # If no iteration number (i.e., a dummy frame)
-                step[2] = len(dictionary) - 1  # Mark with the last entry
+        for frame in pathway:
+            if frame[0] == 0:  # If no iteration number (i.e., a dummy frame)
+                frame[2] = len(dictionary) - 1  # Mark with the last entry
             else:
                 count += 1
         if count < threshold_length:
             del_list.append(idx)
         if remove_ends:
+            print(f'{idx} {count} : {len(pathways[idx])}')
+            if count > len(pathways[idx]):
+                print(pathways[idx])
+            #print(pathways[idx])
             pathways[idx, 0] = empty_row
             pathways[idx, count-1] = empty_row
-            pathways = numpy.delete(pathways, [0, -1], axis=1)
+
+    if remove_ends:
+        # Delete in one go.
+        pathways = numpy.delete(pathways, [0, -1], axis=1)
 
     if len(del_list) > 0:
         pathways = numpy.delete(pathways, del_list, axis=0)
@@ -922,6 +929,7 @@ def main(arguments):
     log.debug(f'Completed reassignment.')
 
     # Cleanup
+    print(pathways.shape)
     test_obj = process_shorter_traj(pathways, dictionary,
                                     arguments.exclude_short, arguments.remove_ends)
     log.debug(f'Cleaned up trajectories.')
