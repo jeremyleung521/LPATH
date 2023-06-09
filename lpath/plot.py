@@ -12,12 +12,15 @@ from lpath.extloader import *
 from lpath.io import load_file
 from lpath.match import calc_linkage, visualize, determine_rerun, ask_number_clusters, hcluster
 
+
 try:
     from importlib.resources import files
 except ImportError:
     from importlib_resources import files
 
-log = logging.getLogger(__name__)
+from ._logger import Logger
+
+log = Logger().get_logger(__name__)
 
 
 def relabel_identity(data):
@@ -182,7 +185,7 @@ class LPATHPlot:
             else:
                 style_f = (files(lpath) / 'data/styles/default.mplstyle')
                 plt.style.use(style_f)
-                log.debug(f'DEBUG: Using default {style_f}')
+                log.warning(f'Using default {style_f}')
 
             self.fig, self.ax = plt.subplots(**self.mpl_args)
             if isinstance(self.ax, plt.Axes):
@@ -468,15 +471,15 @@ def process_plot_args(arguments):
 
     if arguments.cl_output is None:
         setattr(arguments, 'cl_output', 'succ_traj/cluster_labels.npy')
-        log.debug(f'Setting cluster label output to default {arguments.cl_output}.')
+        log.info(f'Setting cluster label output to default {arguments.cl_output}.')
 
     if arguments.output_pickle is None:
         setattr(arguments, 'output_pickle', 'succ_traj/pathways.pickle')
-        log.debug(f'Setting match pickle output/plot pickle input to default {arguments.arguments}.')
+        log.info(f'Setting match pickle output/plot pickle input to default {arguments.arguments}.')
 
     if arguments.dendrogram_threshold is None:
         setattr(arguments, 'dendrogram_threshold', 0.5)
-        log.debug(f'Setting dendrogram threshold output to default {arguments.dendrogram_threshold}.')
+        log.info(f'Setting dendrogram threshold output to default {arguments.dendrogram_threshold}.')
 
     return relabel
 

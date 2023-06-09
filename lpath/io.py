@@ -2,10 +2,11 @@
 I/O Operations
 """
 import numpy
-import logging
 from ast import literal_eval
+from os import mkdir
+from ._logger import Logger
 
-log = logging.getLogger(__name__)
+log = Logger().get_logger(__name__)
 
 default_dendrogram_colors = ['tomato', 'dodgerblue', 'orchid', 'mediumseagreen', 'darkorange', 'mediumpurple','grey']
 
@@ -34,20 +35,20 @@ def load_file(input_file, stride=1):
         # data = numpy.loadtxt(input_file, usecols=(1,2), skiprows=1)
     except UnicodeDecodeError:
         # Assumes it's a binary file otherwise...
-        log.debug('DEBUG: Not a unicode text file. Attempting to load file like a binary')
+        log.debug(f'{input_file} is not a unicode text file. Attempting to load file like a binary file.')
         data = numpy.load(input_file, allow_pickle=True)[::stride]
 
     return data
 
 
-def expanded_load(input, stride):
+def expanded_load(input_str, stride):
     """
     The expanded loading function that actually deals with lists. Attempts to literal_eval
     it before processing.
 
     Parameters
     ----------
-    input : string or list of strings
+    input_str : string or list of strings
         Path or a list of paths of files to be opened. Files will be step-sliced
         (using the ``stride`` parameter) independently.
 
@@ -62,11 +63,11 @@ def expanded_load(input, stride):
 
     """
     try:
-        expanded_files = literal_eval(input)
+        expanded_files = literal_eval(input_str)
         if not isinstance(expanded_files, list):
             raise ValueError
     except ValueError:
-        final_object = load_file(input, stride)
+        final_object = load_file(input_str, stride)
         return final_object
 
     # Loop through all strings in expanded_files since it's a list for sure.
@@ -96,12 +97,34 @@ def output_file(out_array, output_name):
     numpy.save(output_name, n)
 
 
+def make_dir(args):
+    """
+    Make directories according to the argparse.Namespace object.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        Passed directly from argparser.
+
+    """
+    if args.step_name in ['extract', 'all']:
+        try:
+            mkdir(args.out_dir)
+        except FileExistsError:
+            log.warning(f"Folder ``{args.out_dir}`` already exists. Files within might be overwritten.")
+
+    if args.step_name in ['match', 'plot', 'all']:
+        try:
+            mkdir(args.out_path)
+        except FileExistsError:
+            log.warning(f"Folder ``{args.out_path}`` already exists. Files within might be overwritten.")
+
+
 class EmptyOutputError(Exception):
     """
     Custom Error for cases when extract has empty output.
 
     """
-
     def __init__(self, message="No successful trajectories extracted."):
         self.message = message
         super().__init__(self.message)

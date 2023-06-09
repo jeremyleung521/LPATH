@@ -2,11 +2,11 @@
 Main function to run everything!
 Discretize, extract, match, in that order.
 """
-import logging
-
 import lpath
+from lpath.io import make_dir
+from ._logger import Logger
 
-log = logging.getLogger(__name__)
+log = Logger().get_logger(__name__)
 
 
 def main(arguments):
@@ -49,7 +49,10 @@ def entry_point():
 
     # print(parser.__dict__)
     args = argparser.process_args(parser)
-    log.debug(f'{args}')
+    log.info(f'Running LPATH version {lpath.__version__}.')
+    log.info(f'LPATH arguments: {args}')
+
+    make_dir(args)
 
     # Run whatever function given
     args.func(args)

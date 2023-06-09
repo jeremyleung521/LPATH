@@ -3,11 +3,10 @@
 # Code lifted from WESTPA source code.
 
 import importlib
-import logging
 import sys
+from ._logger import Logger
 
-log = logging.getLogger(__name__)
-
+log = Logger().get_logger(__name__)
 
 def load_module(module_name, path=None):
     """Load and return the given module, recursively loading containing packages as necessary."""

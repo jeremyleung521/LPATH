@@ -2,12 +2,11 @@
 All argument parsing from commandline is dealt here.
 """
 import argparse
-import logging
-from os import mkdir
+from lpath._logger import Logger
 from ast import literal_eval
 from lpath.io import default_dendrogram_colors
 
-log = logging.getLogger(__name__)
+log = Logger().get_logger(__name__)
 
 arg_desc = """
 lpath: minimal Pathway Analysis Histogram Analysis of Trajectories
@@ -626,26 +625,15 @@ def process_args(parser):
                 log.debug(e)
                 log.info(f'INFO: Unable to load Ray. Will proceed without using Ray.')
 
-        try:
-            mkdir(args.out_dir)
-        except FileExistsError:
-            print(f"Folder ``{args.out_dir}`` already exists. Files within might be overwritten.")
-
     # Process some arguments for match and plot...
     if args.step_name in ['match', 'plot', 'all']:
-        try:
-            mkdir(args.out_path)
-        except FileExistsError:
-            print(f"Folder ``{args.out_path}`` already exists. Files within might be overwritten.")
-
         if args.exclude_short is None:
             setattr(args, 'exclude_short', 0)
             log.debug(f'Setting trajectory length exclusion threshold to default {args.exclude_short}.')
 
     # Turn Debugging on!
     if args.debug is True:
-        logger = logging.getLogger('lpath')
-        logger.setLevel(logging.DEBUG)
+        Logger().set_debug_mode(True)
 
     return args
 

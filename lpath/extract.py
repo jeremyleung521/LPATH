@@ -17,7 +17,6 @@ Extract successful trajectories from MD trajectories (or WE simulations).
 #     touch target) for all of the above.
 # Make ``trace_basis`` True to trace only the barrier crossing time.
 
-import logging
 import pickle
 from collections import Counter
 from copy import deepcopy
@@ -27,8 +26,11 @@ import numpy
 from tqdm.auto import tqdm, trange
 
 from lpath.io import load_file, expanded_load, EmptyOutputError
+from lpath.extloader import *
 
-log = logging.getLogger(__name__)
+from ._logger import Logger
+
+log = Logger().get_logger(__name__)
 
 
 # Here are functions for standard MD.
@@ -117,7 +119,7 @@ def clean_self_to_self(input_array):
         # Determine indices of where the duplicates happen
         pop_list = numpy.argwhere(output_array[:, 1] == delete).flatten()
         pop_list.sort()
-        # log.debug(f"All indices where {delete} occur: {pop_list}")
+        log.debug(f"All indices where {delete} occur: {pop_list}")
         # Remove them except for the last instance
         for j in pop_list[::-1][1:]:
             input_array.pop(j)
@@ -215,10 +217,10 @@ def find_transitions(input_array, source_index, target_index):
 
     # Now do the calculations
     transitions = []
-    for val in tqdm(source_indices, desc='Tracing successful transitions', leave=False):
-        check = find_min_distance(val, target_indices)
+    for idx in tqdm(source_indices, desc='Tracing successful transitions', leave=False):
+        check = find_min_distance(idx, target_indices)
         if check:
-            transitions.append([val, check])
+            transitions.append([idx, check])
 
     log.debug(f'Indices of all potentially successful transitions: {transitions}')
 
@@ -992,8 +994,9 @@ def we(arguments):
                     # Deleting from larger to lower
                     deleted = trace_out_list.pop(jdx)
                     log.debug(f'Deleting pathway index {jdx}: {deleted}')
-                log.warning(f'Indices of pathway removed: {del_list}.')
-                log.warning(f'Removed {len(del_list)} trajectories of length < {exclude_short} frames.')
+                log.setLevel(logging.INFO)
+                log.info(f'Indices of pathway removed: {del_list}.')
+                log.info(f'Removed {len(del_list)} trajectories of length < {exclude_short} frames.')
 
         with open(f"{output_name}", "wb") as fo:
             pickle.dump(trace_out_list, fo)

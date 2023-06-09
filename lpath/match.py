@@ -22,7 +22,9 @@ from tqdm.auto import tqdm, trange
 from lpath.extloader import *
 from lpath.io import load_file, default_dendrogram_colors
 
-log = logging.getLogger(__name__)
+from ._logger import Logger
+
+log = Logger().get_logger(__name__)
 
 
 def tostr(b):
@@ -444,7 +446,7 @@ def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
     if len(del_list) > 0:
         pathways = numpy.delete(pathways, del_list, axis=0)
         log.debug(f'Indices of pathways removed: {del_list}.')
-        log.warning(f'Removed {len(del_list)} trajectories of length < {threshold_length} frames.')
+        log.info(f'Removed {len(del_list)} trajectories of length < {threshold_length} frames.')
 
     return pathways
 
@@ -512,7 +514,7 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', out
 
     if not exists(new_name) or remake is True:
         log.debug(f'Proceeding to calculate distance matrix.')
-        pbar = tqdm(total=int((len(path_strings) * (len(path_strings) - 1))))
+        pbar = tqdm(total=int((len(path_strings) * (len(path_strings) - 1))), leave=False)
         if metric:
             distmat = pairwise_distances(
                 X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary, pbar, condense), n_jobs=n_jobs,
@@ -554,12 +556,12 @@ def visualize(z, threshold, out_path="plots", show_fig=True, mpl_colors=None, ax
         import matplotlib.pyplot as plt
     except (ModuleNotFoundError, ImportError) as e:
         log.debug(e)
-        log.warning(f'Can not import matplotlib. Proceeding to not plot anything.')
+        log.warning(f'Cannot import matplotlib. Proceeding to not plot anything.')
         return
 
     # Clean slate.
     if ax is None:
-        log.debug('Clearing current axis.')
+        log.debug('Clearing current plot axis for dendrogram.')
         plt.cla()
 
     # Plot dendrogram
@@ -573,7 +575,7 @@ def visualize(z, threshold, out_path="plots", show_fig=True, mpl_colors=None, ax
 
         sys.setrecursionlimit(100000)
         log.warning(e)
-        log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
+        log.warning(f'Dendrogram too complex to plot with default settings. Upping the recursion limit.')
         with plt.rc_context({'lines.linewidth': 2}):
             sch.dendrogram(z, no_labels=True, color_threshold=threshold, above_threshold_color=mpl_colors[-1], ax=ax)
 
@@ -921,7 +923,7 @@ def main(arguments):
     dictionary = reassign(data, pathways, dictionary, arguments.assign_name)  # system-specific reassignment of states
 
     if len(dictionary) < 3:
-        log.warning(f'WARNING: Only {len(dictionary)} states defined, including the "unknown" state. \
+        log.warning(f'Only {len(dictionary)} states defined, including the "unknown" state. \
                       This will likely produce bad clustering results and you should considering reassigning to more \
                       intermediate states using a modified ``--reassign-method``.')
 

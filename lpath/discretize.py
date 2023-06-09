@@ -6,7 +6,9 @@ import numpy
 from lpath.extloader import *
 from lpath.io import expanded_load, output_file
 
-log = logging.getLogger(__name__)
+from ._logger import Logger
+
+log = Logger().get_logger(__name__)
 
 
 def assign(input_array):
@@ -57,25 +59,25 @@ def main(arguments):
             import westpa
             from westpa.cli.tools import w_assign
         except ModuleNotFoundError as e:
-            print(e)
+            log.error(e)
             raise ModuleNotFoundError("Trying to discretize an HDF5 file but can't import w_assign")
 
         if arguments.we and arguments.input_name != arguments.west_name:
             setattr(arguments, 'input_name', arguments.west_name)
-            log.debug("Replacing parameter ``input_name`` with ``west_name``")
+            log.info("Replacing parameter ``input_name`` with ``west_name``")
 
         if arguments.we and arguments.extract_input != arguments.assign_name:
             setattr(arguments, 'extract_input', arguments.assign_name)
-            log.debug("Replacing parameter output file name with ``assign_name``")
+            log.info("Replacing parameter output file name with ``assign_name``")
 
         if arguments.we and arguments.rcfile != arguments.assign_args.rcfile:
             setattr(arguments, 'rcfile', arguments.assign_args.rcfile)
-            log.debug("Replacing parameter ``rcfile`` with ``assign_args.rcfile``")
+            log.info("Replacing parameter ``rcfile`` with ``assign_args.rcfile``")
 
         # This basically some logic that's wrapped up in WESTTool.main() for convenience.
         # It needs to be explicitly called like this because the args are captured and set in make_parser_and_process()
-        #   which we don't want to call, because we don't want to make a parser.
-        #   We just want to process the args that "would've" been captured if called from CLI.
+        # which we don't want to call, because we don't want to make a parser.
+        # We just want to process the args that "would've" been captured if called from CLI.
 
         tool = w_assign.WAssign()
 
