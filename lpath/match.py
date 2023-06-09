@@ -928,7 +928,6 @@ def main(arguments):
     log.debug(f'Completed reassignment.')
 
     # Cleanup
-    print(pathways.shape)
     test_obj = process_shorter_traj(pathways, dictionary,
                                     arguments.exclude_short, arguments.remove_ends)
     log.debug(f'Cleaned up trajectories.')
