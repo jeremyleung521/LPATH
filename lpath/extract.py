@@ -13,15 +13,14 @@ Extract successful trajectories from MD trajectories (or WE simulations).
 #   * Output the trajectories of the traces
 #   * Rewrite a H5 file so any non-successful trajectories have 0 weight.
 #
-# Defaults to the first passage (from basis state to first touch target)
-#     for all of the above.
-# Make `trace_basis` False to trace only the barrier crossing time.
+# Defaults to the barrier crossing time (from last exit from source to first
+#     touch target) for all of the above.
+# Make ``trace_basis`` True to trace only the barrier crossing time.
 
 import logging
 import pickle
 from collections import Counter
 from copy import deepcopy
-from os import mkdir
 from shutil import copyfile
 
 import numpy
@@ -308,7 +307,7 @@ def create_pickle_obj(transitions, states, weight, features=None):
 
 def standard(arguments):
     """
-    Main function that executes the whole standard `extract` procedure.
+    Main function that executes the whole standard ``extract`` procedure.
     Parameters
     ----------
     arguments : argparse.Namespace
@@ -316,11 +315,6 @@ def standard(arguments):
     """
     input_array = load_file(arguments.extract_input, arguments.stride)
     n_states = len(input_array) - 1
-
-    try:
-        mkdir(arguments.out_dir)
-    except FileExistsError:
-        print(f"Folder {arguments.out_dir} already exists. Files within might be overwritten.")
 
     if arguments.pcoord is True:
         if arguments.featurization_name is None:
@@ -357,7 +351,7 @@ def standard(arguments):
 # Here are functions for WE.
 def we(arguments):
     """
-    Main function that executes the whole WE `extract` procedure.
+    Main function that executes the whole WE ``extract`` procedure.
 
     Parameters
     ----------
@@ -463,10 +457,10 @@ def we(arguments):
         Parameters
         ----------
         west_name : str
-            Name of `west.h5` file. Identical from what's inputted to the argparser.
+            Name of ``west.h5`` file. Identical from what's inputted to the argparser.
 
         assign_name : str
-            Name of `assign.h5` file. Identical from what's inputted to the argparser.
+            Name of ``assign.h5`` file. Identical from what's inputted to the argparser.
 
         """
         with h5py.File(west_name) as west_file, h5py.File(assign_name) as assign_file:
@@ -810,7 +804,7 @@ def we(arguments):
             Name of the HDF5 File.
 
         assign_name : str, default: "assign.h5"
-            Name of the `w_assign` output file.
+            Name of the ``w_assign`` output file.
 
         source_state_num : int, default: 0
             Index of the source state. Should match the state defined in
@@ -852,7 +846,7 @@ def we(arguments):
             Name is relative to ``$PWD``.
 
         hdf5 : bool, default: False
-            Option to use the `HDF5MDTrajectory()` object in `westpa.analysis`
+            Option to use the ``HDF5MDTrajectory()`` object in ``westpa.analysis``
             instead. To be used with trajectories saved with the HDF5 Framework.
 
         rewrite_weights : bool, default: False
@@ -891,12 +885,6 @@ def we(arguments):
             list runs backwards from the target iteration.
 
         """
-        # Create Output file
-        try:
-            mkdir(out_dir)
-        except FileExistsError:
-            log.info(f"Folder {out_dir} already exists. Files within might be overwritten.")
-
         # Copying the file
         name_root = west_name.rsplit(".h5", maxsplit=1)[0]
         new_file = f"{out_dir}/{name_root}_succ.h5"
@@ -1033,7 +1021,7 @@ def we(arguments):
 
 def main(arguments):
     """
-    Main function that executes the `match` step.
+    Main function that executes the ``match`` step.
 
     Parameters
     ----------

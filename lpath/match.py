@@ -506,7 +506,7 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', out
 
     if not exists(new_name) or remake is True:
         log.debug(f'Proceeding to calculate distance matrix.')
-        pbar = tqdm(total=int((len(path_strings) * (len(path_strings) - 1)) / 2))
+        pbar = tqdm(total=int((len(path_strings) * (len(path_strings) - 1))))
         if metric:
             distmat = pairwise_distances(
                 X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary, pbar, condense), n_jobs=n_jobs,
@@ -559,8 +559,8 @@ def visualize(z, threshold, out_path="plots", show_fig=True, mpl_colors=None, ax
     # Plot dendrogram
     try:
         sch.set_link_color_palette(mpl_colors)
-        with plt.rc_context({'lines.linewidth': 3}):
-            sch.dendrogram(z, no_labels=True, color_threshold=threshold, ax=ax)
+        with plt.rc_context({'lines.linewidth': 2}):
+            sch.dendrogram(z, no_labels=True, color_threshold=threshold, above_threshold_color=mpl_colors[-1], ax=ax)
     except RecursionError as e:
         # Catch cases where are too many branches in the dendrogram for default recursion to work.
         import sys
@@ -568,8 +568,8 @@ def visualize(z, threshold, out_path="plots", show_fig=True, mpl_colors=None, ax
         sys.setrecursionlimit(100000)
         log.warning(e)
         log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
-        with plt.rc_context({'lines.linewidth': 3}):
-            sch.dendrogram(z, no_labels=True, color_threshold=threshold, ax=ax)
+        with plt.rc_context({'lines.linewidth': 2}):
+            sch.dendrogram(z, no_labels=True, color_threshold=threshold, above_threshold_color=mpl_colors[-1], ax=ax)
 
     plt.axhline(y=threshold, c="k")
     plt.ylabel("distance")

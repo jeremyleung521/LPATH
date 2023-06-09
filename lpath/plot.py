@@ -43,8 +43,8 @@ def relabel_identity(data):
 
 def relabel_custom(data):
     """
-    Relabel pathways (pcoord or states) from ``lpath.match`` frames into different values. This is highly
-    specific to the system. If ``lpath.match``'s definition is sufficient,
+    Relabel pathways (pcoord or states) from ``lpath match`` frames into different values. This is highly
+    specific to the system. If ``lpath match``'s definition is sufficient,
     you can proceed with what's made in the previous step using ``relabel_identity``.
 
     In this example, we're modifying it so the phi/psi angles (columns 3 and 4) are in (-180,180] instead.
@@ -129,7 +129,8 @@ class LPATHPlot:
             self.dist_matrix = squareform(loaded_dmatrix, checks=False) if loaded_dmatrix.ndim == 2 else loaded_dmatrix
             self.linkage = calc_linkage(self.dist_matrix)
         else:
-            raise ValueError
+            raise ValueError(f'No distance matrix provided. Please generate one with ``lpath match [...]`` and pass it to \
+                               ``lpath plot`` with the ``--plot-input`` flag.')
         self.cluster_labels = load_file(arguments.cl_output) if not arguments.regen_cl else None
 
         # Preparing empty array variables
@@ -229,7 +230,7 @@ class LPATHPlot:
 
         try:
             # Temporarily override the default line width:
-            with plt.rc_context({'lines.linewidth': 3}):
+            with plt.rc_context({'lines.linewidth': 2}):
                 sch.dendrogram(self.linkage, no_labels=True, color_threshold=self.dendrogram_threshold,
                                above_threshold_color=self.mpl_colors[-1], ax=self.ax)
         except RecursionError as e:
@@ -240,7 +241,7 @@ class LPATHPlot:
             log.warning(e)
             log.warning(f'WARNING: Dendrogram too complex to plot with default settings. Upping the recursion limit.')
             # Temporarily override the default line width:
-            with plt.rc_context({'lines.linewidth': 3}):
+            with plt.rc_context({'lines.linewidth': 2}):
                 sch.dendrogram(self.linkage, no_labels=True, color_threshold=self.dendrogram_threshold,
                                above_threshold_color=self.mpl_colors[0], ax=self.ax)
 
@@ -382,11 +383,11 @@ def process_plot_args(arguments):
     """
     relabel = determine_relabel(arguments.plot_relabel_method)
 
-    # In cases where you're not going through `match` first, some arguments might be empty.
+    # In cases where you're not going through ``match`` first, some arguments might be empty.
     if arguments.dmatrix_save is None:
         setattr(arguments, 'dmatrix_save', 'succ_traj/distmat.npy')
         log.warning(f'Setting distance matrix output to default {arguments.dmatrix_save}. Make sure you\'re sure \
-                      of this, or remake the distance matrix with ``lpath.match``.')
+                      of this, or remake the distance matrix with ``lpath match``.')
 
     if arguments.cl_output is None:
         setattr(arguments, 'cl_output', 'succ_traj/cluster_labels.npy')
@@ -399,10 +400,6 @@ def process_plot_args(arguments):
     if arguments.dendrogram_threshold is None:
         setattr(arguments, 'dendrogram_threshold', 0.5)
         log.debug(f'Setting dendrogram threshold output to default {arguments.dendrogram_threshold}.')
-
-    if arguments.exclude_short is None:
-        setattr(arguments, 'exclude_short', 0)
-        log.debug(f'Setting trajectory length exclusion threshold to default {arguments.exclude_short}.')
 
     return relabel
 
