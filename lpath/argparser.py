@@ -629,14 +629,14 @@ def process_args(parser):
         try:
             mkdir(args.out_dir)
         except FileExistsError:
-            print(f"Folder {args.out_dir} already exists. Files within might be overwritten.")
+            print(f"Folder ``{args.out_dir}`` already exists. Files within might be overwritten.")
 
     # Process some arguments for match and plot...
     if args.step_name in ['match', 'plot', 'all']:
         try:
             mkdir(args.out_path)
         except FileExistsError:
-            print(f"Folder {args.out_path} already exists. Files within might be overwritten.")
+            print(f"Folder ``{args.out_path}`` already exists. Files within might be overwritten.")
 
         if args.exclude_short is None:
             setattr(args, 'exclude_short', 0)
