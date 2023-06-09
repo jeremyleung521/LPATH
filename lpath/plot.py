@@ -141,10 +141,10 @@ class LPATHPlot:
         log.info(f'There are {self.n_pathways} pathways.')
 
         for pathway in self.pathways:
-            weights.append(pathway[0][-1])
-            durations.append(len(pathway[:]))
-            iter_num += [frame[0] for frame in pathway]
-        iter_num = numpy.asarray(iter_num)
+            non_zero = pathway[numpy.nonzero(pathway[:, 0])] # Removing padding frames...
+            weights.append(non_zero[-1, -1])
+            durations.append(len(non_zero))
+            iter_num += [frame[0] for frame in non_zero]
 
         for cluster in set(self.cluster_labels):
             path_indices.append(numpy.where(self.cluster_labels == cluster)[0])
@@ -155,10 +155,12 @@ class LPATHPlot:
         self.weights = numpy.asarray(weights)
         self.durations = numpy.asarray(durations)
         self.path_indices = path_indices
+        self.num_iter = numpy.asarray(iter_num, dtype=object)
 
-        self.min_iter = min(iter_num[numpy.nonzero(iter_num)])
-        self.max_iter = max(iter_num)
+        self.min_iter = min(self.num_iter)
+        self.max_iter = max(self.num_iter)
         self.interval = 10 if self.max_iter - self.min_iter > 50 else 2
+        self.bins = (self.max_iter - self.min_iter) / self.interval
         self.dendrogram_threshold = arguments.dendrogram_threshold
         self.new_pathways = self.pathways
         self.mpl_colors = None if arguments.mpl_colors is ['None'] else arguments.mpl_colors
@@ -167,10 +169,9 @@ class LPATHPlot:
         # Set up dummy variables for the plots!
         self.fig = None
         self.ax = None
-        self.plotted_ax = []
         self.show_fig = arguments.dendrogram_show
 
-    def plt_config(self, ax_idx=None, **kwargs):
+    def plt_config(self, ax_idx=None):
         """
         Process matplotlib arguments and append fig/axis objects to class.
 
@@ -183,7 +184,7 @@ class LPATHPlot:
                 plt.style.use(style_f)
                 log.debug(f'DEBUG: Using default {style_f}')
 
-            self.fig, self.ax = plt.subplots(**kwargs)
+            self.fig, self.ax = plt.subplots(**self.mpl_args)
             if isinstance(self.ax, plt.Axes):
                 # If only a single axes, put into list.
                 self.ax = numpy.asarray([self.ax], dtype=object)
@@ -200,13 +201,46 @@ class LPATHPlot:
                     except IndexError:
                         log.warning(f'{ax_idx} is not found')
 
+    def determine_plot_axes(self, ax_idx=None, separate=False):
+        """
+        Determine which axes to plot and return a list of axes to plot.
+
+        Parameter
+        ---------
+        ax_idx : list of int or None, default: None
+            Which axes index to plot the graph.
+
+        separate : bool, default: False
+            Whether to plot each cluster in separate subplots or not.
+
+        """
+        if separate is False:
+            if ax_idx:
+                plot_axes = [self.ax[ax_idx[0]]]
+            else:
+                # Plotting all into first axes.
+                plot_axes = [self.ax[0]]
+        else:
+            # Plot all into subsequent axes
+            if ax_idx is not None:
+                if len(ax_idx) >= len(self.path_indices):
+                    plot_axes = self.ax[ax_idx]
+                else:
+                    log.warning(f'Not enough axes to plot each one individually. Plotting all into first idx provided.')
+                    plot_axes = [self.ax[ax_idx[0]]]
+            else:
+                log.warning(f'Plot axes index not given. Plotting all into first axes.')
+                plot_axes = self.ax[0]
+
+        return plot_axes
+
     def plot(self):
         """
         This is an example method for plotting things. You can set up subplots with
         fig and ax first with plt_config().
 
         """
-        self.plt_config(**self.mpl_args)
+        self.plt_config()
 
         self.ax.plot(self.pathways[self.path_indices[0], 3], self.pathways[self.path_indices[0], 3])
         self.fig.savefig('output.pdf', dpi=300)
@@ -216,7 +250,7 @@ class LPATHPlot:
         Plot dendrogram branches with customized colors defined by ``--mpl_colors``.
 
         """
-        self.plt_config(**self.mpl_args)
+        self.plt_config()
 
         # Code from stackoverflow to recolor each branch and node with specific colors.
         # Setting link color palette is much simpler.
@@ -226,7 +260,7 @@ class LPATHPlot:
         # for i, i_pair in enumerate(self.linkage[:, :2].astype(int)):
         #    c1, c2 = (link_cols[x] if x > len_link else cluster_colors_array[x] for x in i_pair)
         #    link_cols[i + 1 + len(self.linkage)] = c1 if c1 == c2 else self.mpl_colors[-1]
-        sch.set_link_color_palette(self.mpl_colors)
+        sch.set_link_color_palette(self.mpl_colors[:-1])
 
         try:
             # Temporarily override the default line width:
@@ -254,77 +288,115 @@ class LPATHPlot:
         if self.show_fig:
             plt.show()
 
-    def plot_hist_iter_num(self, separate=False):
+    def plothist_iter_num(self, ax_idx=None, separate=False):
         """
         Plot histogram of target iteration vs. iteration number history number
         with customized colors defined by ``--mpl_colors``.
 
         Parameter
         ---------
+        ax_idx : list of int or None, default: None
+            Which axes index to plot the graph.
+
         separate : bool, default: False
             Whether to plot each cluster in separate subplots or not.
 
         """
-        self.plt_config(**self.mpl_args)
-        if separate is False:
-            # Plotting all into first axes.
-            plot_axes = [self.ax[0]]
-        else:
-            # Plot all into subsequent axes
-            plot_axes = self.ax
-            if len(plot_axes) >= len(self.path_indices):
-                log.warning(f'Not enough axes to plot each one individually. Plotting all into first one.')
-                plot_axes = [self.ax[0]]
+        self.plt_config()
+        plot_axes = self.determine_plot_axes(ax_idx, separate)
 
         for axes_idx, axes in enumerate(plot_axes):
             for cluster in range(len(self.path_indices)):
                 iteration_target = []
                 for pathway in self.pathways[self.path_indices[cluster]]:
-                    iteration_target.append(numpy.array(pathway[0]))
+                    iteration_target.append(self.num_iter[numpy.nonzero(iter_num)])
                 axes.hist(iteration_target, bins=numpy.arange(self.min_iter - 1, self.max_iter, self.interval),
-                          weights=self.weights[self.path_indices], color=self.mpl_colors[cluster], alpha=0.7)
+                          weights=self.weights[self.path_indices],
+                          color=self.mpl_colors[cluster % len(self.mpl_colors)-1], alpha=0.7)
 
             axes.set_xlim(self.min_iter - 1, self.max_iter)
             axes.set_xlabel("we iteration of arrival")
             axes.set_ylabel("probability")
             axes.set_yscale("log")
 
-            # Removing from completed axes
-            self.ax_done.append(self.ax.pop(axes_idx))
-
         self.fig.savefig(f"{self.out_path}/iteration.pdf")
         log.info(f'Outputted Graph in {self.out_path}/iteration.pdf.')
 
-    def plot_hist_iter_num(self, separate=False):
+    def plothist_event_duration(self, ax_idx=None, separate=False):
+        """
+        Plot histogram of vent duration time vs. iteration number history number
+        with customized colors defined by ``--mpl_colors``.
+
+        Parameter
+        ---------
+        ax_idx : list of int or None, default: None
+            Which axes index to plot the graph.
+
+        separate : bool, default: False
+            Whether to plot each cluster in separate subplots or not.
+
+        """
+        self.plt_config()
+        plot_axes = self.determine_plot_axes(ax_idx, separate)
+
+        for n_axes, axes in enumerate(plot_axes):
+            if separate:
+                # Plot each pathway class in a separate axes.
+                axes.hist(self.durations[self.path_indices[n_axes]], bins=self.bins,
+                          weights=self.weights[self.path_indices[n_axes]], density=True)
+                axes.set_title(f'class {n_axes}')
+            else:
+                # Plot all pathway classes into same axes
+                for cluster_id, c_indices in enumerate(self.path_indices):
+                    axes.hist(self.durations[c_indices], bins=self.bins,
+                              weights=self.weights[c_indices], density=True,
+                              color=self.mpl_colors[cluster % len(self.mpl_colors)-1])
+            axes.set_xlim(0, max(self.durations))
+            axes.set_ylim(0, max(self.weights))
+            axes.set_xlabel(r'event duration time ($\tau$)')
+            axes.set_ylabel('probability')
+
+        self.fig.set_layout_engine(layout='tight')
+        self.fig.savefig("durations.pdf", dpi=300)
+
+    def plothist_target_iter(self, ax_idx=None, separate=False):
         """
         Plot histogram of target iteration vs. iteration number history number
         with customized colors defined by ``--mpl_colors``.
 
         Parameter
         ---------
+        ax_idx : list of int or None, default: None
+            Which axes index to plot the graph.
+
         separate : bool, default: False
             Whether to plot each cluster in separate subplots or not.
 
         """
-        if separate:
-            self.plt_config(**self.mpl_args)
-        else:
-            pass
+        self.plt_config()
+        plot_axes = self.determine_plot_axes(ax_idx, separate)
 
-        for cluster in range(len(self.path_indices)):
-            iteration_target = []
-            for pathway in self.pathways[self.path_indices[cluster]]:
-                iteration_target.append(numpy.array(pathway[0]))
-            self.ax.hist(iteration_target, bins=numpy.arange(self.min_iter - 1, self.max_iter, self.interval),
-                         weights=self.weights[self.path_indices], color=self.mpl_colors[cluster], alpha=0.7)
+        for n_axes, axes in enumerate(plot_axes):
+            if separate:
+                loop = []
+                axes.set_title(f'class {n_axes}')
+            else:
+                loop = range(len(self.path_indices))
 
-        self.ax.set_xlim(self.min_iter - 1, self.max_iter)
-        self.ax.set_xlabel("we iteration of arrival")
-        self.ax.set_ylabel("probability")
-        self.ax.set_yscale("log")
+            for to_plot in loop:
+                iteration_target = [max(iter_id) for iter_id in self.num_iter[self.path_indices[to_plot]]]
+                axes.hist(iteration_target, bins=numpy.arange(self.min_iter - 1, self.max_iter, self.interval),
+                          weights=self.weights[self.path_indices[to_plot]],
+                          color=self.mpl_colors[to_plot % len(self.mpl_colors)-1], alpha=0.7)
 
-        self.fig.savefig(f"{self.out_path}/iteration.pdf")
-        log.info(f'Outputted Graph in {self.out_path}/iteration.pdf.')
+            axes.set_xlim(self.min_iter - 1, self.max_iter)
+            axes.set_xlabel("we iteration of arrival")
+            axes.set_ylabel("probability")
+            axes.ax.set_yscale("log")
+
+        self.fig.set_layout_engine(layout='tight')
+        self.fig.savefig(f"{self.out_path}/target_iteration.pdf")
+        log.info(f'Outputted Graph in {self.out_path}/target_iteration.pdf.')
 
 
 def plot_custom():
@@ -361,7 +433,8 @@ def plot_custom():
                 abs_pcoord = numpy.abs(numpy.diff(pcoord[dimension]))
                 mask = numpy.hstack([abs_pcoord > 250, [False]])
                 output.append(numpy.ma.MaskedArray(pcoord, mask))
-            data.ax[cluster].plot(output[0], output[1], color=data.mpl_colors[cluster], alpha=0.25)
+            data.ax[cluster].plot(output[0], output[1], color=data.mpl_colors[cluster % len(data.mpl_colors)],
+                                  alpha=0.25)
 
     data.fig.savefig('custom_graph.pdf', dpi=300)
 

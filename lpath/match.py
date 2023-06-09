@@ -558,7 +558,7 @@ def visualize(z, threshold, out_path="plots", show_fig=True, mpl_colors=None, ax
 
     # Plot dendrogram
     try:
-        sch.set_link_color_palette(mpl_colors)
+        sch.set_link_color_palette(mpl_colors[:-1])
         with plt.rc_context({'lines.linewidth': 2}):
             sch.dendrogram(z, no_labels=True, color_threshold=threshold, above_threshold_color=mpl_colors[-1], ax=ax)
     except RecursionError as e:

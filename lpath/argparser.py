@@ -420,8 +420,8 @@ def add_plot_args(parser=None):
     plot_io.add_argument('-col', '--colors', '--mpl-col', '--mpl-colors', dest='mpl_colors',
                          type=str, nargs='+', default=default_dendrogram_colors,
                          help='A sequence of matplotlib colors names separated by spaces. E.g., \
-                              ``--colors blue tab:green``. The last color should be reserved for branches above the \
-                              threshold horizontal line.')
+                               ``--colors blue tab:green``. The last color will be reserved for branches above the \
+                               threshold horizontal line if used to plot a dendrogram.')
 
     plot_io.add_argument('--dendrogram-threshold', '-pdt', '--dendro-threshold', '-dt', '--plot-dendro-threshold',
                          '--plot-dendrogram-threshold', dest='dendrogram_threshold',
