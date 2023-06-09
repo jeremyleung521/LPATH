@@ -22,15 +22,15 @@ import lpath
 
 # -- Project information -----------------------------------------------------
 
-project = 'lpath'
+project = 'LPATH'
 copyright = ("2023, Anthony Bogetti, Jeremy Leung, Lillian Chong. Project structure based on the "
              "Computational Molecular Science Python Cookiecutter version 1.1")
 author = 'Anthony Bogetti, Jeremy Leung, Lillian Chong'
 
 # The short X.Y version
-version = ''
+version = '0.9'
 # The full version, including alpha/beta/rc tags
-release = ''
+release = '0.9.0'
 
 
 # -- General configuration ---------------------------------------------------
