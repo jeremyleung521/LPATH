@@ -1,4 +1,4 @@
-lpath API Documentation
+LPATH API Documentation
 =======================
 
 .. autosummary::
@@ -61,7 +61,7 @@ The ``match`` step allows you to compare and cluster pathways from the ``extract
     :members:
 
 
-All lpath Steps
+All LPATH Steps
 ---------------
 .. argparse::
    :module: lpath.argparser

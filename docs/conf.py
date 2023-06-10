@@ -145,8 +145,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'lpath.tex', 'lpath Documentation',
-     'lpath', 'manual'),
+    (master_doc, 'lpath.tex', 'LPATH Documentation',
+     'LPATH', 'manual'),
 ]
 
 
@@ -155,7 +155,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'lpath', 'lpath Documentation',
+    (master_doc, 'LPATH', 'LPATH Documentation',
      [author], 1)
 ]
 
@@ -166,8 +166,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'lpath', 'lpath Documentation',
-     author, 'lpath', 'A user-friendly, Python tool for clustering pathways from molecular dynamics simulations',
+    (master_doc, 'LPATH', 'LPATH Documentation',
+     author, 'LPATH', 'A user-friendly, Python tool for clustering pathways from molecular dynamics simulations',
      'Miscellaneous'),
 ]
 

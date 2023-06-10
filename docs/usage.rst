@@ -8,11 +8,12 @@ This page details how to use ``lpath``.  Follow the `Getting Started`_ page to l
 
 Introduction
 ------------
-``lpath`` is made of three separate steps: ``discretize``, ``extract``, and ``match``. All these steps take a variety of different parameters, which are all listed in the `API`_ page.
+``lpath`` is made of four separate steps: ``discretize``, ``extract``, ``match``, and ``plot``. All these steps take a variety of different parameters, which are all listed in the `API`_ page.
 
 1. The ``discretize`` step is used to discretize your trajectories for the purpose of finding successful transitions.
 2. The ``extract`` step takes what's assigned in ``discretize`` and identifies all instances where there is a successful transition.
 3. The ``match`` step takes what's outputted in ``extract`` and cross pattern match to identify pathway classes. It is possible to reassign states in this step.
+4. The ``plot`` step takes what's outputted in ``match`` and allows you to easily make different plots. The LPATHPlot class objects contains many pre-calculated datasets for custom plotting.
 
 
 There are two different ways of running these steps. Due to the sheer amount of parameter options, it is recommended that users start with the Jupyter notebook.

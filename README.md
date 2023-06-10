@@ -22,7 +22,7 @@ Copyright (c) 2023, Anthony Bogetti, Jeremy Leung, Lillian Chong
 - [x] command line interface/argparser
 - [x] Sphinx/Read the Docs autodoc
 - [x] Run each tool directly
-- [ ] Rename Repo
+- [x] Rename Repo
 
 #### Acknowledgements
  
