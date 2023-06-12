@@ -12,7 +12,7 @@ LPATH API Documentation
    lpath.lpath
 
 
-Common Parameters
+Shared Parameters
 -----------------
 All steps take the following parameters.
 
@@ -62,9 +62,9 @@ The ``match`` step allows you to compare and cluster pathways from the ``extract
     :members:
 
 
-Match Step
+Plot Step
 ----------
-The ``plot`` step allows you to plot clusters and pathways from the ``match`` step.
+The ``plot`` step allows you to plot relevant plots from the data generated in the ``match`` step.
 
 .. argparse::
    :module: lpath.argparser
