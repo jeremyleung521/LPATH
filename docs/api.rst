@@ -19,7 +19,7 @@ All steps take the following parameters.
 .. argparse::
    :module: lpath.argparser
    :func: add_common_args
-   :prog: lpath {discretize,extract,match,all}
+   :prog: lpath {discretize,extract,match,plot,all}
 
 
 Discretization Step
@@ -59,6 +59,20 @@ The ``match`` step allows you to compare and cluster pathways from the ``extract
 
 
 .. automodule:: lpath.match
+    :members:
+
+
+Match Step
+----------
+The ``plot`` step allows you to plot clusters and pathways from the ``match`` step.
+
+.. argparse::
+   :module: lpath.argparser
+   :func: add_plot_args
+   :prog: lpath plot
+
+
+.. automodule:: lpath.plot
     :members:
 
 
