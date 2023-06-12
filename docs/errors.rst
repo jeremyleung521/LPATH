@@ -71,3 +71,8 @@ There are two common cause for this problem due to the custom reassign function:
     2. Another potential cause is that you forgot to copy the other columns of data (iteration, seg_id etc.) into the ``pathways`` array during reassignment. The ``expand_shorter_traj()`` function assumes all segments with iteration 0 are there for padding (i.e., there because the length of the transition is < the longest successful trajectory extracted) and are assigned to the "unknown state". Include the following line within the second ``for`` loop to copy all columns before reassignment::
         for idx, val2 in enumerate(flipped_val):
             pathways[idx,idx2] = val2
+
+Plot
+----
+
+[NONE AT THE MOMENT]

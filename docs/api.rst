@@ -8,6 +8,7 @@ LPATH API Documentation
    lpath.discretize
    lpath.extract
    lpath.match
+   lpath.plot
    lpath.lpath
 
 
