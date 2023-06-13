@@ -8,6 +8,7 @@ from ._logger import Logger
 
 log = Logger().get_logger(__name__)
 
+
 def load_module(module_name, path=None):
     """Load and return the given module, recursively loading containing packages as necessary."""
     if module_name in sys.modules:

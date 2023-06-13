@@ -5,6 +5,7 @@ from logging import handlers
 
 logging.root.setLevel(logging.INFO)
 
+
 class ColorCodes:
     """
     Colors for log message formatting.
@@ -90,9 +91,12 @@ class ColorizedArgsFormatter(logging.Formatter):
         return formatted
 
 
-
-
 class BraceFormatStyleFormatter(logging.Formatter):
+    """
+    Brace Format Style Formatter copied from:
+    https://medium.com/analytics-vidhya/python-logging-colorize-your-arguments-41567a754ac
+
+    """
     def __init__(self, fmt: str):
         super().__init__()
         self.formatter = logging.Formatter(fmt)
