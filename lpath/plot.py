@@ -12,7 +12,6 @@ from lpath.extloader import *
 from lpath.io import load_file
 from lpath.match import calc_linkage, visualize, determine_rerun, ask_number_clusters, hcluster
 
-
 try:
     from importlib.resources import files
 except ImportError:

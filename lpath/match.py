@@ -14,6 +14,7 @@ from shutil import copyfile
 
 import numpy
 import pylcs
+import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import squareform
 from sklearn.metrics import pairwise_distances
@@ -552,13 +553,6 @@ def visualize(z, threshold, out_path="plots", show_fig=True, mpl_colors=None, ax
         A matplotlib.Axes object, which should be the axes which is used to plot the dendrogram.
 
     """
-    try:
-        import matplotlib.pyplot as plt
-    except (ModuleNotFoundError, ImportError) as e:
-        log.debug(e)
-        log.warning(f'Cannot import matplotlib. Proceeding to not plot anything.')
-        return
-
     # Clean slate.
     if ax is None:
         log.debug('Clearing current plot axis for dendrogram.')
