@@ -57,7 +57,6 @@ The ``match`` step allows you to compare and cluster pathways from the ``extract
    :func: add_match_args
    :prog: lpath match
 
-
 .. automodule:: lpath.match
     :members:
 
@@ -70,7 +69,6 @@ The ``plot`` step allows you to plot relevant plots from the data generated in t
    :module: lpath.argparser
    :func: add_plot_args
    :prog: lpath plot
-
 
 .. automodule:: lpath.plot
     :members:

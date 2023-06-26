@@ -19,6 +19,7 @@ import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import squareform
 from sklearn.metrics import pairwise_distances
 from tqdm.auto import tqdm, trange
+from timedinput import timedinput
 
 from lpath.extloader import *
 from lpath.io import load_file, default_dendrogram_colors
@@ -811,9 +812,10 @@ def determine_rerun(z, out_path='plots', mpl_colors=default_dendrogram_colors, a
     """
     while True:
         try:
-            ans = input('Do you want to regenerate the graph with a new threshold (y/[n])?\n')
+            ans = timedinput('Do you want to regenerate the graph with a new threshold (y/[n])?\n',
+                             timeout=15, default='N')
             if ans == 'y' or ans == 'Y':
-                ans2 = input('What new threshold would you like?\n')
+                ans2 = timedinput('What new threshold would you like?\n', timeout=15, default=0.5)
                 try:
                     ax = visualize(z, out_path=out_path, threshold=float(ans2),
                                    show_fig=True, mpl_colors=mpl_colors, ax=ax)
@@ -823,7 +825,7 @@ def determine_rerun(z, out_path='plots', mpl_colors=default_dendrogram_colors, a
             elif ans == 'n' or ans == 'N' or ans == '':
                 break
             else:
-                input("Invalid input.\n")
+                print("Invalid input.\n")
         except KeyboardInterrupt:
             sys.exit(0)
 
@@ -835,7 +837,8 @@ def ask_number_clusters():
     """
     while True:
         try:
-            ans = input('How many clusters would you like to separate the pathways into?\n')
+            ans = timedinput('How many clusters would you like to separate the pathways into?\n',
+                             timeout=15, default=2)
             try:
                 ans = int(ans)
                 return ans

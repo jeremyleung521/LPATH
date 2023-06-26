@@ -13,6 +13,7 @@ dependencies:
   - pip:
     - pylcs
     - ray
+    - timedinput
 
     # Testing
   - pytest
