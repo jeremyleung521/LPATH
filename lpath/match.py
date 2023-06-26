@@ -453,7 +453,7 @@ def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
     return pathways
 
 
-def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', out_dir='succ_traj', remake=True,
+def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', remake=True,
                     metric=True, condense=False, n_jobs=None):
     """
     Generate the path_string to path_string similarity distance matrix.
@@ -468,9 +468,6 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', out
 
     file_name : str, default : 'distmat.npy'
         The file to output the distance matrix.
-
-    out_dir : str, default : 'succ_traj'
-        Directory to output any files.
 
     remake : bool, default : True
         Indicates whether to remake distance matrix or not.
@@ -821,7 +818,7 @@ def determine_rerun(z, out_path='plots', mpl_colors=default_dendrogram_colors, a
                 except ValueError:
                     determine_rerun(z, out_path=out_path, mpl_colors=mpl_colors, ax=ax)
             elif ans == 'n' or ans == 'N' or ans == '':
-                break
+                return None
             else:
                 print("Invalid input.\n")
         except KeyboardInterrupt:
@@ -833,7 +830,7 @@ def ask_number_clusters(num_clusters=None):
     Asks how many clusters you want to separate the trajectories into.
 
     """
-    if num_clusters is not None:
+    if not num_clusters:
         while True:
             try:
                 ans = timedinput('How many clusters would you like to separate the pathways into?\n',
@@ -931,7 +928,6 @@ def main(arguments):
     log.debug(f'Cleaned up trajectories.')
 
     dist_matrix, weights = gen_dist_matrix(test_obj, dictionary, file_name=arguments.dmatrix_save,
-                                           out_dir=arguments.out_dir,
                                            remake=arguments.dmatrix_remake,  # Calculate distance matrix
                                            metric=arguments.longest_subsequence,  # Which metric to use
                                            condense=arguments.condense,  # Whether to condense consecutive state strings
@@ -944,6 +940,7 @@ def main(arguments):
     ax = visualize(z, threshold=arguments.dendrogram_threshold, out_path=arguments.out_path,
                    show_fig=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors)
     ax = determine_rerun(z, out_path=arguments.out_path, mpl_colors=arguments.mpl_colors, ax=ax)
+
     n_clusters = ask_number_clusters(arguments.num_clusters)
     cluster_labels = hcluster(z, n_clusters)
 
