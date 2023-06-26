@@ -994,7 +994,6 @@ def we(arguments):
                     # Deleting from larger to lower
                     deleted = trace_out_list.pop(jdx)
                     log.debug(f'Deleting pathway index {jdx}: {deleted}')
-                log.setLevel(logging.INFO)
                 log.info(f'Indices of pathway removed: {del_list}.')
                 log.info(f'Removed {len(del_list)} trajectories of length < {exclude_short} frames.')
 

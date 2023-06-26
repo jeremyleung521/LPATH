@@ -430,8 +430,8 @@ def add_plot_args(parser=None):
     plot_io.add_argument('--dendrogram-hide', '-pdh', '--dendro-hide', '-dh', dest='dendrogram_show',
                          action='store_false', help='Do not show dendrogram. Overrides ``--dendrogram-show``.')
     plot_io.add_argument('--n-clusters', '-nc', '--num-clusters', dest='num_clusters', type=check_positive,
-                          help='For cases where you know in advance how many clusters you want for \
-                                the hierarchical clustering.')
+                         help='For cases where you know in advance how many clusters you want for \
+                               the hierarchical clustering.')
 
     plot_io.add_argument('--plot-regen-cl', '-rcl', '--plot-regenerate-cluster-labels', dest='regen_cl',
                          action='store_true',
@@ -567,7 +567,7 @@ def process_matplotlib_config(arguments):
             split = term.split('=')[0]
             try:
                 plt_dict[split[0]] = literal_eval(split[1])
-            except:
+            except ValueError:
                 plt_dict[split[0]] = split[1]
 
         setattr(arguments, 'matplotlib_args', plt_dict)
