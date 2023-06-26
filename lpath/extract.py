@@ -398,7 +398,11 @@ def we(arguments):
                 log.info(f'Exporting the following datasets: {auxdata}')
             for dataset_name in auxdata:
                 # Using list comprehension, since numpy.append is weird at times.
-                _ = [row.append(dataset) for (row, dataset) in zip(ad_arr, iwalker.auxiliary_data[dataset_name])]
+                if len(iwalker.auxiliary_data[dataset_name].shape) > 1:
+                    _ = [row.append(item) for (row, dataset) in zip(ad_arr, iwalker.auxiliary_data[dataset_name])
+                         for item in dataset[-1]]
+                else:
+                    _ = [row.append(dataset) for (row, dataset) in zip(ad_arr, iwalker.auxiliary_data[dataset_name])]
 
         if len(ad_arr) == 0:
             ad_arr = [[] for _ in range(total_frames)]
@@ -463,6 +467,12 @@ def we(arguments):
 
         assign_name : str
             Name of ``assign.h5`` file. Identical from what's inputted to the argparser.
+
+        first_iter : int or float
+            First iteration number. 1-based.
+
+        last_iter : int or float
+            Last iteration number. 1-based.
 
         """
         with h5py.File(west_name) as west_file, h5py.File(assign_name) as assign_file:
@@ -1008,7 +1018,6 @@ def we(arguments):
                     for n_seg in range(afile["nsegs"][n_iter - 1]):
                         if (n_iter, n_seg) not in exclusive_set:
                             h5file[f"iterations/iter_{n_iter:>08}/seg_index"]["weight", n_seg] = 0
-
 
     # Variables validation
     if arguments.last_iter == 0:
