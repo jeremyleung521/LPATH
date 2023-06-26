@@ -400,7 +400,7 @@ def we(arguments):
                 # Using list comprehension, since numpy.append is weird at times.
                 if len(iwalker.auxiliary_data[dataset_name].shape) > 1:
                     _ = [row.append(item) for (row, dataset) in zip(ad_arr, iwalker.auxiliary_data[dataset_name])
-                         for item in dataset[-1]]
+                         for item in dataset]
                 else:
                     _ = [row.append(dataset) for (row, dataset) in zip(ad_arr, iwalker.auxiliary_data[dataset_name])]
 
