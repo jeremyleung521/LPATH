@@ -830,22 +830,23 @@ def determine_rerun(z, out_path='plots', mpl_colors=default_dendrogram_colors, a
             sys.exit(0)
 
 
-def ask_number_clusters():
+def ask_number_clusters(num_clusters=None):
     """
     Asks how many clusters you want to separate the trajectories into.
 
     """
-    while True:
-        try:
-            ans = timedinput('How many clusters would you like to separate the pathways into?\n',
-                             timeout=15, default=2)
+    if num_clusters is not None:
+        while True:
             try:
-                ans = int(ans)
-                return ans
-            except ValueError:
-                print("Invalid input.\n")
-        except KeyboardInterrupt:
-            sys.exit(0)
+                ans = timedinput('How many clusters would you like to separate the pathways into?\n',
+                                 timeout=15, default=2)
+                try:
+                    ans = int(ans)
+                    return ans
+                except ValueError:
+                    print("Invalid input.\n")
+            except KeyboardInterrupt:
+                sys.exit(0)
 
 
 def report_statistics(n_clusters, cluster_labels, weights, segid_status=False):
@@ -945,7 +946,7 @@ def main(arguments):
     ax = visualize(z, threshold=arguments.dendrogram_threshold, out_path=arguments.out_path,
                    show_fig=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors)
     ax = determine_rerun(z, out_path=arguments.out_path, mpl_colors=arguments.mpl_colors, ax=ax)
-    n_clusters = ask_number_clusters()
+    n_clusters = ask_number_clusters(arguments.num_clusters)
     cluster_labels = hcluster(z, n_clusters)
 
     # Report statistics

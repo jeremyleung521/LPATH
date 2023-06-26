@@ -505,7 +505,7 @@ def main(arguments):
         data.ax = visualize(data.linkage, threshold=arguments.dendrogram_threshold, out_path=arguments.out_path,
                             show_fig=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors, ax=data.ax)
         determine_rerun(data.linkage, out_path=data.out_path, mpl_colors=arguments.mpl_colors, ax=data.ax)
-        n_clusters = ask_number_clusters()
+        n_clusters = ask_number_clusters(arguments.num_clusters)
         cluster_labels = hcluster(data.linkage, n_clusters)
         data.cluster_labels = cluster_labels
         numpy.save(f'{data.out_path}/new_cluster_labels.npy', data.cluster_labels)
