@@ -813,7 +813,7 @@ def determine_rerun(z, out_path='plots', mpl_colors=default_dendrogram_colors, a
     while True:
         try:
             ans = timedinput('Do you want to regenerate the graph with a new threshold (y/[n])?\n',
-                             timeout=15, default='N')
+                             timeout=60, default='N')
             if ans == 'y' or ans == 'Y':
                 ans2 = timedinput('What new threshold would you like?\n', timeout=15, default=0.5)
                 try:
