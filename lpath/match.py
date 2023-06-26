@@ -495,8 +495,6 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', out
         An array of the weights of each successful pathway (as taken from the last frame).
 
     """
-    new_name = f"{out_dir}/{file_name}"
-
     weights = []
     path_strings = []
     if metric:
@@ -514,7 +512,7 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', out
 
     weights = numpy.asarray(weights)
 
-    if not exists(new_name) or remake is True:
+    if not exists(file_name) or remake is True:
         log.debug(f'Proceeding to calculate distance matrix.')
         pbar = tqdm(total=int((len(path_strings) * (len(path_strings) - 1))), leave=False)
         if metric:
