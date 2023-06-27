@@ -496,7 +496,7 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', rem
     path_strings = []
     if metric:
         for pathway in pathways:
-            # weights for non-existent iters
+            # remove weights for non-existent iters
             nonzero = pathway[pathway[:, 2] < len(dictionary) - 1]
             weights.append(nonzero[-1][-1])
             # Create path_strings
@@ -761,7 +761,7 @@ def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="w
 
         first_iter = 1
         with h5py.File(west_name, "r") as h5_file:
-            last_iter = len(h5_file['summary'])
+            last_iter = len(h5_file['iterations'])
 
         # tqdm load bar, working backwards
         tqdm_iter = trange(last_iter, first_iter - 1, -1, desc=f'c{icluster} iterations')
