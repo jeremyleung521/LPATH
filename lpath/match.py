@@ -668,11 +668,11 @@ def select_rep(data_arr, weights, cluster_labels, icluster):
     """
     selected_cluster = cluster_labels == icluster
     cluster_arr = numpy.array(data_arr, dtype=object)[selected_cluster]
-    data_cl = list(cluster_arr)
+    data_cl_trim = [pathway[pathway[:, 0] != 0] for pathway in cluster_arr]
     weights_cl = weights[selected_cluster]
-    rep_weight = data_cl[numpy.argmax(weights_cl)][0]
+    rep_weight = data_cl_trim[numpy.argmax(weights_cl)][-1]
 
-    return data_cl, rep_weight
+    return data_cl_trim, rep_weight
 
 
 def export_std_files(data_arr, weights, cluster_labels, clusters=None, out_dir="succ_traj"):
@@ -764,7 +764,7 @@ def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="w
             last_iter = len(h5_file['summary'])
 
         # tqdm load bar, working backwards
-        tqdm_iter = trange(last_iter, first_iter - 1, -1, desc="iter")
+        tqdm_iter = trange(last_iter, first_iter - 1, -1, desc=f'c{icluster} iterations')
 
         # Identify constituents of a cluster to output.
         trace_out_list = []
@@ -779,7 +779,8 @@ def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="w
         exclusive_set = {tuple(pair) for ilist in trace_out_list for pair in ilist}
         with h5py.File(new_file, "r+") as h5file:
             for n_iter in tqdm_iter:
-                for n_seg in trange(len(h5file[f'iteration/{n_iter:>08}/seg_index']), leave=False):
+                for n_seg in trange(len(h5file[f'iterations/iter_{n_iter:>08}/seg_index']),
+                                    desc=f'iter {n_iter} segments', leave=False):
                     if (n_iter, n_seg) not in exclusive_set:
                         h5file[f"iterations/iter_{n_iter:>08}/seg_index"]["weight", n_seg] = 0
 
@@ -863,11 +864,11 @@ def report_statistics(n_clusters, cluster_labels, weights, segid_status=False):
         Status of whether we're using seg_ids or not.
 
     """
-    # Initialize the dictionary with 0 weight. 1-based for cl.
+    # Initialize the dictionary with 0 weight. 0-based for cl.
     final_dictionary = dict()
     counts = dict()
     uniques = dict()
-    for j in range(1, n_clusters + 1):
+    for j in range(0, n_clusters):
         final_dictionary[j] = 0
         counts[j] = 0
 
@@ -879,7 +880,7 @@ def report_statistics(n_clusters, cluster_labels, weights, segid_status=False):
         for cluster, unique_count in zip(*numpy.unique(cluster_labels, return_counts=True)):
             uniques[cluster] = unique_count
     else:
-        for cl in cluster_labels:
+        for cl in range(0, n_clusters):
             uniques[cl] = 'N/A'
 
     report = f'===lpath Pattern Matching Statistics===\n'
@@ -959,13 +960,21 @@ def main(arguments):
     numpy.save(arguments.cl_output, cluster_labels)
 
     # Following exports each cluster to its own h5 file, all weights of segments not in that group = 0.
-    if arguments.we and arguments.export_h5:
+    if arguments.export_h5:
         export_we_files(
-            pathways,
+            test_obj,
             weights,
             cluster_labels,
             clusters=arguments.clusters,
             out_dir=arguments.out_dir,
             file_pattern=arguments.file_pattern,
             west_name=arguments.west_name,
+        )
+    else:
+        export_std_files(
+            test_obj,
+            weights,
+            cluster_labels,
+            clusters=arguments.clusters,
+            out_dir=arguments.out_dir,
         )
