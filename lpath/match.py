@@ -609,7 +609,7 @@ def determine_clusters(cluster_labels, clusters=None):
 
     """
     if clusters is None:
-        clusters = list(range(0, max(cluster_labels) + 1))
+        clusters = list(range(max(cluster_labels) + 1))
     elif not isinstance(clusters, list):
         try:
             list(clusters)
@@ -868,7 +868,7 @@ def report_statistics(n_clusters, cluster_labels, weights, segid_status=False):
     final_dictionary = dict()
     counts = dict()
     uniques = dict()
-    for j in range(0, n_clusters):
+    for j in range(n_clusters):
         final_dictionary[j] = 0
         counts[j] = 0
 
@@ -880,7 +880,7 @@ def report_statistics(n_clusters, cluster_labels, weights, segid_status=False):
         for cluster, unique_count in zip(*numpy.unique(cluster_labels, return_counts=True)):
             uniques[cluster] = unique_count
     else:
-        for cl in range(0, n_clusters):
+        for cl in range(n_clusters):
             uniques[cl] = 'N/A'
 
     report = f'===lpath Pattern Matching Statistics===\n'
