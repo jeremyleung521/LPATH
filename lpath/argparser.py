@@ -318,6 +318,7 @@ def add_match_args(parser=None):
         parser = create_parser()
 
     match_io = parser.add_argument_group('Match Specific Parameters')
+    match_metric_ex = match_io.add_mutually_exclusive_group(required=False)
 
     match_io.add_argument('--input-pickle', '-ip', '--IP', '--pickle', dest='extract_output',
                           default='succ_traj/output.pickle', type=str, help='Path to pickle object from the `extract` \
@@ -337,16 +338,18 @@ def add_match_args(parser=None):
                           help='Reassign method to use. Could be one of the defaults or a module to load. Defaults are \
                                 ``reassign_identity``, ``reassign_statelabel``, ``reassign_segid``, \
                                 and ``reassign_custom``.')
-    match_io.add_argument('--subsequence', '-seq', '--longest-common-subsequence', dest='longest_subsequence',
-                          action='store_true', default=True,
-                          help='Use the longest common subsequence metric. The final answer is a total of common \
-                                discontinuous characters. This is the default.')
-    match_io.add_argument('--substring', '-str', '--longest-common-substring', dest='longest_subsequence',
-                          action='store_false',
-                          help='Use the longest common substring metric. The final answer is a length of common \
-                                continuous characters. This is not the default and (probably) should only be used when \
-                                comparing segment ids with ``trace_basis`` turned on in ``extract``. Overrides \
-                                ``--longest-common-subsequence``.')
+    match_metric_ex.add_argument('--subsequence', '-seq', '--longest-common-subsequence', dest='match_metric',
+                                 action='store_const', const='longest_common_subsequence',
+                                 help='Use the longest common subsequence metric. The final answer is a total of \
+                                       common discontinuous characters. This is the default.')
+    match_metric_ex.add_argument('--substring', '-str', '--longest-common-substring', dest='match_metric',
+                                 action='store_const', const='longest_common_substring',
+                                 help='Use the longest common substring metric. The final answer is a length of common \
+                                       continuous characters. This is not the default and (probably) should only be \
+                                       used when comparing segment ids with ``trace_basis`` turned on in ``extract``.')
+    match_metric_ex.add_argument('--match-metric', '-mm', '--metric', dest='match_metric', type=str,
+                                 help='Use a custom similarity metric for match step. This defaults to \
+                                       `longest_common_subsequence`.')
     match_io.add_argument('--remove-ends', '-re', dest='remove_ends', action='store_true',
                           help='Remove the end states (source and sink) during matching.')
     match_io.add_argument('--condense', '-cc', '--condense-consecutive', dest='condense', action='store_true',
@@ -365,6 +368,8 @@ def add_match_args(parser=None):
                                 n_jobs parameter for ``sklearn.metrics.pairwise_distances()``.')
     match_io.add_argument('--clusters', '-c', dest='clusters', default=None, nargs='*',
                           help='Clusters to export. 0-indexed. The default ``None`` will output all clusters.')
+
+    match_io.set_defaults(match_metric='longest_common_subsequence')
 
     match_we = parser.add_argument_group('WE-specific Match Parameters')
 

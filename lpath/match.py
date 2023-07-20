@@ -187,6 +187,40 @@ def determine_reassign(reassign_method):
     return reassign
 
 
+def determine_metric(match_metric):
+    """
+    Argument processing to determine function to reassign trajectories.
+
+    Parameters
+    ----------
+    match_metric : str , default: 'longest_common_subsequence'
+        String from argument.match_metric, straight from argparser.
+
+    Returns
+    -------
+    metric : function
+        The matching  function.
+
+    """
+    # Dealing with the preset assign_method
+    preset_metric = {
+        'longest_common_subsequence': calc_dist,
+        'longest_common_substring': calc_dist_substr,
+    }
+
+    if match_metric in preset_metric.keys():
+        metric = preset_metric[match_metric]
+    else:
+        import sys
+        import os
+        sys.path.append(os.getcwd())
+
+        metric = get_object(match_metric)
+        log.info(f'INFO: Replaced match_metric with {match_metric}')
+
+    return metric
+
+
 def load_data(file_name):
     """
     Load in the pickle data from ``extract``.
@@ -454,7 +488,7 @@ def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
 
 
 def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', remake=True,
-                    metric=True, condense=False, n_jobs=None):
+                    metric=calc_dist, condense=False, n_jobs=None):
     """
     Generate the path_string to path_string similarity distance matrix.
 
@@ -512,14 +546,9 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', rem
     if not exists(file_name) or remake is True:
         log.debug(f'Proceeding to calculate distance matrix.')
         pbar = tqdm(total=int((len(path_strings) * (len(path_strings) - 1))), leave=False)
-        if metric:
-            distmat = pairwise_distances(
-                X=path_strings, metric=lambda x, y: calc_dist(x, y, dictionary, pbar, condense), n_jobs=n_jobs,
-            )
-        else:
-            distmat = pairwise_distances(
-                X=path_strings, metric=lambda x, y: calc_dist_substr(x, y, dictionary, pbar, condense), n_jobs=n_jobs,
-            )
+        distmat = pairwise_distances(
+            X=path_strings, metric=lambda x, y: metric(x, y, dictionary, pbar, condense), n_jobs=n_jobs,
+        )
         numpy.save(file_name, distmat)
     else:
         distmat = numpy.load(file_name)
@@ -908,6 +937,7 @@ def main(arguments):
     """
     # Dealing with the preset assign_method
     reassign = determine_reassign(arguments.reassign_method)
+    metric = determine_metric(arguments.match_metric)
 
     # Prepping the data + Calculating the distance matrix
     data, pathways = load_data(arguments.extract_output)
@@ -930,7 +960,7 @@ def main(arguments):
 
     dist_matrix, weights = gen_dist_matrix(test_obj, dictionary, file_name=arguments.dmatrix_save,
                                            remake=arguments.dmatrix_remake,  # Calculate distance matrix
-                                           metric=arguments.longest_subsequence,  # Which metric to use
+                                           metric=metric,  # Which metric to use
                                            condense=arguments.condense,  # Whether to condense consecutive state strings
                                            n_jobs=arguments.dmatrix_parallel)  # Number of jobs for pairwise_distance
 
