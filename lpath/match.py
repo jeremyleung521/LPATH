@@ -43,50 +43,40 @@ def tostr(b):
         return str(b)
 
 
-def remove_consec_states(string):
+def remove_consec_repeats(string, n):
     """
     Function that takes in a string and remove any consecutive duplicates.
-    Example: 'AAABBB' --> 'AB'
+    Starts from 1, slowly works up to n.
 
     """
     string = tostr(string)
-    new_string = prev_chara = string[0]
-
-    # Loop through each character and return final str
-    for chara in string[1:]:
-        if chara == prev_chara:
-            continue
-        else:
-            new_string += chara
-            prev_chara = chara
-    return new_string
-
-
-def remove_consec_pairs(string):
-    """
-    Function that takes in a string and remove any consecutive duplicates pairs.
-    Example: 'ABABAB' --> 'AB'
-
-    """
-    string = tostr(string)
-    new_string = ''
     counter = 0
 
     # Loop through each character and return final str
-    for idx in range(0, len(string)-2):
-        if string[idx] == string[idx+2] and string[idx+1] == string[idx+3]:
-            counter += 1
-            continue
-        elif (int(counter+2) % 2) == 0:
-            new_string += string[idx]
-        counter = 0
+    for remove_n in range(1, n + 1):
+        new_string = ''
+        for idx in range(0, len(string) - remove_n):
+            status = False
+            for jdx in range(remove_n):
+                if string[idx] == string[idx + remove_n]:
+                    status = True
+                else:
+                    status = False
+            if status:
+                counter += 1
+                continue
+            elif (int(counter) % remove_n) == 0:
+                new_string += string[idx]
+            counter = 0
 
-    # Adding last two characters as is...
-    new_string += string[-2:]
+        # Adding last two characters as is...
+        new_string += string[-remove_n:]
+        string = new_string
+
     return new_string
 
 
-def calc_dist(seq1, seq2, dictionary, pbar, condense=False):
+def calc_dist(seq1, seq2, dictionary, pbar, condense=None):
     """
     Pattern match and calculate the similarity between two ``state string`` sequences.
 
@@ -104,8 +94,8 @@ def calc_dist(seq1, seq2, dictionary, pbar, condense=False):
     pbar : tqdm.tqdm
         A tqdm.tqdm object for the progress bar.
 
-    condense : bool, default: False
-        Set True to shorten consecutive characters in state strings.
+    condense : int, default: None
+        Set to N to shorten consecutive characters in state strings.
 
     Returns
     -------
@@ -120,10 +110,8 @@ def calc_dist(seq1, seq2, dictionary, pbar, condense=False):
     seq2_str = "".join(dictionary[x] for x in seq2)
 
     if condense:
-        seq1_str = remove_consec_states(seq1_str)
-        seq2_str = remove_consec_states(seq2_str)
-        seq1_str = remove_consec_pairs(seq1_str)
-        seq2_str = remove_consec_pairs(seq2_str)
+        seq1_str = remove_consec_repeats(seq1_str, condense)
+        seq2_str = remove_consec_repeats(seq2_str, condense)
 
     km = int(pylcs.lcs_sequence_length(seq1_str, seq2_str))
     similarity = (2 * km) / (int(len(seq1_str) + len(seq2_str)))
@@ -152,8 +140,8 @@ def calc_dist_substr(seq1, seq2, dictionary, pbar, condense=False):
     pbar : tqdm.tqdm
         A tqdm.tqdm object for the progress bar.
 
-    condense : bool, default: False
-        Set True to shorten consecutive characters in state strings.
+    condense : int, default: None
+        Set to an int to shorten consecutive characters in state strings.
 
     Returns
     -------
@@ -168,10 +156,8 @@ def calc_dist_substr(seq1, seq2, dictionary, pbar, condense=False):
     seq2_str = "".join(dictionary[x] for x in seq2)
 
     if condense:
-        seq1_str = remove_consec_states(seq1_str)
-        seq2_str = remove_consec_states(seq2_str)
-        seq1_str = remove_consec_pairs(seq1_str)
-        seq2_str = remove_consec_pairs(seq2_str)
+        seq1_str = remove_consec_repeats(seq1_str, condense)
+        seq2_str = remove_consec_repeats(seq2_str, condense)
 
     km = int(pylcs.lcs_string_length(seq1_str, seq2_str))
     similarity = (2 * km) / (int(len(seq1_str) + len(seq2_str)))
