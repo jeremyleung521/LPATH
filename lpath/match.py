@@ -46,6 +46,8 @@ def tostr(b):
 def remove_consec_states(string):
     """
     Function that takes in a string and remove any consecutive duplicates.
+    Example: 'AAABBB' --> 'AB'
+
     """
     string = tostr(string)
     new_string = prev_chara = string[0]
@@ -57,6 +59,30 @@ def remove_consec_states(string):
         else:
             new_string += chara
             prev_chara = chara
+    return new_string
+
+
+def remove_consec_pairs(string):
+    """
+    Function that takes in a string and remove any consecutive duplicates pairs.
+    Example: 'ABABAB' --> 'AB'
+
+    """
+    string = tostr(string)
+    new_string = ''
+    counter = 0
+
+    # Loop through each character and return final str
+    for idx in range(0, len(string)-2):
+        if string[idx] == string[idx+2] and string[idx+1] == string[idx+3]:
+            counter += 1
+            continue
+        elif (int(counter+2) % 2) == 0:
+            new_string += string[idx]
+        counter = 0
+
+    # Adding last two characters as is...
+    new_string += string[-2:]
     return new_string
 
 
@@ -96,6 +122,8 @@ def calc_dist(seq1, seq2, dictionary, pbar, condense=False):
     if condense:
         seq1_str = remove_consec_states(seq1_str)
         seq2_str = remove_consec_states(seq2_str)
+        seq1_str = remove_consec_pairs(seq1_str)
+        seq2_str = remove_consec_pairs(seq2_str)
 
     km = int(pylcs.lcs_sequence_length(seq1_str, seq2_str))
     similarity = (2 * km) / (int(len(seq1_str) + len(seq2_str)))
@@ -142,6 +170,8 @@ def calc_dist_substr(seq1, seq2, dictionary, pbar, condense=False):
     if condense:
         seq1_str = remove_consec_states(seq1_str)
         seq2_str = remove_consec_states(seq2_str)
+        seq1_str = remove_consec_pairs(seq1_str)
+        seq2_str = remove_consec_pairs(seq2_str)
 
     km = int(pylcs.lcs_string_length(seq1_str, seq2_str))
     similarity = (2 * km) / (int(len(seq1_str) + len(seq2_str)))
@@ -546,6 +576,7 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', rem
     if not exists(file_name) or remake is True:
         log.debug(f'Proceeding to calculate distance matrix.')
         pbar = tqdm(total=int((len(path_strings) * (len(path_strings) - 1))), leave=False)
+        # sklearn.metrics.pairwise_distances() brute-forces it by running all n^2 calculations!
         distmat = pairwise_distances(
             X=path_strings, metric=lambda x, y: metric(x, y, dictionary, pbar, condense), n_jobs=n_jobs,
         )
