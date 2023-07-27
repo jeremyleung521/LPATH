@@ -121,7 +121,7 @@ def calc_dist(seq1, seq2, dictionary, pbar, condense=None):
     return 1 - similarity
 
 
-def calc_dist_substr(seq1, seq2, dictionary, pbar, condense=False):
+def calc_dist_substr(seq1, seq2, dictionary, pbar, condense=None):
     """
     Pattern match and calculate the similarity between two ``state string`` substrings.
     Used when you're comparing segment ids.
@@ -504,7 +504,7 @@ def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
 
 
 def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', remake=True,
-                    metric=calc_dist, condense=False, n_jobs=None):
+                    metric=calc_dist, condense=None, n_jobs=None):
     """
     Generate the path_string to path_string similarity distance matrix.
 
@@ -527,7 +527,7 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', rem
         If False, the ``longest common substring`` metric will be used. The latter should only be used
         when comparing states where ``trace_basis`` set as True, such as with segment IDs.
 
-    condense : bool, default : False
+    condense : bool, default : None
         Set True to shorten consecutive characters in state strings.
 
     n_jobs : int, default : None

@@ -81,6 +81,39 @@ def check_positive(value):
     return value
 
 
+def check_less_three(value):
+    """
+    Transform ``value`` into int and make sure it's between 0 and 3 (inclusive).
+
+    Parameters
+    ----------
+    value : str or float or int
+        A value to check to see if it's between 0 and 3 (inclusive)
+
+    Returns
+    -------
+    value : int
+        Only if int is greater than 0. Will transform it to int in the processes.
+
+    Raises
+    ------
+    argparse.ArgumentTypeError
+        If value is not valid.
+
+    ValueError
+        If value is not an integer or float.
+
+    """
+    try:
+        value = int(value)
+        if value not in [0, 1, 2]:
+            raise argparse.ArgumentTypeError("{} is not a valid argument.".format(value))
+    except ValueError:
+        raise Exception("{} must be an integer.".format(value))
+
+    return value
+
+
 def create_parser():
     """
     Quickly create a parser.
@@ -352,8 +385,10 @@ def add_match_args(parser=None):
                                        `longest_common_subsequence`.')
     match_io.add_argument('--remove-ends', '-re', dest='remove_ends', action='store_true',
                           help='Remove the end states (source and sink) during matching.')
-    match_io.add_argument('--condense', '-cc', '--condense-consecutive', dest='condense', action='store_true',
-                          help='Condense consecutively occurring states in state string during matching.')
+    match_io.add_argument('--condense', '-cc', '--condense-consecutive', dest='condense', type=check_less_three,
+                          help='Condense consecutively occurring states in state string during matching. Automatically \
+                                removes repeating characters and repeating pairs (in that order). Takes values 0, 1 \
+                                and 2.')
 
     match_io.add_argument('--remake', '-dR', dest='dmatrix_remake', default=True, action='store_true',
                           help=argparse.SUPPRESS)
