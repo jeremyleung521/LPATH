@@ -294,6 +294,13 @@ def create_pickle_obj(transitions, states, weight, features=None):
         else:
             ad_arr = list(features)
 
+        # Assuming there are at least 2 frames, here.
+        # We want shape of [[1],[2],[3],...] not [[1,2,3,...]].
+        try:
+            isinstance(ad_arr[1], list)
+        except IndexError:
+            ad_arr = [[i] for i in features]
+
     output_list = []
 
     # Going through each transition
@@ -314,6 +321,7 @@ def standard(arguments):
     ----------
     arguments : argparse.Namespace
         A Namespace object will all the necessary parameters.
+
     """
     input_array = load_file(arguments.extract_input, arguments.stride)
     n_states = len(input_array) - 1
@@ -324,7 +332,7 @@ def standard(arguments):
                         'specified with --extract-pcoord. Skipping output.')
             features = None
         else:
-            features = expanded_load(arguments.featurization_name, arguments.feature_stride)
+            features = [expanded_load(arguments.featurization_name, arguments.feature_stride)]
     else:
         features = None
 
