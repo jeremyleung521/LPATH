@@ -48,8 +48,18 @@ def remove_consec_repeats(string, n):
     Function that takes in a string and remove any consecutive duplicates.
     Starts from 1, slowly works up to n.
 
+    Parameters
+    ----------
+    string : str
+        Input string.
+
+    n : int
+        How many consecutive duplicates to remove.
+        0 for none. 1 for just consecutive characters,
+        2 for consecutive pairs (e.g., ABABABA --> AB)
+
     """
-    string = tostr(string)
+    new_string = string = tostr(string)
     counter = 0
 
     # Loop through each character and return final str

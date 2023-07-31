@@ -13,3 +13,45 @@ def test_lpath_match_imported():
 
     """
     assert "lpath.match" in sys.modules
+
+
+def test_lpath_match_remove_none():
+    """
+    Test to see if string comprehension remove_consec_repeats() works
+    with n = 0.
+
+    """
+    input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+    test_output = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+
+    test_string = lpath.match.remove_consec_repeats(input_string, 0)
+
+    assert test_string == test_output
+
+
+def test_lpath_match_remove_single():
+    """
+    Test to see if string comprehension remove_consec_repeats() works
+    with n = 1.
+
+    """
+    input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+    test_output = 'ABCDABABABABABABABCABCABCABC'
+
+    test_string = lpath.match.remove_consec_repeats(input_string, 1)
+
+    assert test_string == test_output
+
+
+def test_lpath_match_remove_pair():
+    """
+    Test to see if string comprehension remove_consec_repeats() works
+    with n = 2.
+
+    """
+    test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+    test_output = 'ABCDABCABCABCABC'
+
+    test_string = lpath.match.remove_consec_repeats(test_string, 2)
+
+    assert test_string == test_output
