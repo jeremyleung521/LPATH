@@ -291,15 +291,16 @@ def create_pickle_obj(transitions, states, weight, features=None):
     else:
         if isinstance(features, numpy.ndarray):
             ad_arr = features.tolist()
+        elif isinstance(features, list):
+            ad_arr = features
         else:
             ad_arr = list(features)
-
         # Assuming there are at least 2 frames, here.
         # We want shape of [[1],[2],[3],...] not [[1,2,3,...]].
         try:
             isinstance(ad_arr[1], list)
         except IndexError:
-            ad_arr = [[i] for i in features]
+            ad_arr = [[i] for i in ad_arr[0]]
 
     output_list = []
 
