@@ -2,6 +2,7 @@
 All argument parsing from commandline is dealt here.
 """
 import argparse
+from argparse import ArgumentTypeError
 from lpath._logger import Logger
 from ast import literal_eval
 from lpath.io import default_dendrogram_colors
@@ -9,10 +10,20 @@ from lpath.io import default_dendrogram_colors
 log = Logger().get_logger(__name__)
 
 arg_desc = """
-lpath: minimal Pathway Analysis Histogram Analysis of Trajectories
-=================================================================="""
+lpath: Linguistics Pathway Analysis of Trajectories with Hierarchical clustering
+================================================================================"""
 
 all_options = ['discretize', 'extract', 'match', 'plot', 'all']
+
+
+class InvalidArgumentError(Exception):
+    """
+    Custom Error for cases when invalid arguments are inputted.
+
+    """
+    def __init__(self, message="Invalid Argument."):
+        self.message = message
+        super().__init__(self.message)
 
 
 def check_non_neg(value):
@@ -31,19 +42,19 @@ def check_non_neg(value):
 
     Raises
     ------
-    argparse.ArgumentTypeError
+    ArgumentError
         If value is < 0.
 
-    ValueError
+    ArgumentTypeError
         If value is not an integer or float.
 
     """
     try:
         value = int(value)
         if value < 0:
-            raise argparse.ArgumentTypeError("{} is not a valid input.".format(value))
+            raise InvalidArgumentError("{} is not a valid input.".format(value))
     except ValueError:
-        raise Exception("{} must be an integer.".format(value))
+        raise ArgumentTypeError("{} must be an integer.".format(value))
 
     return value
 
@@ -64,19 +75,19 @@ def check_positive(value):
 
     Raises
     ------
-    argparse.ArgumentTypeError
+    InvalidArgumentError
         If value is <= 0.
 
-    ValueError
+    ArgumentTypeError
         If value is not an integer or float.
 
     """
     try:
         value = int(value)
         if value <= 0:
-            raise argparse.ArgumentTypeError("{} is not a valid positive number.".format(value))
+            raise InvalidArgumentError("{} is not a valid positive number.".format(value))
     except ValueError:
-        raise Exception("{} must be an integer.".format(value))
+        raise ArgumentTypeError("{} must be an integer.".format(value))
 
     return value
 
@@ -97,19 +108,19 @@ def check_less_three(value):
 
     Raises
     ------
-    argparse.ArgumentTypeError
+    InvalidArgumentError
         If value is not valid.
 
-    ValueError
+    ArgumentTypeError
         If value is not an integer or float.
 
     """
     try:
         value = int(value)
         if value not in [0, 1, 2]:
-            raise argparse.ArgumentTypeError("{} is not a valid argument.".format(value))
+            raise InvalidArgumentError("{} is not a valid argument.".format(value))
     except ValueError:
-        raise Exception("{} must be an integer.".format(value))
+        raise ArgumentTypeError("{} must be an integer.".format(value))
 
     return value
 
@@ -221,7 +232,8 @@ def add_discretize_args(parser=None):
                                      line to ``w_assign``. Either use the defaults (leave blank for the ``TEST`` \
                                      scheme in ``west.cfg`` or at a minimum, you need to specify \
                                      ``--config-from-file --scheme NAME_OF_SCHEME`` to read \
-                                     the config from your ``west.cfg`` file.')
+                                     the config from your ``west.cfg`` file. Whatever inputted here takes precedence \
+                                     over any `--west-file`, `--assign-file`, and `--rc-file` options for LPATH.')
 
     return parser
 
@@ -548,7 +560,7 @@ def create_subparsers(parser, subparser_list):
     return parser, subparser_list
 
 
-def process_assign_args(arguments):
+def process_assign_args(parser, arguments):
     """
     Process arguments for w_assign.
 
@@ -571,7 +583,12 @@ def process_assign_args(arguments):
                 raise ModuleNotFoundError("Trying to discretize an HDF5 file but can't import w_assign")
 
             tool = w_assign.WAssign()
-            final_ns = tool.make_parser_and_process(args=arguments.assign_args.split())
+            try:
+                final_ns = tool.make_parser_and_process(args=arguments.assign_args.split())
+            except Exception as e:
+                raise InvalidArgumentError(f'{e.args} \n' +
+                                           f'Are you sure you correctly included all the arguments to ' +
+                                           f'`w_assign` under `--assign-args`?')
             setattr(arguments, 'assign_args', final_ns)
         else:
             # Use default arguments instead
@@ -652,7 +669,7 @@ def process_args(parser):
     """
     args = parser.parse_args()
     # Automatically parse arguments for w_assign
-    args = process_assign_args(args)
+    args = process_assign_args(parser, args)
     # Fix cases where extract_output doesn't contain out_dir
     args = process_extract_output(args)
 

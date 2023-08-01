@@ -28,13 +28,13 @@ def assign(input_array):
     """
     state_list = []
     for val in input_array:
-        if val[0] >= -180 and val[0] <= -45 and val[1] >= -55 and val[1] <= 30:  # Phi/Psi for Alpha Helix
+        if -180 <= val[0] <= -45 and -55 <= val[1] <= 30:  # Phi/Psi for Alpha Helix
             state_list.append(0)
-        elif val[0] >= 165 and val[0] <= 180 and val[1] >= -55 and val[1] <= 30:
+        elif 165 <= val[0] <= 180 and -55 <= val[1] <= 30:
             state_list.append(0)
-        elif val[0] >= -170 and val[0] <= -55 and val[1] >= 40 and val[1] <= 100:  # Phi/Psi for C7eq
+        elif -170 <= val[0] <= -55 and 40 <= val[1] <= 100:  # Phi/Psi for C7eq
             state_list.append(1)
-        elif val[0] >= 25 and val[0] <= 90 and val[1] >= -55 and val[1] <= 0:  # Phi/Psi for C7ax
+        elif 25 <= val[0] <= 90 and -55 <= val[1] <= 0:  # Phi/Psi for C7ax
             state_list.append(2)
         else:
             state_list.append(3)

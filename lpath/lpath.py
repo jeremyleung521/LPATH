@@ -35,6 +35,7 @@ def entry_point():
     from lpath import argparser
     from lpath import discretize, extract, match, plot
 
+    log.info(f'Running LPATH version {lpath.__version__}.')
     # Creating the subparsers for each subcommand
     subparsers = []
     parser = argparser.create_parser()
@@ -49,7 +50,6 @@ def entry_point():
 
     # print(parser.__dict__)
     args = argparser.process_args(parser)
-    log.info(f'Running LPATH version {lpath.__version__}.')
     log.info(f'LPATH arguments: {args}')
 
     make_dir(args)
