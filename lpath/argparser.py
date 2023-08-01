@@ -560,7 +560,7 @@ def create_subparsers(parser, subparser_list):
     return parser, subparser_list
 
 
-def process_assign_args(parser, arguments):
+def process_assign_args(arguments):
     """
     Process arguments for w_assign.
 
@@ -643,8 +643,8 @@ def process_extract_output(arguments):
 
     """
     if arguments.step_name in ['extract', 'match', 'all']:
-        argsplit = arguments.extract_output.split('/')
-        if len(argsplit) == 1 and argsplit[0] != arguments.out_dir:
+        arg_split = arguments.extract_output.split('/')
+        if len(arg_split) == 1 and arg_split[0] != arguments.out_dir:
             expanded_arg = f'{arguments.out_dir}/{arguments.extract_output}'
             setattr(arguments, 'extract_output', expanded_arg)
             log.warning(f'WARNING: Modified it so `extract` output file path is in `out-dir`: \'{expanded_arg}\'.')
@@ -669,7 +669,7 @@ def process_args(parser):
     """
     args = parser.parse_args()
     # Automatically parse arguments for w_assign
-    args = process_assign_args(parser, args)
+    args = process_assign_args(args)
     # Fix cases where extract_output doesn't contain out_dir
     args = process_extract_output(args)
 

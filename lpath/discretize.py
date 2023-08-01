@@ -64,15 +64,15 @@ def main(arguments):
 
         if arguments.we and arguments.input_name != arguments.west_name:
             setattr(arguments, 'input_name', arguments.west_name)
-            log.info("Replacing parameter ``input_name`` with ``west_name``")
+            log.info("Replaced parameter ``input_name`` with ``west_name``")
 
         if arguments.we and arguments.extract_input != arguments.assign_name:
             setattr(arguments, 'extract_input', arguments.assign_name)
-            log.info("Replacing parameter output file name with ``assign_name``")
+            log.info("Replaced parameter output file name with ``assign_name``")
 
         if arguments.we and arguments.rcfile != arguments.assign_args.rcfile:
             setattr(arguments, 'rcfile', arguments.assign_args.rcfile)
-            log.info("Replacing parameter ``rcfile`` with ``assign_args.rcfile``")
+            log.info("Replaced parameter ``rcfile`` with ``assign_args.rcfile``")
 
         # This basically some logic that's wrapped up in WESTTool.main() for convenience.
         # It needs to be explicitly called like this because the args are captured and set in make_parser_and_process()
