@@ -1109,7 +1109,7 @@ def report_statistics(n_clusters, cluster_labels, weights, segid_status=False):
     report += f'===LPATH Pattern Matching Statistics===\n'
     report += f'   Total Number of clusters: {n_clusters}\n'
     for (key, val) in final_dictionary.items():
-        report += f'   Weight/count/unique count of cluster {key}: {val} / {counts[key]} / {uniques[key]}\n'
+        report += f'   Weight/count/unique count of cluster {key}: {val:.8e} / {counts[key]} / {uniques[key]}\n'
     log.info(report)
 
 
