@@ -55,3 +55,46 @@ def test_lpath_match_remove_pair():
     test_string = lpath.match.remove_consec_repeats(test_string, 2)
 
     assert test_string == test_output
+
+
+def test_lpath_match_remove_three():
+    """
+    Test to see if string comprehension remove_consec_repeats() works
+    with n = 2.
+
+    """
+    test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+    test_output = 'ABCDABC'
+
+
+    test_string = lpath.match.remove_consec_repeats(test_string, 3)
+
+    assert test_string == test_output
+
+
+def test_lpath_match_remove_single_old():
+    """
+    Test to see if string comprehension remove_consec_states() works.
+
+    """
+    input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+    test_output = 'ABCDABABABABABABABCABCABCABC'
+
+    test_string = lpath.match.remove_consec_states(input_string)
+
+    assert test_string == test_output
+
+
+def test_lpath_match_remove_pairs_old():
+    """
+    Test to see if string comprehension remove_consec_states()
+    followed by remove_consec_pairs() works.
+
+    """
+    test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+    test_output = 'ABCDABCABCABCABC'
+
+    test_string = lpath.match.remove_consec_states(test_string)
+    test_string = lpath.match.remove_consec_pairs(test_string)
+
+    assert test_string == test_output
