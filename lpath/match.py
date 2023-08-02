@@ -404,18 +404,15 @@ def determine_metric(match_metric, match_vanilla):
         metric = get_object(match_metric)
         log.info(f'INFO: Replaced match_metric with {match_metric}')
 
-    subsequence = True
     # Dealing with cases where you called the non-vanilla versions (`--substring` or `--subsequence`),
     # but also called `--match-penalty-off`. The `--match-penalty-off` will take priority.
     if match_vanilla is True:
         if metric in subsequence_metric.values():
             metric = calc_dist_vanilla
-            subsequence = True
         elif metric in substring_metric.values():
             metric = calc_dist_substr_vanilla
-            subsequence = False
 
-    return metric, subsequence
+    return metric
 
 
 def load_data(file_name):
@@ -685,7 +682,7 @@ def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
 
 
 def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', remake=True,
-                    metric=calc_dist, subsequence=True, condense=None, n_jobs=None):
+                    metric=calc_dist, condense=None, n_jobs=None):
     """
     Generate the path_string to path_string similarity distance matrix.
 
@@ -706,11 +703,6 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', rem
     metric : bool, default : calc_dist
         Metric function to use.
 
-    subsequence : bool, default : True
-        If True, the ``longest common subsequence`` metric will be used. If False, the ``longest common substring``
-        metric will be used. The latter should only be used when comparing states where ``trace_basis`` set as
-        True, such as with segment IDs.
-
     condense : bool, default : None
         Set True to shorten consecutive characters in state strings.
 
@@ -728,7 +720,7 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', rem
     """
     weights = []
     path_strings = []
-    if subsequence:
+    if metric:
         for pathway in pathways:
             # remove weights for "non-existent" iters (unknown state)
             nonzero = pathway[pathway[:, 2] < len(dictionary) - 1]
@@ -1117,7 +1109,7 @@ def report_statistics(n_clusters, cluster_labels, weights, segid_status=False):
     report += f'===LPATH Pattern Matching Statistics===\n'
     report += f'   Total Number of clusters: {n_clusters}\n'
     for (key, val) in final_dictionary.items():
-        report += f'   Weight/count/unique count of cluster {key}: {val:.8f} / {counts[key]} / {uniques[key]}\n'
+        report += f'   Weight/count/unique count of cluster {key}: {val} / {counts[key]} / {uniques[key]}\n'
     log.info(report)
 
 
@@ -1139,7 +1131,7 @@ def main(arguments):
     """
     # Dealing with the preset assign_method
     reassign = determine_reassign(arguments.reassign_method)
-    metric, subsequence = determine_metric(arguments.match_metric, arguments.match_vanilla)
+    metric = determine_metric(arguments.match_metric, arguments.match_vanilla)
 
     # Prepping the data + Calculating the distance matrix
     data, pathways = load_data(arguments.extract_output)
@@ -1163,7 +1155,6 @@ def main(arguments):
     dist_matrix, weights = gen_dist_matrix(test_obj, dictionary, file_name=arguments.dmatrix_save,
                                            remake=arguments.dmatrix_remake,  # Calculate distance matrix
                                            metric=metric,  # Which metric to use
-                                           subsequence=subsequence,  # Whether it's a subsequence or a substring metric
                                            condense=arguments.condense,  # Whether to condense consecutive state strings
                                            n_jobs=arguments.dmatrix_parallel)  # Number of jobs for pairwise_distance
 
