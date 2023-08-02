@@ -395,9 +395,8 @@ def add_match_args(parser=None):
     match_metric_ex.add_argument('--match-metric', '-mm', '--metric', dest='match_metric', type=str,
                                  help='Use a custom similarity metric for match step. This defaults to \
                                        `longest_common_subsequence`.')
-    # Currently defaults to True. Will probably want to switch to store_true later...
     match_io.add_argument('--match-penalty-off', '-mp', '--match-vanilla', '-mv', dest='match_vanilla',
-                          action='store_false', help='Revert to "vanilla" form of similarity metric, the version \
+                          action='store_true', help='Revert to "vanilla" form of similarity metric, the version \
                                                      without the penalty term for sequences of similar length.')
     match_io.add_argument('--remove-ends', '-re', dest='remove_ends', action='store_true',
                           help='Remove the end states (source and sink) during matching.')
@@ -710,5 +709,8 @@ def check_argv():
     """
     import sys
 
+    if len(sys.argv) == 1:
+        log.critical(f'Please include a subfunction after `lpath`. For all options, run `lpath --help`')
+
     if 1 < len(sys.argv) < 3 and sys.argv[1] in all_options:
-        log.warning(f'WARNING: Running {sys.argv[1]} with all default values. Make sure you\'re sure of this!')
+        log.warning(f'Running {sys.argv[1]} with all default values. Make sure you\'re sure of this!')
