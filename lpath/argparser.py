@@ -274,7 +274,7 @@ def add_extract_args(parser=None):
                             type=check_non_neg, default=1, help='Index of the target state. If the ``-WE`` flag is \
                                                                 specified, this should match the index specified in \
                                                                 ``w_assign``.')
-    extract_io.add_argument('--pcoord', '-p', dest='pcoord', action='store_true',
+    extract_io.add_argument('--pcoord', '-pc', '-p', dest='pcoord', action='store_true',
                             help='Output progress coordinate (or featurization) into the pickle file. If the \
                                   ``-WE`` flag is specified, the data will be obtained from the H5 file. Otherwise, \
                                   do specify a file name using the ``--extract-featurization`` flag.')
@@ -288,7 +288,7 @@ def add_extract_args(parser=None):
                             help='Dictates the step size to which the ``--extract-featurization`` is read in. \
                                    You will want this to match ``--stride`` used in ``discretize``. \
                                    Ignored for a WE simulation.')
-    extract_io.add_argument('--trace-basis', '-b', dest='trace_basis', action='store_true',
+    extract_io.add_argument('--trace-basis', '-tb', '-b', dest='trace_basis', action='store_true',
                             help='Whether to trace all the way back to the "basis state". False by default. For WE \
                                   simulations, this (as it is aptly named) output the trajectory all the way back \
                                   to the basis state. For standard simulations, This will either be the first frame of \
@@ -467,10 +467,10 @@ def add_plot_args(parser=None):
                          step.')
     plot_io.add_argument('-icl', '--ICL', '--plot-cl', '--plot-cluster-label', dest='cl_output',
                          type=str, help='Input file location for cluster labels.')
-    plot_io.add_argument('--plot-dmatrix-file', '-pdF', dest='dmatrix_save', type=str,
+    plot_io.add_argument('--plot-dmatrix-file', '-pdF', '-pdf', '-PDF', dest='dmatrix_save', type=str,
                          help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is \
                                specified. This is defaulted to what\'s provided in ``match`` step.')
-    plot_io.add_argument('-pod', '--plot-out-path', '--plot-output-path', dest='out_path', default='plots',
+    plot_io.add_argument('--plot-out-path', '-pod', '-POD', '--plot-output-path', dest='out_path', default='plots',
                          type=str, help='Directory to save your plotting output files. Path relative to ``$PWD``.')
     plot_io.add_argument('-sty', '--STY', '--mpl-styles', '--matplotlib-styles', dest='mpl_styles',
                          default='default', type=str,

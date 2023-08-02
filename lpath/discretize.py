@@ -13,8 +13,8 @@ log = Logger().get_logger(__name__)
 
 def assign(input_array):
     """
-    This is an example function for mapping a list of features to state IDs. This should be subclassed
-    by passing a similar module (catered to your system) to ``--assign-function``.
+    This is an example function for mapping a list of features to state IDs. This should be replaced
+    by passing a similar function (catered to your system) to ``--assign-function``.
 
     Parameters
     ----------

@@ -1,13 +1,15 @@
 """
 Unit and regression test for the lpath package.
 """
-import argparse
 # Import package, test suite, and other packages as needed
 import sys
+import pytest
+
+import argparse
+from argparse import ArgumentTypeError
+
 import lpath.argparser
 from lpath.argparser import InvalidArgumentError
-
-from argparse import ArgumentTypeError
 
 
 def test_lpath_argparser_imported():
@@ -18,83 +20,148 @@ def test_lpath_argparser_imported():
     assert "lpath.argparser" in sys.modules
 
 
-def test_check_non_neg():
+class TestCheckNonNeg:
     """
     Test to see if check_non_neg() is working properly.
 
     """
-    lpath.argparser.check_non_neg(3)
 
-    try:
-        lpath.argparser.check_non_neg(-1)
-    except InvalidArgumentError:
-        pass
+    def test_fail(self):
+        with pytest.raises(InvalidArgumentError):
+            lpath.argparser.check_non_neg(-1)
 
-    try:
-        lpath.argparser.check_non_neg('abc')
-    except ArgumentTypeError:
-        pass
+        with pytest.raises(ArgumentTypeError):
+            lpath.argparser.check_non_neg('abc')
+
+    def test_success(self):
+        assert lpath.argparser.check_non_neg(3) == 3
 
 
-def test_check_positive():
+class TestCheckPositive:
     """
     Test to see if check_positive() is working properly.
 
     """
-    lpath.argparser.check_positive(3)
 
-    try:
-        lpath.argparser.check_positive(0)
-    except InvalidArgumentError:
-        pass
+    def test_fail(self):
+        with pytest.raises(InvalidArgumentError):
+            lpath.argparser.check_positive(0)
 
-    try:
-        lpath.argparser.check_positive('abc')
-    except ArgumentTypeError:
-        pass
+        with pytest.raises(ArgumentTypeError):
+            lpath.argparser.check_positive('abc')
+
+    def test_success(self):
+        assert lpath.argparser.check_positive(3) == 3
 
 
-def test_check_less_three():
+class TestCheckLessThree:
     """
-    Test to see if check_less_three() is working properly.
-
-    """
-    lpath.argparser.check_less_three(2)
-
-    try:
-        lpath.argparser.check_less_three(-1)
-    except InvalidArgumentError:
-        pass
-
-    try:
-        lpath.argparser.check_positive('abc')
-    except ArgumentTypeError:
-        pass
-
-
-def test_create_parser():
-    """
-    Test to see if a parser is created correctly.
+    Test to see if check_less_three works properly
 
     """
-    output = lpath.argparser.create_parser()
 
-    assert isinstance(output, argparse.ArgumentParser)
+    def test_fail(self):
+        """
+        Test to see if check_less_three() is working properly.
+
+        """
+
+        with pytest.raises(InvalidArgumentError):
+            lpath.argparser.check_less_three(-1)
+
+        with pytest.raises(ArgumentTypeError):
+            lpath.argparser.check_positive('abc')
+
+    def test_success(self):
+        """
+        Test to see if check_less_three() is working properly.
+
+        """
+
+        assert lpath.argparser.check_less_three(2) == 2
 
 
-def test_add_common_args():
+class TestParsers:
     """
-    Test to see if arguments are added correctly correctly.
+    Classes of tests to see if all arguments are added correctly.
 
     """
-    output = lpath.argparser.add_common_args()
 
-    assert isinstance(output, argparse.ArgumentParser)
-    assert len(output._actions) == 9
+    def test_create_parser(self, create_ref_parser):
+        """
+        Test to see if a parser is created correctly.
 
-    test_output = [action for actions in output._actions for action in actions.option_strings]
-    test_input = ['-h', '-od', '-st', '-s', '--debug', '-we', '-W', '-A', '-r']
+        """
+        output = lpath.argparser.create_parser()
 
-    for option in test_input :
-        assert option in test_output
+        assert isinstance(output, argparse.ArgumentParser)
 
+    def test_dimensions(self, create_ref_parser):
+        """
+        See if returned objects are legit.
+
+        """
+        output, _ = create_ref_parser
+
+        assert isinstance(output, argparse.ArgumentParser)
+        # Need to change as number of options increase
+        assert len(output._actions) == 66
+
+    def test_common_arguments(self, create_ref_parser):
+        """
+        Test to see if common args are in the parser.
+
+        """
+        output, test_output = create_ref_parser
+        test_input = ['-h', '-od', '-st', '-s', '--debug', '-we', '-W', '-A', '-r']
+
+        for option in test_input:
+            assert option in test_output
+
+    def test_discretize_arguments(self, create_ref_parser):
+        """
+        Test to see if discretize args are in the parser.
+
+        """
+        output, test_output = create_ref_parser
+        test_input = ['-i', '-o', '-af', '-ar']
+
+        for option in test_input:
+            assert option in test_output
+
+    def test_extract_arguments(self, create_ref_parser):
+        """
+        Test to see if extract args are in the parser.
+
+        """
+        output, test_output = create_ref_parser
+        test_input = ['-ei', '-eo', '-ss', '-ts', '-pc', '-ef', '-fs', '-tb', '-el',
+                      '-R', '-NR', '-t', '--first', '--last', '--hdf5', '-a', '-aa',
+                      '-rw', '-oj', '-oe', '-se', '-ot']
+
+        for option in test_input:
+            assert option in test_output
+
+    def test_match_arguments(self, create_ref_parser):
+        """
+        Test to see if match args are in the parser.
+
+        """
+        output, test_output = create_ref_parser
+        test_input = ['-ip', '-op', '-co', '-me', '-ra', '-seq', '-str', '-mm', '-mr',
+                      '-re', '-cc', '-dR', '-dN', '-nd', '-dF', '-dP', '-c', '-ex', '-fp']
+
+        for option in test_input:
+            assert option in test_output
+
+    def test_plot_arguments(self, create_ref_parser):
+        """
+        Test to see if plot args are in the parser.
+
+        """
+        output, test_output = create_ref_parser
+        test_input = ['-ipl', '-icl', '-pdF', '-pod', '-sty', '-mpl', '-col', '-pdt', '-pds',
+                      '-pdh', '-nc', '-rcl', '-prl']
+
+        for option in test_input:
+            assert option in test_output

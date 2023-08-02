@@ -4,6 +4,7 @@ Unit and regression test for the lpath package.
 
 # Import package, test suite, and other packages as needed
 import sys
+import pytest
 import lpath.match
 
 
@@ -15,7 +16,36 @@ def test_lpath_match_imported():
     assert "lpath.match" in sys.modules
 
 
-def test_lpath_match_remove_none():
+class Test_tostr():
+    """
+    Test to see if tostr() works properly
+
+    """
+
+    def test_tostr_fail():
+        """
+        Test to see if tostr() fails as expected.
+
+        """
+        test_string = lpath.match.tostr(None)
+
+        assert test_string == None
+
+
+
+    def test_tostr_success():
+        """
+        Test to see if tostr() fails as expected.
+
+        """
+        input_string = 'abc'
+        test_output = 'abc'
+        test_string = lpath.match.tostr(input_string)
+
+        assert test_string == test_output
+
+
+def test_match_remove_none():
     """
     Test to see if string comprehension remove_consec_repeats() works
     with n = 0.
@@ -29,7 +59,7 @@ def test_lpath_match_remove_none():
     assert test_string == test_output
 
 
-def test_lpath_match_remove_single():
+def test_match_remove_single():
     """
     Test to see if string comprehension remove_consec_repeats() works
     with n = 1.
@@ -43,7 +73,7 @@ def test_lpath_match_remove_single():
     assert test_string == test_output
 
 
-def test_lpath_match_remove_pair():
+def test_match_remove_pair():
     """
     Test to see if string comprehension remove_consec_repeats() works
     with n = 2.
@@ -57,7 +87,7 @@ def test_lpath_match_remove_pair():
     assert test_string == test_output
 
 
-def test_lpath_match_remove_three():
+def test_match_remove_three():
     """
     Test to see if string comprehension remove_consec_repeats() works
     with n = 2.
@@ -66,13 +96,12 @@ def test_lpath_match_remove_three():
     test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
     test_output = 'ABCDABC'
 
-
     test_string = lpath.match.remove_consec_repeats(test_string, 3)
 
     assert test_string == test_output
 
 
-def test_lpath_match_remove_single_old():
+def test_match_remove_single_old():
     """
     Test to see if string comprehension remove_consec_states() works.
 
@@ -85,7 +114,7 @@ def test_lpath_match_remove_single_old():
     assert test_string == test_output
 
 
-def test_lpath_match_remove_pairs_old():
+def test_match_remove_pairs_old():
     """
     Test to see if string comprehension remove_consec_states()
     followed by remove_consec_pairs() works.
