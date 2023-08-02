@@ -21,8 +21,7 @@ class Test_tostr():
     Test to see if tostr() works properly
 
     """
-
-    def test_tostr_fail():
+    def test_tostr_fail(self):
         """
         Test to see if tostr() fails as expected.
 
@@ -31,18 +30,16 @@ class Test_tostr():
 
         assert test_string == None
 
-
-
-    def test_tostr_success():
+    def test_tostr_success(self):
         """
         Test to see if tostr() fails as expected.
 
         """
-        input_string = 'abc'
+        input_strings = ['abc', b'abc']
         test_output = 'abc'
-        test_string = lpath.match.tostr(input_string)
-
-        assert test_string == test_output
+        for input_string in input_strings:
+            test_string = lpath.match.tostr(input_string)
+            assert test_string == test_output
 
 
 def test_match_remove_none():
