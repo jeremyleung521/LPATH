@@ -555,7 +555,7 @@ def we(arguments):
 
                     # Stride parameters
                     total_frames = iwalker.pcoords.shape[0]
-                    stride_step = total_frames // stride
+                    stride_step = total_frames // stride or 1
 
                     if iwalker.iteration.summary.name == iteration_num:
                         # Dealing with cases where this is the first iteration we're looking at
@@ -699,7 +699,7 @@ def we(arguments):
 
                 # Stride parameters
                 total_frames = iwalker.pcoords.shape[0]
-                stride_step = total_frames // stride
+                stride_step = total_frames // stride or 1
 
                 if iwalker.iteration.summary.name == iteration_num:
                     # Dealing with cases where this is the first iteration we're looking at
