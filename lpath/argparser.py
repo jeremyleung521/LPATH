@@ -400,10 +400,11 @@ def add_match_args(parser=None):
                                                      without the penalty term for sequences of similar length.')
     match_io.add_argument('--remove-ends', '-re', dest='remove_ends', action='store_true',
                           help='Remove the end states (source and sink) during matching.')
-    match_io.add_argument('--condense', '-cc', '--condense-consecutive', dest='condense', type=check_less_three,
+    match_io.add_argument('--condense', '-cc', '--condense-consecutive', dest='condense',
+                          type=check_less_three, default=0,
                           help='Condense consecutively occurring states in state string during matching. Automatically \
                                 removes repeating characters and repeating pairs (in that order). Takes values 0, 1 \
-                                and 2.')
+                                and 2. Defaults to 0.')
 
     match_io.add_argument('--remake', '-dR', dest='dmatrix_remake', default=True, action='store_true',
                           help=argparse.SUPPRESS)
