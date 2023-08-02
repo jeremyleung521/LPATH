@@ -16,11 +16,12 @@ def test_lpath_match_imported():
     assert "lpath.match" in sys.modules
 
 
-class Test_tostr():
+class TestToStr:
     """
-    Test to see if tostr() works properly
+    Class to test to see if tostr() works properly
 
     """
+
     def test_tostr_fail(self):
         """
         Test to see if tostr() fails as expected.
@@ -42,85 +43,92 @@ class Test_tostr():
             assert test_string == test_output
 
 
-def test_match_remove_none():
+class TestRemoveRepeats:
     """
-    Test to see if string comprehension remove_consec_repeats() works
-    with n = 0.
-
-    """
-    input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-    test_output = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-
-    test_string = lpath.match.remove_consec_repeats(input_string, 0)
-
-    assert test_string == test_output
-
-
-def test_match_remove_single():
-    """
-    Test to see if string comprehension remove_consec_repeats() works
-    with n = 1.
+    Class to test to see if remove_consec_repeats() works properly.
 
     """
-    input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-    test_output = 'ABCDABABABABABABABCABCABCABC'
 
-    test_string = lpath.match.remove_consec_repeats(input_string, 1)
+    def test_match_remove_none(self):
+        """
+        Test to see if string comprehension remove_consec_repeats() works
+        with n = 0.
 
-    assert test_string == test_output
+        """
+        input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+        test_output = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+
+        test_string = lpath.match.remove_consec_repeats(input_string, 0)
+
+        assert test_string == test_output
+
+    def test_match_remove_single(self):
+        """
+        Test to see if string comprehension remove_consec_repeats() works
+        with n = 1.
+
+        """
+        input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+        test_output = 'ABCDABABABABABABABCABCABCABC'
+
+        test_string = lpath.match.remove_consec_repeats(input_string, 1)
+
+        assert test_string == test_output
+
+    def test_match_remove_pair(self):
+        """
+        Test to see if string comprehension remove_consec_repeats() works
+        with n = 2.
+
+        """
+        test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+        test_output = 'ABCDABCABCABCABC'
+
+        test_string = lpath.match.remove_consec_repeats(test_string, 2)
+
+        assert test_string == test_output
+
+    def test_match_remove_three(self):
+        """
+        Test to see if string comprehension remove_consec_repeats() works
+        with n = 3.
+
+        """
+        test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+        test_output = 'ABCDABC'
+
+        test_string = lpath.match.remove_consec_repeats(test_string, 3)
+
+        assert test_string == test_output
 
 
-def test_match_remove_pair():
+class TestRemoveDuplicates:
     """
-    Test to see if string comprehension remove_consec_repeats() works
-    with n = 2.
+    Class to test to see if the older remove_duplicates functions work.
 
     """
-    test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-    test_output = 'ABCDABCABCABCABC'
+    def test_match_remove_single_old(self):
+        """
+        Test to see if string comprehension remove_consec_states() works.
 
-    test_string = lpath.match.remove_consec_repeats(test_string, 2)
+        """
+        input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+        test_output = 'ABCDABABABABABABABCABCABCABC'
 
-    assert test_string == test_output
+        test_string = lpath.match.remove_consec_states(input_string)
 
+        assert test_string == test_output
 
-def test_match_remove_three():
-    """
-    Test to see if string comprehension remove_consec_repeats() works
-    with n = 2.
+    def test_match_remove_pairs_old(self):
+        """
+        Test to see if string comprehension remove_consec_states()
+        followed by remove_consec_pairs() works.
 
-    """
-    test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-    test_output = 'ABCDABC'
+        """
+        test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+        test_output = 'ABCDABCABCABCABC'
 
-    test_string = lpath.match.remove_consec_repeats(test_string, 3)
+        test_string = lpath.match.remove_consec_states(test_string)
+        test_string = lpath.match.remove_consec_pairs(test_string)
 
-    assert test_string == test_output
-
-
-def test_match_remove_single_old():
-    """
-    Test to see if string comprehension remove_consec_states() works.
-
-    """
-    input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-    test_output = 'ABCDABABABABABABABCABCABCABC'
-
-    test_string = lpath.match.remove_consec_states(input_string)
-
-    assert test_string == test_output
-
-
-def test_match_remove_pairs_old():
-    """
-    Test to see if string comprehension remove_consec_states()
-    followed by remove_consec_pairs() works.
-
-    """
-    test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-    test_output = 'ABCDABCABCABCABC'
-
-    test_string = lpath.match.remove_consec_states(test_string)
-    test_string = lpath.match.remove_consec_pairs(test_string)
-
-    assert test_string == test_output
+        assert test_string == test_output
