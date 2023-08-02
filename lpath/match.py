@@ -123,8 +123,8 @@ def calc_dist(seq1, seq2, dictionary, pbar, condense=None):
         seq1_str = remove_consec_repeats(seq1_str, condense)
         seq2_str = remove_consec_repeats(seq2_str, condense)
 
-    km = int(pylcs.lcs_sequence_length(seq1_str, seq2_str))
-    similarity = (2 * km) / (int(len(seq1_str) + len(seq2_str)))
+    km = pylcs.lcs_sequence_length(seq1_str, seq2_str)
+    similarity = (2 * km) / (len(seq1_str) + len(seq2_str) - (abs(len(seq1_str) - len(seq2_str)) / 2))
 
     pbar.update(1)
 
@@ -169,8 +169,101 @@ def calc_dist_substr(seq1, seq2, dictionary, pbar, condense=None):
         seq1_str = remove_consec_repeats(seq1_str, condense)
         seq2_str = remove_consec_repeats(seq2_str, condense)
 
-    km = int(pylcs.lcs_string_length(seq1_str, seq2_str))
-    similarity = (2 * km) / (int(len(seq1_str) + len(seq2_str)))
+    km = pylcs.lcs_string_length(seq1_str, seq2_str)
+    similarity = (2 * km) / (len(seq1_str) + len(seq2_str) - (abs(len(seq1_str) - len(seq2_str)) / 2))
+
+    pbar.update(1)
+
+    return 1 - similarity
+
+
+def calc_dist_vanilla(seq1, seq2, dictionary, pbar, condense=None):
+    """
+    Pattern match and calculate the similarity between two ``state string`` sequences.
+    This version does not include the penalty term for segments of similar length.
+
+    Parameters
+    ----------
+    seq1 : numpy.ndarray
+        First string to be compared.
+
+    seq2 : numpy.ndarray
+        Second string to be compared.
+
+    dictionary : dict
+        Dictionary mapping ``state_id`` (float/int) to ``state string`` (characters).
+
+    pbar : tqdm.tqdm
+        A tqdm.tqdm object for the progress bar.
+
+    condense : int, default: None
+        Set to N to shorten consecutive characters in state strings.
+
+    Returns
+    -------
+    1 - similarity : float
+        Similarity score.
+
+    """
+    # Remove all instances of "unknown" state, which is always the last entry in the dictionary.
+    seq1 = seq1[seq1 < len(dictionary) - 1]
+    seq1_str = "".join(dictionary[x] for x in seq1)
+    seq2 = seq2[seq2 < len(dictionary) - 1]
+    seq2_str = "".join(dictionary[x] for x in seq2)
+
+    if condense:
+        seq1_str = remove_consec_repeats(seq1_str, condense)
+        seq2_str = remove_consec_repeats(seq2_str, condense)
+
+    km = pylcs.lcs_sequence_length(seq1_str, seq2_str)
+    similarity = (2 * km) / (len(seq1_str) + len(seq2_str))
+
+    pbar.update(1)
+
+    return 1 - similarity
+
+
+def calc_dist_substr_vanilla(seq1, seq2, dictionary, pbar, condense=None):
+    """
+    Pattern match and calculate the similarity between two ``state string`` substrings.
+    Used when you're comparing segment ids.
+    This version does not include the penalty term for segments of similar length.
+
+    Parameters
+    ----------
+    seq1 : numpy.ndarray
+        First string to be compared.
+
+    seq2 : numpy.ndarray
+        Second string to be compared.
+
+    dictionary : dict
+        Dictionary mapping ``state_id`` (float/int) to ``state string`` (characters).
+
+    pbar : tqdm.tqdm
+        A tqdm.tqdm object for the progress bar.
+
+    condense : int, default: None
+        Set to an int to shorten consecutive characters in state strings.
+
+    Returns
+    -------
+    1 - similarity : float
+        Similarity score.
+
+    """
+    # Remove all instances of initial/basis states.
+    # seq1 = seq1[seq1 > 0]
+    seq1_str = "".join(dictionary[x] for x in seq1)
+    # seq2 = seq2[seq2 > 0]
+    seq2_str = "".join(dictionary[x] for x in seq2)
+
+    if condense:
+        seq1_str = remove_consec_repeats(seq1_str, condense)
+        seq2_str = remove_consec_repeats(seq2_str, condense)
+
+    km = pylcs.lcs_string_length(seq1_str, seq2_str)
+    similarity = (2 * km) / (len(seq1_str) + len(seq2_str))
 
     pbar.update(1)
 
@@ -213,7 +306,7 @@ def determine_reassign(reassign_method):
     return reassign
 
 
-def determine_metric(match_metric):
+def determine_metric(match_metric, match_vanilla):
     """
     Argument processing to determine function to reassign trajectories.
 
@@ -222,6 +315,10 @@ def determine_metric(match_metric):
     match_metric : str , default: 'longest_common_subsequence'
         String from argument.match_metric, straight from argparser.
 
+    match_vanilla : bool, default: False
+        Which similarity metric to use. False to use similarity metric
+        with penalty term.
+
     Returns
     -------
     metric : function
@@ -229,10 +326,17 @@ def determine_metric(match_metric):
 
     """
     # Dealing with the preset assign_method
-    preset_metric = {
+    subsequence_metric = {
         'longest_common_subsequence': calc_dist,
-        'longest_common_substring': calc_dist_substr,
+        'longest_common_subsequence_vanilla': calc_dist_vanilla,
     }
+
+    substring_metric = {
+        'longest_common_substring': calc_dist_substr,
+        'longest_common_substring_vanilla': calc_dist_substr_vanilla,
+    }
+
+    preset_metric = {**subsequence_metric, **substring_metric}
 
     if match_metric in preset_metric.keys():
         metric = preset_metric[match_metric]
@@ -244,7 +348,18 @@ def determine_metric(match_metric):
         metric = get_object(match_metric)
         log.info(f'INFO: Replaced match_metric with {match_metric}')
 
-    return metric
+    subsequence = True
+    # Dealing with cases where you called the non-vanilla versions (`--substring` or `--subsequence`),
+    # but also called `--match-penalty-off`. The `--match-penalty-off` will take priority.
+    if match_vanilla is True:
+        if metric in subsequence_metric.values():
+            metric = calc_dist_vanilla
+            subsequence = True
+        elif metric in substring_metric.values():
+            metric = calc_dist_substr_vanilla
+            subsequence = False
+
+    return metric, subsequence
 
 
 def load_data(file_name):
@@ -514,7 +629,7 @@ def process_shorter_traj(pathways, dictionary, threshold_length, remove_ends):
 
 
 def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', remake=True,
-                    metric=calc_dist, condense=None, n_jobs=None):
+                    metric=calc_dist, subsequence=True, condense=None, n_jobs=None):
     """
     Generate the path_string to path_string similarity distance matrix.
 
@@ -532,10 +647,13 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', rem
     remake : bool, default : True
         Indicates whether to remake distance matrix or not.
 
-    metric : bool, default : True
-        Indicate which metric to use. If True, the ``longest common subsequence`` metric will be used.
-        If False, the ``longest common substring`` metric will be used. The latter should only be used
-        when comparing states where ``trace_basis`` set as True, such as with segment IDs.
+    metric : bool, default : calc_dist
+        Metric function to use.
+
+    subsequence : bool, default : True
+        If True, the ``longest common subsequence`` metric will be used. If False, the ``longest common substring``
+        metric will be used. The latter should only be used when comparing states where ``trace_basis`` set as
+        True, such as with segment IDs.
 
     condense : bool, default : None
         Set True to shorten consecutive characters in state strings.
@@ -554,9 +672,9 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', rem
     """
     weights = []
     path_strings = []
-    if metric:
+    if subsequence:
         for pathway in pathways:
-            # remove weights for non-existent iters
+            # remove weights for "non-existent" iters (unknown state)
             nonzero = pathway[pathway[:, 2] < len(dictionary) - 1]
             weights.append(nonzero[-1][-1])
             # Create path_strings
@@ -964,7 +1082,7 @@ def main(arguments):
     """
     # Dealing with the preset assign_method
     reassign = determine_reassign(arguments.reassign_method)
-    metric = determine_metric(arguments.match_metric)
+    metric, subsequence = determine_metric(arguments.match_metric, arguments.match_vanilla)
 
     # Prepping the data + Calculating the distance matrix
     data, pathways = load_data(arguments.extract_output)
@@ -988,6 +1106,7 @@ def main(arguments):
     dist_matrix, weights = gen_dist_matrix(test_obj, dictionary, file_name=arguments.dmatrix_save,
                                            remake=arguments.dmatrix_remake,  # Calculate distance matrix
                                            metric=metric,  # Which metric to use
+                                           subsequence=subsequence,  # Whether it's a subsequence or a substring metric
                                            condense=arguments.condense,  # Whether to condense consecutive state strings
                                            n_jobs=arguments.dmatrix_parallel)  # Number of jobs for pairwise_distance
 

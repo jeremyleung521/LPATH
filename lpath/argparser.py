@@ -395,6 +395,9 @@ def add_match_args(parser=None):
     match_metric_ex.add_argument('--match-metric', '-mm', '--metric', dest='match_metric', type=str,
                                  help='Use a custom similarity metric for match step. This defaults to \
                                        `longest_common_subsequence`.')
+    match_io.add_argument('--match-penalty-off', '-mp', '--match-vanilla', '-mv', dest='match_vanilla',
+                          action='store_true', help='Revert to "vanilla" form of similarity metric, the version \
+                                                     without the penalty term for sequences of similar length.')
     match_io.add_argument('--remove-ends', '-re', dest='remove_ends', action='store_true',
                           help='Remove the end states (source and sink) during matching.')
     match_io.add_argument('--condense', '-cc', '--condense-consecutive', dest='condense', type=check_less_three,

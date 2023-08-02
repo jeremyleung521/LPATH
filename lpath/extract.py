@@ -267,7 +267,7 @@ def create_pickle_obj(transitions, states, weight, features=None):
 
     Parameters
     ----------
-    transitions : list
+    transitions : list or numpy.ndarray
         A list of shape (successful transitions, 2). Indicates the start/end frame a transition
         has been made.
 
