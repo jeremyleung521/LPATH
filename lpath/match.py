@@ -228,7 +228,7 @@ def calc_dist_substr(seq1, seq2, dictionary, pbar, condense=None):
 def calc_dist_vanilla(seq1, seq2, dictionary, pbar, condense=None):
     """
     Pattern match and calculate the similarity between two ``state string`` sequences.
-    This version does not include the penalty term for segments of similar length.
+    This version does not include the reward term for segments of different length.
 
     Parameters
     ----------
@@ -279,7 +279,7 @@ def calc_dist_substr_vanilla(seq1, seq2, dictionary, pbar, condense=None):
     """
     Pattern match and calculate the similarity between two ``state string`` substrings.
     Used when you're comparing segment ids.
-    This version does not include the penalty term for segments of similar length.
+    This version does not include the reward term for segments of different length.
 
     Parameters
     ----------
@@ -373,7 +373,7 @@ def determine_metric(match_metric, match_vanilla):
 
     match_vanilla : bool, default: False
         Which similarity metric to use. False to use similarity metric
-        with penalty term.
+        with reward term.
 
     Returns
     -------
@@ -405,7 +405,7 @@ def determine_metric(match_metric, match_vanilla):
         log.info(f'INFO: Replaced match_metric with {match_metric}')
 
     # Dealing with cases where you called the non-vanilla versions (`--substring` or `--subsequence`),
-    # but also called `--match-penalty-off`. The `--match-penalty-off` will take priority.
+    # but also called `--match-reward-off`. The `--match-reward-off` will take priority.
     if match_vanilla is True:
         if metric in subsequence_metric.values():
             metric = calc_dist_vanilla
