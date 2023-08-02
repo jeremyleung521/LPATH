@@ -879,7 +879,7 @@ def export_std_files(data_arr, weights, cluster_labels, clusters=None, out_dir="
     for icluster in clusters:
         trace_out_list = []
         data_cl, rep_weight = select_rep(data_arr, weights, cluster_labels, icluster)
-        log.debug(f'cluster {icluster} representative weight: {rep_weight}')
+        log.info(f'cluster {icluster} representative weight: {rep_weight}')
         representative_list.append(f'{rep_weight}\n')
 
         for idx, item in enumerate(data_cl):
@@ -937,18 +937,18 @@ def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="w
         with h5py.File(west_name, "r") as h5_file:
             last_iter = len(h5_file['iterations'])
 
-        # tqdm load bar, working backwards
-        tqdm_iter = trange(last_iter, first_iter - 1, -1, desc=f'c{icluster} iterations')
-
         # Identify constituents of a cluster to output.
         trace_out_list = []
         data_cl, rep_weight = select_rep(data_arr, weights, cluster_labels, icluster)
 
-        log.debug(f'cluster {icluster} representative weight: {rep_weight}')
+        log.info(f'cluster {icluster} representative weight: {rep_weight}')
         representative_list.append(f'{rep_weight}\n')
 
         for idx, item in enumerate(data_cl):
             trace_out_list.append(list(numpy.array(item)[:, :2]))
+
+        # tqdm load bar, working backwards
+        tqdm_iter = trange(last_iter, first_iter - 1, -1, desc=f'c{icluster} iterations')
 
         exclusive_set = {tuple(pair) for ilist in trace_out_list for pair in ilist}
         with h5py.File(new_file, "r+") as h5file:
@@ -995,7 +995,7 @@ def determine_rerun(z, out_path='plots', mpl_colors=default_dendrogram_colors, a
             elif ans == 'n' or ans == 'N' or ans == '':
                 return None
             else:
-                print("Invalid input.\n")
+                log.warning("Invalid input.\n")
         except KeyboardInterrupt:
             sys.exit(0)
 
@@ -1014,7 +1014,7 @@ def ask_number_clusters(num_clusters=None):
                     ans = int(ans)
                     return ans
                 except ValueError:
-                    print("Invalid input.\n")
+                    log.warning("Invalid input.\n")
             except KeyboardInterrupt:
                 sys.exit(0)
 
@@ -1057,11 +1057,11 @@ def report_statistics(n_clusters, cluster_labels, weights, segid_status=False):
         for cl in range(n_clusters):
             uniques[cl] = 'N/A'
 
-    report = f'===lpath Pattern Matching Statistics===\n'
+    report = f'===LPATH Pattern Matching Statistics===\n'
     report += f'Total Number of clusters: {n_clusters}\n'
     for (key, val) in final_dictionary.items():
         report += f'Weight/count/unique count of cluster {key}: {val} / {counts[key]} / {uniques[key]}\n'
-    print(report)
+    log.info(report)
 
 
 def main(arguments):
@@ -1131,7 +1131,7 @@ def main(arguments):
         report_statistics(n_clusters, cluster_labels, weights, segid_status)
 
     # Output cluster labels and reassigned pickle object
-    log.debug('Outputting files')
+    log.info('Outputting files')
     export_pickle(test_obj, arguments.output_pickle)
     numpy.save(arguments.cl_output, cluster_labels)
 
