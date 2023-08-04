@@ -6,6 +6,7 @@ Unit and regression test for the lpath package.
 import sys
 import pytest
 import lpath.match
+import numpy
 
 
 def test_lpath_match_imported():
@@ -107,6 +108,7 @@ class TestRemoveDuplicates:
     Class to test to see if the older remove_duplicates functions work.
 
     """
+
     def test_match_remove_single_old(self):
         """
         Test to see if string comprehension remove_consec_states() works.
@@ -132,3 +134,50 @@ class TestRemoveDuplicates:
         test_string = lpath.match.remove_consec_pairs(test_string)
 
         assert test_string == test_output
+
+
+class TestCalcDist:
+    """
+    Class to test all the calc_dist_*() functions
+
+    """
+    def test_calc_dist(self, create_calc_dist_env):
+        state_dict, pbar = create_calc_dist_env
+        ref_score = 0.2727272727
+        seq1 = numpy.asarray([0, 4, 4, 4, 1, 2, 3, 4, 4, 4])
+        seq2 = numpy.asarray([0, 1, 2, 3, 5, 5, 5, 5, 5, 5])
+
+        test_score = lpath.match.calc_dist(seq1, seq2, state_dict, pbar, 0)
+
+        assert numpy.isclose(ref_score, test_score)
+
+
+class TestReassignMethod:
+    """
+    Class to test all the determine_reassign() functionalities.
+
+    """
+    def test_identity(self):
+        test_output = lpath.match.determine_reassign('reassign_identity')
+
+        assert test_output == lpath.match.reassign_identity
+
+    def test_statelabel(self):
+        test_output = lpath.match.determine_reassign('reassign_statelabel')
+
+        assert test_output == lpath.match.reassign_statelabel
+
+    def test_custom(self):
+        test_output = lpath.match.determine_reassign('reassign_custom')
+
+        assert test_output == lpath.match.reassign_custom
+
+    def test_segid(self):
+        test_output = lpath.match.determine_reassign('reassign_segid')
+
+        assert test_output == lpath.match.reassign_segid
+
+    def test_userprovided(self):
+        test_output = lpath.match.determine_reassign('lpath.match.reassign_custom')
+
+        assert test_output == lpath.match.reassign_custom
