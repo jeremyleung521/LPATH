@@ -4,12 +4,13 @@ Fixtures for other tests.
 
 import pytest
 import lpath
+from lpath import argparser
 from tqdm.auto import tqdm
 
 
 @pytest.fixture
 def create_ref_parser():
-    parser = lpath.argparser.add_all_args()
+    parser = argparser.add_all_args()
     test_output = [action for actions in parser._actions for action in actions.option_strings]
 
     return parser, test_output

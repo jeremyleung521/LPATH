@@ -4,7 +4,6 @@ Unit and regression test for the lpath package.
 
 # Import package, test suite, and other packages as needed
 import sys
-import pytest
 import lpath.match
 import numpy
 
@@ -30,7 +29,7 @@ class TestToStr:
         """
         test_string = lpath.match.tostr(None)
 
-        assert test_string == None
+        assert test_string is None
 
     def test_tostr_success(self):
         """
