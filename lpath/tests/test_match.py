@@ -43,98 +43,6 @@ class TestToStr:
             assert test_string == test_output
 
 
-class TestRemoveRepeats:
-    """
-    Class to test to see if remove_consec_repeats() works properly.
-
-    """
-
-    def test_match_remove_none(self):
-        """
-        Test to see if string comprehension remove_consec_repeats() works
-        with n = 0.
-
-        """
-        input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-        test_output = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-
-        test_string = lpath.match.remove_consec_repeats(input_string, 0)
-
-        assert test_string == test_output
-
-    def test_match_remove_single(self):
-        """
-        Test to see if string comprehension remove_consec_repeats() works
-        with n = 1.
-
-        """
-        input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-        test_output = 'ABCDABABABABABABABCABCABCABC'
-
-        test_string = lpath.match.remove_consec_repeats(input_string, 1)
-
-        assert test_string == test_output
-
-    def test_match_remove_pair(self):
-        """
-        Test to see if string comprehension remove_consec_repeats() works
-        with n = 2.
-
-        """
-        test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-        test_output = 'ABCDABCABCABCABC'
-
-        test_string = lpath.match.remove_consec_repeats(test_string, 2)
-
-        assert test_string == test_output
-
-    def test_match_remove_three(self):
-        """
-        Test to see if string comprehension remove_consec_repeats() works
-        with n = 3.
-
-        """
-        test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-        test_output = 'ABCDABC'
-
-        test_string = lpath.match.remove_consec_repeats(test_string, 3)
-
-        assert test_string == test_output
-
-
-class TestRemoveDuplicates:
-    """
-    Class to test to see if the older remove_duplicates functions work.
-
-    """
-
-    def test_match_remove_single_old(self):
-        """
-        Test to see if string comprehension remove_consec_states() works.
-
-        """
-        input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-        test_output = 'ABCDABABABABABABABCABCABCABC'
-
-        test_string = lpath.match.remove_consec_states(input_string)
-
-        assert test_string == test_output
-
-    def test_match_remove_pairs_old(self):
-        """
-        Test to see if string comprehension remove_consec_states()
-        followed by remove_consec_pairs() works.
-
-        """
-        test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
-        test_output = 'ABCDABCABCABCABC'
-
-        test_string = lpath.match.remove_consec_states(test_string)
-        test_string = lpath.match.remove_consec_pairs(test_string)
-
-        assert test_string == test_output
-
-
 class TestCalcDist:
     """
     Class to test all the calc_dist_*() functions
@@ -180,3 +88,75 @@ class TestReassignMethod:
         test_output = lpath.match.determine_reassign('lpath.match.reassign_custom')
 
         assert test_output == lpath.match.reassign_custom
+
+
+class TestCondenseString:
+    """
+    Class to test to see if condense_string() works properly.
+
+    """
+
+    def test_match_remove_none(self):
+        """
+        Test to see if string comprehension condense_string() works
+        with n = 0.
+
+        """
+        input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+        test_output = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+
+        test_string = lpath.match.condense_string(input_string, 0)
+
+        assert test_string == test_output
+
+    def test_match_remove_single(self):
+        """
+        Test to see if string comprehension condense_string() works
+        with n = 1.
+
+        """
+        input_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+        test_output = 'ABCDABABABABABABABCABCABCABC'
+
+        test_string = lpath.match.condense_string(input_string, 1)
+
+        assert test_string == test_output
+
+    def test_match_remove_pair(self):
+        """
+        Test to see if string comprehension condense_string() works
+        with n = 2.
+
+        """
+        test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+        test_output = 'ABCDABCABCABCABC'
+
+        test_string = lpath.match.condense_string(test_string, 2)
+
+        assert test_string == test_output
+
+    def test_match_remove_three(self):
+        """
+        Test to see if string comprehension condense_string() works
+        with n = 3.
+
+        """
+        test_string = 'AAABBBCCCDDDAABBAABBABABABABABCABCABCABC'
+        test_output = 'ABCDABC'
+
+        test_string = lpath.match.condense_string(test_string, 3)
+
+        assert test_string == test_output
+
+    def test_match_remove_three_t2(self):
+        """
+        Test to see if string comprehension condense_string() works
+        with n = 3.
+
+        """
+        test_string = 'AAAAAAAABCABCABCBBBBBBBBCDCDAWERWER'
+        test_output = 'ABCDAWER'
+
+        test_string = lpath.match.condense_string(test_string, 3)
+
+        assert test_string == test_output

@@ -408,11 +408,13 @@ def add_match_args(parser=None):
     match_io.add_argument('--remove-ends', '-re', dest='remove_ends', action='store_true',
                           help='Remove the end states (source and sink) during matching.')
     match_io.add_argument('--condense', '-cc', '--condense-consecutive', dest='condense',
-                          type=check_less_three, default=0,
+                          type=check_non_neg, default=0,
                           help='Condense consecutively occurring states in state string during matching. Automatically \
-                                removes repeating characters and repeating pairs (in that order). Takes values 0, 1 \
-                                and 2, corresponding to no condense, condense consecutive characters, and condense \
-                                consecutive pairs respectively. Defaults to 0.')
+                                removes repeating characters and repeating pairs (in that order). Takes any \
+                                non-negative integer as input, corresponding to the n-tuple to be removed. \
+                                0 corresponds to no condense, 1 would condense any consecutive characters\
+                                (e.g., \'AAAABABC\' --> \'ABABC\') and 2 would remove any consecutive characters \
+                                then any consecutive pairs (e.g., \'ABABABABAAAAA\' --> \'ABA\'), etc. Defaults to 0.')
 
     match_io.add_argument('--remake', '-dR', dest='dmatrix_remake', default=True, action='store_true',
                           help=argparse.SUPPRESS)
