@@ -1,0 +1,29 @@
+To run this example for analyzing WE simulations with LPATH:
+
+1. Cluster the conformations by running the get_clusters.py script (optional).
+2. Run the run_lpath.sh script, which will first assign source/target states
+   using w_assign and the scheme specified from the west.cfg file. Note that 
+   if you did not cluster (step 1) you can create a new scheme in the west.cfg
+   file to assign not only source/target states but also all states in between 
+   source and target. If you assign all states in the discretize stage, you do 
+   not need to use the reassign functionality in the matching stage. Also note
+   that for WE simulations, you must provide lpath programs with the we option.
+
+   Next, successful pathways connecting source and target will be extracted.
+   In this example, the cluster IDs determined in step 1 (optional) are
+   transferred to the output.pickle file for use in the matching step.
+
+   Finally, pathways are matched. The use of --condense 2 is generally always
+   recommended. You only need to reassign states if you did not assign them
+   directly through the discretize program (for instance, if clusters were
+   determined through external means.
+
+3. Once the run_lpath.sh script completes, you can enter the plots folder and
+   visualize some of the results. You should already have seen the dendrogram
+   pop up as part of the matching program, but if you want to generate a new
+   dendrogram with a new threshold you can do so with the plot_dendrogram.py
+   script. The other plotting scripts can be adapted to work with your system.
+   The plot_network.py is the most complicated. Please familiarize yourself with
+   networkx before attempting to edit it. Also realize that due to the periodic
+   nature of alanine dipeptide's phi/psi angle coordinates, the network plot
+   is more complicated than it would normally be. 
