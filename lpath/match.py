@@ -92,7 +92,7 @@ def calc_dist(seq1, seq2, dictionary, pbar, condense=0):
     pbar : tqdm.tqdm
         A tqdm.tqdm object for the progress bar.
 
-  condense : int, default: 0
+    condense : int, default: 0
         Set to a positive int to shorten consecutive characters in state strings.
 
     Returns
@@ -182,7 +182,7 @@ def calc_dist_vanilla(seq1, seq2, dictionary, pbar, condense=0):
     pbar : tqdm.tqdm
         A tqdm.tqdm object for the progress bar.
 
-  condense : int, default: 0
+    condense : int, default: 0
         Set to a positive int to shorten consecutive characters in state strings.
 
     Returns
@@ -631,7 +631,7 @@ def gen_dist_matrix(pathways, dictionary, file_name='succ_traj/distmat.npy', rem
     metric : bool, default : calc_dist
         Metric function to use.
 
-  condense : int, default: 0
+    condense : int, default: 0
         Set to a positive int to shorten consecutive characters in state strings.
 
     n_jobs : int, default : None
