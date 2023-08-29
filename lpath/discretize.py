@@ -108,10 +108,10 @@ def main(arguments):
         # Warning
         n_states = len(set(out_array))
         if n_states < 3:
-            log.info(f'Only {n_states} defined, including the "unknown" state. This should be fine for \
-                       ``lpath extract`` purposes but will likely produce bad quality pattern matching results \
-                       further downstream. Please consider running ``lpath discretize`` with more states or \
-                       plan to reassign the trajectory using the ``reassign-method`` option in ``lpath match``.')
+            log.info(f'Only {n_states} defined, including the "unknown" state. This should be fine for '
+                     '``lpath extract`` purposes but will likely produce bad quality pattern matching results '
+                     'further downstream. Please consider running ``lpath discretize`` with more states or '
+                     'plan to reassign the trajectory using the ``reassign-method`` option in ``lpath match``.')
 
         # Output
         output_file(out_array, arguments.extract_input)

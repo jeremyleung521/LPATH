@@ -765,8 +765,8 @@ def determine_clusters(cluster_labels, clusters=None):
             list(clusters)
         except TypeError:
             raise TypeError(
-                "Provided cluster numbers don't work. Provide a list desired of cluster numbers or 'None' to output \
-                all clusters."
+                "Provided cluster numbers don't work. Provide a list desired of cluster numbers or 'None' to output "
+                "all clusters."
             )
 
     return clusters
@@ -1069,9 +1069,9 @@ def main(arguments):
     dictionary = reassign(data, pathways, dictionary, arguments.assign_name)  # system-specific reassignment of states
 
     if len(dictionary) < 3:
-        log.warning(f'Only {len(dictionary)} states defined, including the "unknown" state. \
-                      This will likely produce bad clustering results and you should considering reassigning to more \
-                      intermediate states using a modified ``--reassign-method``.')
+        log.warning(f'Only {len(dictionary)} states defined, including the "unknown" state. '
+                    'This will likely produce bad clustering results and you should considering reassigning to more '
+                    'intermediate states using a modified ``--reassign-method``.')
 
     log.debug(f'Completed reassignment.')
 

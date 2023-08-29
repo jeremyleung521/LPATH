@@ -131,8 +131,8 @@ class LPATHPlot:
             self.dist_matrix = squareform(loaded_dmatrix, checks=False) if loaded_dmatrix.ndim == 2 else loaded_dmatrix
             self.linkage = calc_linkage(self.dist_matrix)
         else:
-            raise ValueError(f'No distance matrix provided. Please generate one with ``lpath match [...]`` and \
-                               pass it to ``lpath plot`` with the ``--plot-input`` flag.')
+            raise ValueError(f'No distance matrix provided. Please generate one with ``lpath match [...]`` and '
+                             'pass it to ``lpath plot`` with the ``--plot-input`` flag.')
         self.cluster_labels = load_file(arguments.cl_output) if not arguments.regen_cl else None
 
         # Preparing empty array variables
@@ -465,8 +465,8 @@ def process_plot_args(arguments):
     # In cases where you're not going through ``match`` first, some arguments might be empty.
     if arguments.dmatrix_save is None:
         setattr(arguments, 'dmatrix_save', 'succ_traj/distmat.npy')
-        log.warning(f'Setting distance matrix output to default {arguments.dmatrix_save}. Make sure you\'re sure \
-                      of this, or remake the distance matrix with ``lpath match``.')
+        log.warning(f'Setting distance matrix output to default {arguments.dmatrix_save}. Make sure you\'re sure '
+                    'of this, or remake the distance matrix with ``lpath match``.')
 
     if arguments.cl_output is None:
         setattr(arguments, 'cl_output', 'succ_traj/cluster_labels.npy')
