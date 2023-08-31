@@ -36,9 +36,12 @@ dependencies = [
 ]
 
 # Update the urls once the hosting is set up.
-#[project.urls]
-#"Source" = "https://github.com/<username>/lpath/"
-#"Documentation" = "https://lpath.readthedocs.io/"
+[project.urls]
+"Source" = "https://github.com/jeremyleung521/lpath/"
+"Documentation" = "https://lpath.readthedocs.io/"
+
+[project.scripts]
+lpath = "lpath.lpath:entry_point"
 
 [project.optional-dependencies]
 test = [
