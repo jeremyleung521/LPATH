@@ -14,6 +14,9 @@ authors = [
     {name = "Jeremy Leung", email = "jml230@pitt.edu" },
     {name = "Lillian Chong", email = "lchong@pitt.edu"},
 ]
+maintainers = [
+    {name = "Jeremy Leung", email = "jml230@pitt.edu" },
+]
 license = { text = "MIT" }
 # See https://pypi.org/classifiers/
 classifiers = [
