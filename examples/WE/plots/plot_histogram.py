@@ -45,7 +45,7 @@ for cidx, cluster in enumerate([0, 1]):
 
             pathway = np.array(pathway)
             pathway = pathway[pathway[:,0]>0]
-            weight = pathway[0,-1]
+            weight = pathway[-1,-1]
             weights.append(weight)
     plt.bar(xs[cidx], np.sum(weights), width=0.05, color=colors[cidx])
 

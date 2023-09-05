@@ -273,7 +273,6 @@ class LPATHPlot:
         sch.set_link_color_palette(self.mpl_colors[:-1])
 
         plot_axes = self.determine_plot_axes(ax_idx, False)
-        print(plot_axes)
 
         try:
             # Temporarily override the default line width:
@@ -292,7 +291,7 @@ class LPATHPlot:
                 sch.dendrogram(self.linkage, no_labels=True, color_threshold=self.dendrogram_threshold,
                                above_threshold_color=self.mpl_colors[-1], ax=plot_axes[0])
 
-        plot_axes[0].axhline(y=self.dendrogram_threshold, c='k', linestyle='--', linewidth=2.5)
+        plot_axes[0].axhline(y=self.dendrogram_threshold, c='k', linestyle='--', linewidth=1.5)
         plot_axes[0].set_ylabel("distance")
         plot_axes[0].set_xlabel("pathways")
         self.fig.set_layout_engine(layout='tight')
@@ -303,8 +302,7 @@ class LPATHPlot:
 
     def plothist_weight_cluster(self, ax_idx=None):
         """
-        Plot histogram of vent duration time vs. iteration number history number
-        with customized colors defined by ``--mpl_colors``.
+        Plot histogram of cluster number vs. weight.
 
         Parameter
         ---------
@@ -324,14 +322,14 @@ class LPATHPlot:
 
             axes.bar(x_list, y_list, width=0.75, color=self.mpl_colors[:-1])
             axes.set_xlim(0, max(x_list)+1)
-            axes.set_ylim(0, max(self.weights))
+            axes.set_ylim(0, max(y_list))
             axes.set_xticks(ticks=x_list, labels=[f'{x}' for x in x_list])
             axes.set_xlabel(r'pathway classes')
             axes.set_ylabel('probability')
 
         self.fig.set_layout_engine(layout='tight')
         self.fig.savefig(f"{self.out_path}/weight_histogram.pdf", dpi=300)
-        log.info(f'Outputted Graph in {self.out_path}/weight_histogram.pdf.')
+        log.info(f'Outputted graph in {self.out_path}/weight_histogram.pdf.')
 
     def plothist_event_duration(self, ax_idx=None, separate=False):
         """
@@ -369,7 +367,7 @@ class LPATHPlot:
 
         self.fig.set_layout_engine(layout='tight')
         self.fig.savefig(f"{self.out_path}/durations.pdf", dpi=300)
-        log.info(f'Outputted Graph in {self.out_path}/durations.pdf.')
+        log.info(f'Outputted graph in {self.out_path}/durations.pdf.')
 
     def plothist_target_iter(self, ax_idx=None, separate=False):
         """
@@ -520,5 +518,5 @@ def main(arguments):
 
     data.plotdendro_branch_colors()
     data.plothist_weight_cluster()
-    data.plothist_target_iter()
-    data.plothist_event_duration()
+    data.plothist_target_iter(separate=arguments.plot_separate)
+    data.plothist_event_duration(separate=arguments.plot_separate)

@@ -545,6 +545,8 @@ def add_plot_args(parser=None):
                          default='relabel_identity', type=str,
                          help='Relabel method to use. Could be one of the defaults or a module to load. Defaults are '
                               '``relabel_identity``, and ``relabel_custom``.')
+    plot_io.add_argument('--plot-separate', '-psp', dest='plot_separate',
+                         default=False, type=bool, help='Whether to separate each cluster into a separate plot.')
 
     return parser
 
