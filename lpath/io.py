@@ -8,7 +8,7 @@ from ._logger import Logger
 
 log = Logger().get_logger(__name__)
 
-default_dendrogram_colors = ['tomato', 'dodgerblue', 'orchid', 'mediumseagreen', 'darkorange', 'mediumpurple','grey']
+default_dendrogram_colors = ['tomato', 'dodgerblue', 'orchid', 'mediumseagreen', 'darkorange', 'mediumpurple', 'grey']
 
 
 def load_file(input_file, stride=1):

@@ -125,7 +125,10 @@ class LPATHPlot:
         """
         # Loading in things
         self.pathways = load_file(arguments.output_pickle)
-        loaded_dmatrix = load_file(arguments.dmatrix_save) or None
+        try:
+            loaded_dmatrix = load_file(arguments.dmatrix_save)
+        except (ValueError, FileNotFoundError):
+            loaded_dmatrix = None
         if isinstance(loaded_dmatrix, (numpy.ndarray, list)):
             # Turn into 1-D condensed distance matrix
             self.dist_matrix = squareform(loaded_dmatrix, checks=False) if loaded_dmatrix.ndim == 2 else loaded_dmatrix
@@ -162,7 +165,7 @@ class LPATHPlot:
         self.min_iter = min(self.num_iter)
         self.max_iter = max(self.num_iter)
         self.interval = 10 if self.max_iter - self.min_iter > 50 else 2
-        self.bins = (self.max_iter - self.min_iter) / self.interval
+        self.bins = int((self.max_iter - self.min_iter) // self.interval)
         self.dendrogram_threshold = arguments.dendrogram_threshold
         self.new_pathways = self.pathways
         self.mpl_colors = None if arguments.mpl_colors is ['None'] else arguments.mpl_colors
@@ -269,11 +272,14 @@ class LPATHPlot:
         #    link_cols[i + 1 + len(self.linkage)] = c1 if c1 == c2 else self.mpl_colors[-1]
         sch.set_link_color_palette(self.mpl_colors[:-1])
 
+        plot_axes = self.determine_plot_axes(ax_idx, False)
+        print(plot_axes)
+
         try:
             # Temporarily override the default line width:
             with plt.rc_context({'lines.linewidth': 2}):
                 sch.dendrogram(self.linkage, no_labels=True, color_threshold=self.dendrogram_threshold,
-                               above_threshold_color=self.mpl_colors[-1], ax=self.ax)
+                               above_threshold_color=self.mpl_colors[-1], ax=plot_axes[0])
         except RecursionError as e:
             # Catch cases where are too many branches in the dendrogram for default recursion to work.
             import sys
@@ -284,13 +290,13 @@ class LPATHPlot:
             # Temporarily override the default line width:
             with plt.rc_context({'lines.linewidth': 2}):
                 sch.dendrogram(self.linkage, no_labels=True, color_threshold=self.dendrogram_threshold,
-                               above_threshold_color=self.mpl_colors[-1], ax=self.ax)
+                               above_threshold_color=self.mpl_colors[-1], ax=plot_axes[0])
 
-        self.ax.axhline(y=self.dendrogram_threshold, c='k', linestyle='--', linewidth=2.5)
-        self.ax.set_ylabel("distance")
-        self.ax.set_xlabel("pathways")
+        plot_axes[0].axhline(y=self.dendrogram_threshold, c='k', linestyle='--', linewidth=2.5)
+        plot_axes[0].set_ylabel("distance")
+        plot_axes[0].set_xlabel("pathways")
         self.fig.set_layout_engine(layout='tight')
-        self.fig.savefig(f'{self.out_path}/dendrogram_custom_color.pdf')
+        self.fig.savefig(f'{self.out_path}/dendrogram.pdf')
 
         if self.show_fig:
             plt.show()
@@ -319,12 +325,12 @@ class LPATHPlot:
             axes.bar(x_list, y_list, width=0.75, color=self.mpl_colors[:-1])
             axes.set_xlim(0, max(x_list)+1)
             axes.set_ylim(0, max(self.weights))
-            axes.xticks(ticks=x_list, labels=[f'{x}' for x in x_list])
+            axes.set_xticks(ticks=x_list, labels=[f'{x}' for x in x_list])
             axes.set_xlabel(r'pathway classes')
             axes.set_ylabel('probability')
 
         self.fig.set_layout_engine(layout='tight')
-        self.fig.savefig("weight_histogram.pdf", dpi=300)
+        self.fig.savefig(f"{self.out_path}/weight_histogram.pdf", dpi=300)
         log.info(f'Outputted Graph in {self.out_path}/weight_histogram.pdf.')
 
     def plothist_event_duration(self, ax_idx=None, separate=False):
@@ -362,7 +368,7 @@ class LPATHPlot:
             axes.set_ylabel('probability')
 
         self.fig.set_layout_engine(layout='tight')
-        self.fig.savefig("durations.pdf", dpi=300)
+        self.fig.savefig(f"{self.out_path}/durations.pdf", dpi=300)
         log.info(f'Outputted Graph in {self.out_path}/durations.pdf.')
 
     def plothist_target_iter(self, ax_idx=None, separate=False):
@@ -389,16 +395,18 @@ class LPATHPlot:
             else:
                 loop = range(len(self.path_indices))
 
-            for to_plot in loop:
-                iteration_target = [max(iter_id) for iter_id in self.num_iter[self.path_indices[to_plot]]]
+            for n_loop, to_plot in enumerate(loop):
+                iteration_target = [iter_id for iter_id in self.num_iter[self.path_indices[to_plot]]]
                 axes.hist(iteration_target, bins=numpy.arange(self.min_iter - 1, self.max_iter, self.interval),
                           weights=self.weights[self.path_indices[to_plot]],
-                          color=self.mpl_colors[to_plot % len(self.mpl_colors)-1], alpha=0.7)
+                          color=self.mpl_colors[to_plot % len(self.mpl_colors)-1], alpha=0.7, label=f'class {n_loop}')
 
             axes.set_xlim(self.min_iter - 1, self.max_iter)
             axes.set_xlabel("we iteration of arrival")
             axes.set_ylabel("probability")
-            axes.ax.set_yscale("log")
+            axes.set_yscale("log")
+
+        axes.legend()
 
         self.fig.set_layout_engine(layout='tight')
         self.fig.savefig(f"{self.out_path}/target_iteration.pdf")
@@ -460,7 +468,7 @@ def process_plot_args(arguments):
         The relabeling function.
 
     """
-    relabel = determine_relabel(arguments.plot_relabel_method)
+    relabel = determine_relabel(arguments.relabel_method)
 
     # In cases where you're not going through ``match`` first, some arguments might be empty.
     if arguments.dmatrix_save is None:
@@ -498,7 +506,7 @@ def main(arguments):
     data = LPATHPlot(arguments)
 
     # Reassignment... (or not).
-    data.new_pathways, data.new_cluster_labels = relabel(data.pathways)  # system-specific relabeling of things
+    data.new_pathways, data.new_cluster_labels = relabel(data)  # system-specific relabeling of things
 
     if arguments.regen_cl:
         # Attempt to re-visualize the dendrogram.

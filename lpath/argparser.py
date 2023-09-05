@@ -33,12 +33,12 @@ def check_non_neg(value):
     Parameters
     ----------
     value : str or float or int
-        A value to check to see if it's >= 0.
+        A value to check to see if it's >= 0. Will be transformed to int in the process.
 
     Returns
     -------
     value : int
-        Only if int is greater or equal to 0. Will transform it to int in the processes.
+        Only if int is greater or equal to 0.
 
     Raises
     ------
@@ -54,7 +54,40 @@ def check_non_neg(value):
         if value < 0:
             raise InvalidArgumentError("{} is not a valid input.".format(value))
     except ValueError:
-        raise ArgumentTypeError("{} must be an integer.".format(value))
+        raise ArgumentTypeError("{} must be a float or integer.".format(value))
+
+    return value
+
+
+def check_non_neg_float(value):
+    """
+    Transform ``value`` into int and make sure it's >= 0.
+
+    Parameters
+    ----------
+    value : str or float or int
+        A value to check to see if it's >= 0. Will be transformed to float in the process.
+
+    Returns
+    -------
+    value : float
+        Only if float is greater or equal to 0.
+
+    Raises
+    ------
+    ArgumentError
+        If value is < 0.
+
+    ArgumentTypeError
+        If value is not an integer or float.
+
+    """
+    try:
+        value = float(value)
+        if value < 0:
+            raise InvalidArgumentError("{} is not a valid input.".format(value))
+    except ValueError:
+        raise ArgumentTypeError("{} must be a float or integer.".format(value))
 
     return value
 
@@ -66,12 +99,12 @@ def check_positive(value):
     Parameters
     ----------
     value : str or float or int
-        A value to check to see if it's > 0.
+        A value to check to see if it's > 0. Will be transformed into int in the process.
 
     Returns
     -------
     value : int
-        Only if int is greater than 0. Will transform it to int in the processes.
+        Only if int is greater than 0.
 
     Raises
     ------
@@ -87,7 +120,7 @@ def check_positive(value):
         if value <= 0:
             raise InvalidArgumentError("{} is not a valid positive number.".format(value))
     except ValueError:
-        raise ArgumentTypeError("{} must be an integer.".format(value))
+        raise ArgumentTypeError("{} must be a float or integer.".format(value))
 
     return value
 
@@ -173,6 +206,7 @@ def add_common_args(parser=None):
     commongroup.add_argument('-s', '--stats', '--statistics', dest='stats', action='store_true',
                              help='Enable results statistics output.')
     commongroup.add_argument('--debug', '-v', action='store_true', help='Enable debug mode.')
+
     try:
         from argparse_tui import TuiAction
         commongroup.add_argument('--tui', action=TuiAction)
@@ -380,7 +414,7 @@ def add_match_args(parser=None):
                           default='succ_traj/cluster_labels.npy', type=str,
                           help='Output file location for cluster labels.')
     match_io.add_argument('--match-exclude-min-length', '-me', '--match-exclude-length', '--match-exclude-short',
-                          dest='exclude_short', type=check_non_neg,
+                          dest='exclude_short', type=check_non_neg, default=0,
                           help='Exclude trajectories shorter than provided value during '
                                'matching. Default is 0, which will include trajectories of all lengths.')
     match_io.add_argument('--reassign', '-ra', '--reassign-method', dest='reassign_method',
@@ -494,7 +528,7 @@ def add_plot_args(parser=None):
 
     plot_io.add_argument('--dendrogram-threshold', '-pdt', '--dendro-threshold', '-dt', '--plot-dendro-threshold',
                          '--plot-dendrogram-threshold', dest='dendrogram_threshold',
-                         type=check_non_neg, default=0.5, help='Horizontal threshold line for the dendrogram.')
+                         type=check_non_neg_float, default=0.5, help='Horizontal threshold line for the dendrogram.')
     plot_io.add_argument('--dendrogram-show', '-pds', '--dendro-show', '-ds', dest='dendrogram_show', default=True,
                          action='store_true', help=argparse.SUPPRESS)
     plot_io.add_argument('--dendrogram-hide', '-pdh', '--dendro-hide', '-dh', dest='dendrogram_show',
@@ -704,7 +738,7 @@ def process_args(parser):
                 log.info(f'INFO: Unable to load Ray. Will proceed without using Ray.')
 
     # Process some arguments for match and plot...
-    if args.step_name in ['match', 'plot', 'all']:
+    if args.step_name in ['extract', 'match', 'all']:
         if args.exclude_short is None:
             setattr(args, 'exclude_short', 0)
             log.debug(f'Setting trajectory length exclusion threshold to default {args.exclude_short}.')
