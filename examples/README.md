@@ -1,4 +1,4 @@
-# examples
+# Examples
 
 This folder contains example jupyter notebooks and sample files on how to run the LPATH software.
 
