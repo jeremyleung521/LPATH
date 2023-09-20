@@ -58,7 +58,7 @@ tui = [
     "argparse-tui"
 ]
 dev = [
-    "lpath[test,westpa,tui]"
+    "lpath-md[test,westpa,tui]"
 ]
 
 [tool.setuptools]
