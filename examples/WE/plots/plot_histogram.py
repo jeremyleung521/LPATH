@@ -7,18 +7,20 @@ from sklearn.metrics import pairwise_distances
 from itertools import groupby
 import networkx as nx
 
+n_clusters = 2
+
 colors = ['tomato', 'dodgerblue', 'orchid', 'mediumseagreen', 'darkorange', 'mediumpurple','grey']
 
 cluster_centers = np.load("../centroids.npy")
 
+
 with open("../succ_traj/reassigned.pickle", "rb") as f:
     data = pickle.load(f)
-    print("There are", len(data), "pathways")
-    pathways = []
-    path_idxs = np.arange(0,len(data))
-    for pathway in data:
-        pathways.append(pathway)
-
+print("There are", len(data), "pathways")
+pathways = []
+path_idxs = np.arange(0,len(data))
+for pathway in data:
+    pathways.append(pathway)
 
 plt.style.use("./default.mplstyle")
 
@@ -28,13 +30,13 @@ distmat_condensed = squareform(distmat, checks=False)
 
 z = sch.linkage(distmat_condensed, method="ward")
 
-labels = sch.fcluster(z, t=2, criterion="maxclust") - 1
+labels = sch.fcluster(z, t=n_clusters, criterion="maxclust") - 1
 
 plt.figure()
 
-xs = [0, 0.1]
+xs = [0.1 * i for i in range(n_clusters)]
 
-for cidx, cluster in enumerate([0, 1]):
+for cidx, cluster in enumerate(range(0, n_clusters)):
 
     path_idxs_c = path_idxs[labels==cluster]
 
@@ -50,7 +52,8 @@ for cidx, cluster in enumerate([0, 1]):
     plt.bar(xs[cidx], np.sum(weights), width=0.05, color=colors[cidx])
 
 plt.xlim(xs[0]-0.1, xs[-1]+0.1)
-plt.xticks(ticks=xs, labels=["class 1", "class 2"], rotation=45)
+plt.xticks(ticks=xs, labels=[f"class {i}" for i in range(1, n_clusters+1)], rotation=45)
 plt.ylabel("probability")
 plt.tight_layout()
+plt.savefig('histogram.pdf', dpi=300)
 plt.show()

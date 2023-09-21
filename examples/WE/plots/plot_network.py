@@ -132,4 +132,5 @@ for cidx, cluster in enumerate(range(n_clusters)):
     nx.draw_networkx_labels(G, pos=pos, font_weight='bold')
     plt.xlim(-200,140)
     plt.ylim(-215,215)
+plt.savefig('network.pdf', dpi=300)
 plt.show()
