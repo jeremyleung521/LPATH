@@ -7,6 +7,8 @@ from sklearn.metrics import pairwise_distances
 from itertools import groupby
 import networkx as nx
 
+n_clusters = 3
+
 colors = ['tomato', 'dodgerblue', 'orchid', 'mediumseagreen', 'darkorange', 'mediumpurple','grey']
 
 cluster_centers = np.load("../centroids.npy")
@@ -19,7 +21,6 @@ with open("../succ_traj/reassigned.pickle", "rb") as f:
     for pathway in data:
         pathways.append(pathway)
 
-
 plt.style.use("./default.mplstyle")
 
 distmat = np.load("../succ_traj/distmat.npy")
@@ -28,15 +29,15 @@ distmat_condensed = squareform(distmat, checks=False)
 
 z = sch.linkage(distmat_condensed, method="ward")
 
-labels = sch.fcluster(z, t=2, criterion="maxclust") - 1
+labels = sch.fcluster(z, t=3, criterion="maxclust") - 1
 
 plt.figure()
 
-xs = [0, 0.1]
+xs = [0.1 * i for i in range(n_clusters)]
 
-for cidx, cluster in enumerate([0, 1]):
+for cidx, cluster in enumerate(range(n_clusters)):
 
-    plt.subplot(1,2,cidx+1)
+    plt.subplot(-(-n_clusters // 2),2,cidx+1) # Two a row, doing cieling division to determine how many rows available.
 
     path_idxs_c = path_idxs[labels==cluster]
 
@@ -56,4 +57,5 @@ for cidx, cluster in enumerate([0, 1]):
     plt.title("class %s"%(cidx+1))
 
 plt.tight_layout()
+plt.savefig('duration.pdf', dpi=300)
 plt.show()

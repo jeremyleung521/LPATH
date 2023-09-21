@@ -4,6 +4,9 @@ import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import squareform
 from sklearn.metrics import pairwise_distances
 
+n_clusters = 2
+threshold = 2.25
+
 plt.style.use("./default.mplstyle")
 
 plt.figure()
@@ -11,10 +14,9 @@ plt.figure()
 color_list = ["tomato", "dodgerblue", "orchid", "orange", "cyan"]
 
 distmat = np.load("../succ_traj/distmat.npy")
-threshold = 2.25
 distmat_condensed = squareform(distmat, checks=False)
 z = sch.linkage(distmat_condensed, method="ward")
-labels         = sch.fcluster(z, t=2, criterion="maxclust") - 1
+labels         = sch.fcluster(z, t=n_clusters, criterion="maxclust") - 1
 labels_str     = [f"cluster #{l}: n={c}\n" for (l,c) in zip(*np.unique(labels, return_counts=True))]
 n_clusters     = len(labels_str)
 cluster_colors_array = [color_list[l] for l in labels]
