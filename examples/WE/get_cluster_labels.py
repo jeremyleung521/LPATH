@@ -1,15 +1,17 @@
 import numpy
 import h5py
 import sklearn
+import matplotlib
+import matplotlib.pyplot as plt
+
+from tqdm.auto import tqdm, trange
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import AgglomerativeClustering
 from scipy.spatial.distance import squareform
-import matplotlib.pyplot as plt
-from matplotlib.cm import get_cmap
 from sklearn import datasets, neighbors
 
 plt.style.use("./plots/default.mplstyle")
-cmap = get_cmap("Set2")
+cmap = matplotlib.colormaps.get_cmap("Set2")
 colors = cmap.colors
 
 pcoord1_train = []
@@ -19,7 +21,7 @@ pcoord2 = []
 
 # load in all data from WESTPA simulation file
 with h5py.File("multi.h5", "r") as f:
-    for i in range(1,301):
+    for i in trange(1,301):
         istring = "iterations/iter_"+str(i).zfill(8)+"/pcoord"
         ipcoord1 = f[istring][:,:,0]
         ipcoord2 = f[istring][:,:,1]
@@ -28,49 +30,53 @@ with h5py.File("multi.h5", "r") as f:
 
 # load in training data from WESTPA simulation file (final 50 iterations)
 with h5py.File("multi.h5", "r") as f:
-    for i in range(250,301):
+    for i in trange(250,301):
         istring = "iterations/iter_"+str(i).zfill(8)+"/pcoord"
         ipcoord1 = f[istring][:,-1,0]
         ipcoord2 = f[istring][:,-1,1]
         pcoord1_train.append(ipcoord1)
         pcoord2_train.append(ipcoord2)
 
+print('reshaping datasets')
 X_train = numpy.concatenate(pcoord1_train).reshape(-1,1)
 Y_train = numpy.concatenate(pcoord2_train).reshape(-1,1)
 X = numpy.concatenate(pcoord1).reshape(-1,1)
 Y = numpy.concatenate(pcoord2).reshape(-1,1)
 
+print('shifting periodic boundaries')
 # shift periodic boundary from 0-360 to -210-150 
-for pidx, val in enumerate(X_train):
+for pidx, val in enumerate(tqdm(X_train)):
     if val > 150:
         X_train[pidx] -= 360
 
-for pidx, val in enumerate(Y_train):
+for pidx, val in enumerate(tqdm(Y_train)):
     if val > 180:
         Y_train[pidx] -= 360
 
-for pidx, val in enumerate(X):
+for pidx, val in enumerate(tqdm(X)):
     if val > 150:
         X[pidx] -= 360
 
-for pidx, val in enumerate(Y):
+for pidx, val in enumerate(tqdm(Y)):
     if val > 180:
         Y[pidx] -= 360
 
 data_train = numpy.concatenate((X_train,Y_train), axis=1)
 data = numpy.concatenate((X,Y), axis=1)
 
+print('Performing Agglomerative Clustering...')
 # perform agglomerative clustering on training data
 ag = AgglomerativeClustering(n_clusters=None, 
                              linkage="average", 
                              distance_threshold=75).fit(data_train)
 
+print('Done Clustering.')
 labels_train = ag.labels_
 
 uniq_labels = numpy.unique(labels_train)
 
 # plot training data cluster assignments
-for idx, i in enumerate(uniq_labels):
+for idx, i in enumerate(tqdm(uniq_labels, desc='plotting assignments')):
     plt.scatter(data_train[:,0][labels_train==i], data_train[:,1][labels_train==i], c=colors[idx])
     centroid = data_train[labels_train==i].mean(axis=0)
     plt.scatter(centroid[0], centroid[1], color="black", zorder=3)
@@ -97,7 +103,7 @@ knn.fit(data_train, labels_train)
 
 # create an auxiliary dataset to save cluster assignments in the multi.h5 file
 with h5py.File("multi.h5", "a") as f:
-    for i in range(1,301):
+    for i in trange(1,301, desc='saving auxdata'):
         pcoord1 = []
         pcoord2 = []
         istring = "iterations/iter_"+str(i).zfill(8)+"/pcoord"
@@ -125,6 +131,7 @@ with h5py.File("multi.h5", "a") as f:
         except Exception:
             f[dsstring][...] = labels
 
+print('predicting...')
 # predict labels for the entire WESTPA dataset
 labels = knn.predict(data)
 
@@ -136,7 +143,7 @@ uniq_labels = numpy.unique(labels)
 centroids = []
 
 # plot all cluster assignments
-for idx, i in enumerate(uniq_labels):
+for idx, i in enumerate(tqdm(uniq_labels)):
     plt.scatter(data[:,0][labels==i], data[:,1][labels==i], c=colors[idx])
     centroid = data[labels==i].mean(axis=0)
     centroids.append(centroid)
@@ -154,5 +161,5 @@ plt.ylabel("Ψ")
 
 plt.tight_layout()
 
-#plt.savefig("knn_clusters.png", dpi=300)
+plt.savefig("knn_clusters.png", dpi=300)
 plt.show()
