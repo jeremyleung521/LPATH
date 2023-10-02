@@ -19,7 +19,7 @@ Introduction
 There are two different ways of running these steps. Due to the sheer amount of parameter options, it is recommended that users start with the Jupyter notebook.
 
 1. Import each step's ``main()`` function and run everything in an interactive python session (e.g., Jupyter notebook).  **[RECOMMENDED]**
-2. Run through the command line (e.g., ``lpath discretize -I west.h5 --assign-arguments '--config-from-file --scheme TEST'``.
+2. Run through the command line (e.g., ``lpath discretize -I west.h5 --assign-arguments='--config-from-file --scheme TEST'``.
 
 
 .. _API: https://lpath.readthedocs.io/en/latest/api.html
@@ -75,7 +75,11 @@ We will monkey-patch this function into ``lpath``.
 Extract
 _______
 In this step, we will identify any successful transitions in the trajectory. We will be looking at the C7\ :sub:`eq` to C7\ :sub:`ax` transition.
-Since we already read in the data every 100 frames with ``--stride 100`` in `discretize`, we do not need to use ``--stride`` again. If you want to include in extra features for reassignment later on (i.e. in ``match``), use the ``--feature-stride 100`` option.
+Since we already read in the data every 100 frames with ``--stride 100`` in the ``discretize`` step, we `do not` need to use ``--stride`` again.
+
+Users who haven't used stride in ``discretize`` who would like their dataset reduced at this point may use ``--stride`` here.
+
+Note: If you read in your trajectory in ``discretize`` with a different stride, your other pre-calculated datasets might no longer match frame-by-frame. For that dataset to be used for reassignment later on (i.e. in ``match``), use the ``--feature-stride 100`` option and provide the appropriate stride step.
 
 1. From the command line, run the following::
 
@@ -92,7 +96,7 @@ In this step, we will pattern match any successful transitions we've identified 
 
 2. After the comparison process is completed, it should show you the dendrogram. Closing the figure should trigger prompts to guide you further.
 
-3. Input ``y`` if you think the threshold (horizontal line which dictates how many clusters there are) should be a different value. Otherwise, input ``n`` and tell the program how many clusters you want at the end.
+3. Input ``y`` if you think the threshold (horizontal line which dictates how many clusters there are) should be at a different value. Otherwise, input ``n`` and tell the program how many clusters you want at the end.
 
 Plot
 ____
@@ -114,12 +118,12 @@ We will use `WESTPA`_'s ``w_assign`` tool to assign to states. See the tool's `w
 .. _Sphinx: https://westpa.readthedocs.io/en/latest/documentation/cli/w_assign.html
 
 
-We'll try to discretize a ``multi.h5`` (generated with ``w_multi_west --ibstates``) with ``w_assign`` based on what's defined with the ``TEST`` scheme in the ``west.cfg``.
+We'll try to discretize a ``multi.h5`` (generated with ``w_multi_west --ibstates``) with ``w_assign`` based on what's defined with the ``TEST`` scheme in the ``west.cfg``. In ``TEST``, a rectilinear grid is constructed in the progress coordinate space and certain "bins" are selected and assigned to each state.
 
 1. Run the following in the command line to run ``w_assign``::
 
     lpath discretize -we -W multi.h5 -A ANALYSIS/TEST/assign.h5 \
-        --assign-args "-W multi.h5 -r west.cfg --config-from-file --scheme TEST"
+        --assign-args="-W multi.h5 -r west.cfg --config-from-file --scheme TEST"
 
 
 Extract
@@ -145,7 +149,7 @@ This will do the pattern matching and output individual h5 files for each cluste
 
 2. After the comparison process is completed, it should show you the dendrogram. Closing the figure should trigger prompts to guide you further.
 
-3. Input ``y`` if you think the threshold (horizontal line which dictates how many clusters there are) should be a different value. Otherwise, input ``n`` and tell the program how many clusters you want at the end.
+3. Input ``y`` if you think the threshold (horizontal line which dictates how many clusters there are) should be at a different value. Otherwise, input ``n`` and tell the program how many clusters you want at the end.
 
 
 For cases where you want to run pattern matching comparison between segment IDs, you will have to use the largest common substring ``--substring`` option. By default, the longest common subsequence algorithm is used.::

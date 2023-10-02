@@ -40,7 +40,7 @@ dependencies = [
 
 # Update the urls once the hosting is set up.
 [project.urls]
-"Source" = "https://github.com/jeremyleung521/lpath/"
+"Source" = "https://github.com/chonglab-pitt/lpath/"
 "Documentation" = "https://lpath.readthedocs.io/"
 
 [project.scripts]
