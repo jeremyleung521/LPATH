@@ -37,6 +37,25 @@ class TestCheckNonNeg:
         assert lpath.argparser.check_non_neg(3) == 3
 
 
+class TestCheckNonNegFloat:
+    """
+    Test to see if check_non_neg_float() is working properly.
+
+    """
+
+    def test_fail(self):
+        with pytest.raises(InvalidArgumentError):
+            lpath.argparser.check_non_neg_float(-1)
+
+        with pytest.raises(ArgumentTypeError):
+            lpath.argparser.check_non_neg_float('abc')
+
+    def test_success(self):
+        return_val = lpath.argparser.check_non_neg_float(3)
+        assert return_val == 3
+        assert isinstance(return_val, float)
+
+
 class TestCheckPositive:
     """
     Test to see if check_positive() is working properly.

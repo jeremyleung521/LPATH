@@ -4,6 +4,7 @@ Unit and regression test for the lpath package.
 
 # Import package, test suite, and other packages as needed
 import sys
+import pytest
 import numpy
 import lpath.extract
 
@@ -73,3 +74,26 @@ def test_assign_color_frame():
     output_array = lpath.extract.assign_color_frame(test_source_index, test_sink_index)
 
     assert output_array == test_output
+
+
+def test_raise_warnings():
+    """
+    Tests whether it successfully raise goes through warnings.
+
+    """
+    # Catching case where no successful trajectories
+    with pytest.raises(lpath.io.EmptyOutputError):
+        lpath.extract.raise_warnings([],False)
+
+    lpath.extract.raise_warnings([[]], True)
+
+
+def test_create_pickle_obj():
+    """
+    Test to make sure create_pickle_obj is working.
+
+    """
+    output = lpath.extract.create_pickle_obj([], [], [], features=None)
+
+    assert output == []
+
