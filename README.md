@@ -5,7 +5,6 @@ Linguistics Pathway Analysis of Trajectories using Hierarchical clustering
 [//]: # (Badges)
 [![GitHub Actions Build Status](https://github.com/chonglab-pitt/lpath/workflows/CI/badge.svg)](https://github.com/chonglab-pitt/lpath/actions?query=workflow%3ACI)
 [![Documentation Status](https://readthedocs.org/projects/lpath/badge/?version=latest)](https://lpath.readthedocs.io/en/latest/?badge=latest)
-[![codecov](https://codecov.io/gh/jeremyleung521/lpath/branch/main/graph/badge.svg?token=5SS08RH1MO)](https://codecov.io/gh/jeremyleung521/lpath)
 [![pre-print](https://img.shields.io/badge/pre--print-darkred)](https://www.biorxiv.org/content/10.1101/2023.08.17.553774v1)
 
 A user-friendly, Python tool for clustering pathways from molecular dynamics and weighted ensemble simulations.
