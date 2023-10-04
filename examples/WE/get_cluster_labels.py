@@ -77,7 +77,7 @@ uniq_labels = numpy.unique(labels_train)
 
 # plot training data cluster assignments
 for idx, i in enumerate(tqdm(uniq_labels, desc='plotting assignments')):
-    plt.scatter(data_train[:,0][labels_train==i], data_train[:,1][labels_train==i], c=colors[idx])
+    plt.scatter(data_train[:,0][labels_train==i], data_train[:,1][labels_train==i], c=colors[idx % len(colors)])
     centroid = data_train[labels_train==i].mean(axis=0)
     plt.scatter(centroid[0], centroid[1], color="black", zorder=3)
 plt.xlim(-210,150)
@@ -144,7 +144,7 @@ centroids = []
 
 # plot all cluster assignments
 for idx, i in enumerate(tqdm(uniq_labels)):
-    plt.scatter(data[:,0][labels==i], data[:,1][labels==i], c=colors[idx])
+    plt.scatter(data[:,0][labels==i], data[:,1][labels==i], c=colors[idx % len(colors)])
     centroid = data[labels==i].mean(axis=0)
     centroids.append(centroid)
     plt.scatter(centroid[0], centroid[1], color="black", zorder=3)
