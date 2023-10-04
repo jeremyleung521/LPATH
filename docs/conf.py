@@ -17,7 +17,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
-import lpath
+from lpath import __version__
 
 
 # -- Project information -----------------------------------------------------
@@ -28,9 +28,9 @@ copyright = ("2023, Anthony Bogetti, Jeremy Leung, Lillian Chong. Project struct
 author = 'Anthony Bogetti, Jeremy Leung, Lillian Chong'
 
 # The short X.Y version
-version = '0.9'
+version = f'{__version__.split('.')[0]}.{__version__.split('.')[1]}'
 # The full version, including alpha/beta/rc tags
-release = '0.9.6'
+release = __version__
 
 
 # -- General configuration ---------------------------------------------------
