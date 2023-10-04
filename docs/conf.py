@@ -30,7 +30,7 @@ author = 'Anthony Bogetti, Jeremy Leung, Lillian Chong'
 # The short X.Y version
 version = f'{__version__.split(".")[0]}.{__version__.split(".")[1]}'
 # The full version, including alpha/beta/rc tags
-release = __version__
+release = __version__.split("+")[0]
 
 
 # -- General configuration ---------------------------------------------------
