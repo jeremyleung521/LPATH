@@ -5,3 +5,5 @@ This folder contains example jupyter notebooks and sample files on how to run th
 To speed up the setup process, users may want to install the software using the `environment.yml` file 
 located one directory level up. Some of the files in this `examples` folder are over >1 GB in size, 
 which might require users to install [git-lfs](https://git-lfs.com/) to retrieve.
+
+Initialize `git-lfs` with `git lfs install --skip-smudge` once, then run `git lfs pull origin` in the folder to pull all the necessary example files.

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # assign source and target states using the phi/psi angles from WE simulations
-lpath discretize -we -W ./multi.h5 --assign-arguments "--config-from-file --scheme C7_EQ"
+lpath discretize -we -W ./multi.h5 --assign-arguments="--config-from-file --scheme C7_EQ -W multi.h5"
 
 # extract all successful pathways connecting source and target states
 # also extract the cluster labels for matching in the next step
