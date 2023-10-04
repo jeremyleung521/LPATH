@@ -77,7 +77,7 @@ _______
 In this step, we will identify any successful transitions in the trajectory. We will be looking at the C7\ :sub:`eq` to C7\ :sub:`ax` transition.
 Since we already read in the data every 100 frames with ``--stride 100`` in the ``discretize`` step, we `do not` need to use ``--stride`` again.
 
-Users who haven't used stride in ``discretize`` who would like their dataset reduced at this point may use ``--stride`` here.
+Users who haven't used stride in ``discretize`` and would like their dataset reduced at this point may use ``--stride`` here.
 
 Note: If you read in your trajectory in ``discretize`` with a different stride, your other pre-calculated datasets might no longer match frame-by-frame. For that dataset to be used for reassignment later on (i.e. in ``match``), use the ``--feature-stride 100`` option and provide the appropriate stride step.
 
