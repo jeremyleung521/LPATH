@@ -5,6 +5,7 @@ import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import squareform
 from sys import argv
 
+
 if len(argv) == 2:
     # Grab number of clusters from argument input.
     n_clusters = argv[1]

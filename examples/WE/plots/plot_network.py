@@ -2,11 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pickle
 import scipy.cluster.hierarchy as sch
-from scipy.spatial.distance import squareform
-from sklearn.metrics import pairwise_distances
-from itertools import groupby
 import networkx as nx
+from scipy.spatial.distance import squareform
+from itertools import groupby
 from sys import argv
+
 
 cluster_centers = np.load("../centroids.npy")
 

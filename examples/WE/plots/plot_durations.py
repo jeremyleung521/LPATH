@@ -3,9 +3,7 @@ import numpy as np
 import pickle
 import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import squareform
-from sklearn.metrics import pairwise_distances
-from itertools import groupby
-import networkx as nx
+
 
 n_clusters = 2
 

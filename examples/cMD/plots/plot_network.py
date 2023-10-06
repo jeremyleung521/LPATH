@@ -7,6 +7,7 @@ from itertools import groupby
 import networkx as nx
 from sys import argv
 
+
 cluster_centers = np.load("../centroids.npy")
 
 with open("../succ_traj/reassigned.pickle", "rb") as f:
