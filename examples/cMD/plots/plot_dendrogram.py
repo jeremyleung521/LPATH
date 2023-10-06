@@ -2,10 +2,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import squareform
-from sklearn.metrics import pairwise_distances
+from sys import argv
 
-n_clusters = 2
-threshold = 2.25
+if len(argv) == 3:
+    # Grab number of clusters from argument input.
+    n_clusters = argv[1]
+    threshold = argv[2]
+else:
+    # Defaults to 2 clusters and threshold = 2.25.
+    n_clusters = 2
+    threshold = 2.25
 
 plt.style.use("./default.mplstyle")
 

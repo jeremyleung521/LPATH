@@ -37,7 +37,7 @@ xs = [0.1 * i for i in range(n_clusters)]
 
 for cidx, cluster in enumerate(range(n_clusters)):
 
-    plt.subplot(-(-n_clusters // 2),2,cidx+1) # Two a row, doing cieling division to determine how many rows available.
+    plt.subplot(-(-n_clusters // 2),2,cidx+1) # Two a row, doing ceiling division to determine how many rows available.
 
     path_idxs_c = path_idxs[labels==cluster]
 

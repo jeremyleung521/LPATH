@@ -3,9 +3,9 @@ import numpy as np
 import pickle
 import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import squareform
-from sklearn.metrics import pairwise_distances
 from itertools import groupby
 import networkx as nx
+from sys import argv
 
 cluster_centers = np.load("../centroids.npy")
 
@@ -17,7 +17,12 @@ with open("../succ_traj/reassigned.pickle", "rb") as f:
     for pathway in data:
         pathways.append(pathway)
 
-n_clusters = 2
+if len(argv) == 2:
+    # Grab number of clusters from argument input.
+    n_clusters = argv[1]
+else:
+    # Defaults to 2 clusters.
+    n_clusters = 2
 
 plt.style.use("./default.mplstyle")
 
@@ -32,49 +37,31 @@ labels = sch.fcluster(z, t=n_clusters, criterion="maxclust") - 1
 plt.figure(figsize=(14,8))
 
 for cidx, cluster in enumerate(range(n_clusters)):
-
-    if n_clusters == 2:
-        n_row = 1
-        n_col = 2
-    elif 5 > n_clusters > 2:
-        n_row = 2
-        n_col = 2
-    elif 7 > n_clusters > 4:
-        n_row = 2
+    if n_clusters > 4:
         n_col = 3
-    plt.subplot(n_row,n_col,cluster+1)
+    else:
+        n_col = 2
+
+    plt.subplot(-(-n_clusters // n_col), n_col,
+                cluster + 1)  # Doing ceiling division to determine how many rows available.
+
     plt.title("class "+str(cluster+1))
 
     path_idxs_c = path_idxs[labels==cluster]
 
-    cluster_counts = []
-
-    state_list = []
-
-    edge_list = []
+    cluster_counts, state_list, edge_list = [], [], []
 
     for idx, pathway in enumerate(pathways):
         if idx in path_idxs_c:
 
             pathway = np.array(pathway)
-            pathway = pathway[pathway[:,0]>0]
-            states = pathway[:,2]
-            weights = pathway[:,-1]
+            pathway = pathway[pathway[:, 0] > 0]
+            states = pathway[:, 2]
+            weights = pathway[:, -1]
             states_last = states[::25]
             weights_last = weights[::25]
 
-            weighted_counts = np.array([np.sum(weights_last[states_last==0]),
-                                        np.sum(weights_last[states_last==1]),
-                                        np.sum(weights_last[states_last==2]),
-                                        np.sum(weights_last[states_last==3]),
-                                        np.sum(weights_last[states_last==4]),
-                                        np.sum(weights_last[states_last==5]),
-                                        np.sum(weights_last[states_last==6]),
-                                        np.sum(weights_last[states_last==7]),
-                                        np.sum(weights_last[states_last==8]),
-                                        np.sum(weights_last[states_last==9]),
-                                        np.sum(weights_last[states_last==10]),
-                                        np.sum(weights_last[states_last==11])], dtype=float)
+            weighted_counts = np.array([np.sum(weights_last[states_last == i]) for i in range(12)], dtype=float)
             cluster_counts.append(weighted_counts)
             condensed_state = [int(k) for k,g in groupby(states)]
             condensed_state.insert(0, 6)
