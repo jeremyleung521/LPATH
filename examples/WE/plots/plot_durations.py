@@ -3,9 +3,15 @@ import numpy as np
 import pickle
 import scipy.cluster.hierarchy as sch
 from scipy.spatial.distance import squareform
+from sys import argv
 
 
-n_clusters = 2
+if len(argv) == 2:
+    # Grab number of clusters from argument input.
+    n_clusters = int(argv[1])
+else:
+    # Defaults to 3 clusters.
+    n_clusters = 3
 
 colors = ['tomato', 'dodgerblue', 'orchid', 'mediumseagreen', 'darkorange', 'mediumpurple','grey']
 

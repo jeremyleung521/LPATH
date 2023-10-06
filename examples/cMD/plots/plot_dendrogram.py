@@ -7,8 +7,8 @@ from sys import argv
 
 if len(argv) == 3:
     # Grab number of clusters from argument input.
-    n_clusters = argv[1]
-    threshold = argv[2]
+    n_clusters = int(argv[1])
+    threshold = float(argv[2])
 else:
     # Defaults to 2 clusters and threshold = 2.25.
     n_clusters = 2

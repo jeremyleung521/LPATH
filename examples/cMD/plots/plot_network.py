@@ -20,7 +20,7 @@ with open("../succ_traj/reassigned.pickle", "rb") as f:
 
 if len(argv) == 2:
     # Grab number of clusters from argument input.
-    n_clusters = argv[1]
+    n_clusters = int(argv[1])
 else:
     # Defaults to 2 clusters.
     n_clusters = 2
