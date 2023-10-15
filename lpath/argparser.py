@@ -519,7 +519,7 @@ def add_plot_args(parser=None):
                          type=str, default='',
                          help='A string of kwargs to pass onto matplotlib.pyplot.subplots() function. Keywords '
                               'should be separated by ``, ``, and the value should be assigned without space. '
-                              'Example: ``-mpl "nrows=1, ncols=5"``.')
+                              'Example: ``-mpl="nrows=1, ncols=5"``.')
     plot_io.add_argument('-col', '--colors', '--mpl-col', '--mpl-colors', dest='mpl_colors',
                          type=str, nargs='+', default=default_dendrogram_colors,
                          help='A sequence of matplotlib colors names separated by spaces. E.g., '
@@ -529,24 +529,24 @@ def add_plot_args(parser=None):
     plot_io.add_argument('--dendrogram-threshold', '-pdt', '--dendro-threshold', '-dt', '--plot-dendro-threshold',
                          '--plot-dendrogram-threshold', dest='dendrogram_threshold',
                          type=check_non_neg_float, default=0.5, help='Horizontal threshold line for the dendrogram.')
-    plot_io.add_argument('--dendrogram-show', '-pds', '--dendro-show', '-ds', dest='dendrogram_show', default=True,
+    plot_io.add_argument('--plots-show', '-pts', '--dendrogram-show', '-pds', '--dendro-show', '-ds',
+                         dest='dendrogram_show', default=True,
                          action='store_true', help=argparse.SUPPRESS)
-    plot_io.add_argument('--dendrogram-hide', '-pdh', '--dendro-hide', '-dh', dest='dendrogram_show',
-                         action='store_false', help='Do not show dendrogram. Overrides ``--dendrogram-show``.')
+    plot_io.add_argument('--plots-hide', '-pth', '--dendrogram-hide', '-pdh', '--dendro-hide', '-dh',
+                         dest='dendrogram_show', action='store_false',
+                         help='Do not show dendrogram. Overrides ``--dendrogram-show``.')
     plot_io.add_argument('--n-clusters', '-nc', '--num-clusters', dest='num_clusters', type=check_positive,
                          help='For cases where you know in advance how many clusters you want for '
                               'the hierarchical clustering.')
 
-    plot_io.add_argument('--plot-regen-cl', '-rcl', '--plot-regenerate-cluster-labels', dest='regen_cl',
-                         action='store_true',
-                         help='Option to regenerate new cluster labels after relabeling. ``--plot-cluster-labels`` '
-                              'options can be left empty if this is called.')
+    # plot_io.add_argument('--plot-regen-cl', '-rcl', '--plot-regenerate-cluster-labels', dest='regen_cl',
+    #                      action='store_true',
+    #                      help='Option to regenerate new cluster labels after relabeling. ``--plot-cluster-labels`` '
+    #                           'options can be left empty if this is called.')
     plot_io.add_argument('--relabel', '-prl', '--plot-relabel-method', '--plot-relabel-method', dest='relabel_method',
                          default='relabel_identity', type=str,
                          help='Relabel method to use. Could be one of the defaults or a module to load. Defaults are '
                               '``relabel_identity``, and ``relabel_custom``.')
-    plot_io.add_argument('--plot-separate', '-psp', dest='plot_separate',
-                         default=False, type=bool, help='Whether to separate each cluster into a separate plot.')
 
     return parser
 

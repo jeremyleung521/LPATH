@@ -32,7 +32,7 @@ distmat_condensed = squareform(distmat, checks=False)
 
 z = sch.linkage(distmat_condensed, method="ward")
 
-labels = sch.fcluster(z, t=3, criterion="maxclust") - 1
+labels = sch.fcluster(z, t=n_clusters, criterion="maxclust") - 1
 
 plt.figure()
 

@@ -3,10 +3,13 @@ Plot your lpath results.
 """
 import numpy
 import lpath
+import matplotlib
 import matplotlib.pyplot as plt
 import scipy.cluster.hierarchy as sch
+import networkx
 from scipy.spatial.distance import squareform
 from os.path import exists
+from ast import literal_eval
 
 from lpath.extloader import *
 from lpath.io import load_file
@@ -136,10 +139,10 @@ class LPATHPlot:
         else:
             raise ValueError(f'No distance matrix provided. Please generate one with ``lpath match [...]`` and '
                              'pass it to ``lpath plot`` with the ``--plot-input`` flag.')
-        self.cluster_labels = load_file(arguments.cl_output) if not arguments.regen_cl else None
+        self.cluster_labels = load_file(arguments.cl_output)  # if not arguments.regen_cl else None
 
         # Preparing empty array variables
-        weights, durations, path_indices, iter_num = [], [], [], []
+        weights, durations, path_indices, iter_num, target_iter, states = [], [], [], [], [], []
 
         # Report number of pathways.
         self.n_pathways = len(self.pathways)
@@ -149,7 +152,9 @@ class LPATHPlot:
             non_zero = pathway[numpy.nonzero(pathway[:, 0])]  # Removing padding frames...
             weights.append(non_zero[-1, -1])
             durations.append(len(non_zero))
+            target_iter.append(non_zero[-1][0])
             iter_num += [frame[0] for frame in non_zero]
+            states.append(pathway[:, 2])
 
         for cluster in set(self.cluster_labels):
             path_indices.append(numpy.where(self.cluster_labels == cluster)[0])
@@ -159,52 +164,78 @@ class LPATHPlot:
         self.out_path = arguments.out_path
         self.weights = numpy.asarray(weights)
         self.durations = numpy.asarray(durations)
+        self.states = numpy.asarray(states, dtype=object)
         self.path_indices = path_indices
         self.num_iter = numpy.asarray(iter_num, dtype=object)
+        self.target_iter = numpy.asarray(target_iter)
+        self.num_clusters = len(path_indices)
+
+        weighted_counts = [numpy.sum(self.weights[self.states == i]) for i in range(self.num_clusters)]
+        self.weighted_counts = numpy.array(weighted_counts, dtype=float)
 
         self.min_iter = min(self.num_iter)
         self.max_iter = max(self.num_iter)
-        self.interval = 10 if self.max_iter - self.min_iter > 50 else 2
+        self.interval = 25 if self.max_iter - self.min_iter > 50 else 5
         self.bins = int((self.max_iter - self.min_iter) // self.interval)
         self.dendrogram_threshold = arguments.dendrogram_threshold
         self.new_pathways = self.pathways
         self.mpl_colors = None if arguments.mpl_colors is ['None'] else arguments.mpl_colors
-        self.mpl_args = arguments.matplotlib_args or dict()
+
+        try:
+            self.mpl_args = literal_eval(arguments.matplotlib_args)
+        except SyntaxError:
+            self.mpl_args = dict()
 
         # Set up dummy variables for the plots!
         self.fig = None
         self.ax = None
         self.show_fig = arguments.dendrogram_show
+        self.ax_idx = 0
 
-    def plt_config(self, ax_idx=None):
+    def plt_config(self, ax_idx=None, separate=None):
         """
         Process matplotlib arguments and append fig/axis objects to class.
 
-        """
-        if self.fig is None or self.ax is None:
-            if exists(self.arguments.mpl_styles):
-                plt.style.use(self.arguments.mpl_styles)
-            else:
-                style_f = (files(lpath) / 'data/styles/default.mplstyle')
-                plt.style.use(style_f)
-                log.warning(f'Using default {style_f}')
+        ax_idx = list or int
+            Index or list of indic
 
-            self.fig, self.ax = plt.subplots(**self.mpl_args)
-            if isinstance(self.ax, plt.Axes):
-                # If only a single axes, put into list.
-                self.ax = numpy.asarray([self.ax], dtype=object)
+        """
+        if exists(self.arguments.mpl_styles):
+            plt.style.use(self.arguments.mpl_styles)
         else:
-            if ax_idx is None:
-                # Clear everything by default
-                for ax in self.ax:
-                    ax.clear()
+            style_f = (files(lpath) / 'data/styles/default.mplstyle')
+            plt.style.use(style_f)
+            log.info(f'Using default {style_f}')
+
+        if separate:
+            try:
+                mpl_keys = self.arguments.matplotlib_args.keys()
+            except AttributeError:
+                mpl_keys = {}.keys()
+
+            if 'nrows' in mpl_keys and 'ncols' in mpl_keys:
+                log.info(f'Defaulting to user-provided plot layout.')
+                n_rows = self.arguments.matplotlib_args['nrows']
+                n_cols = self.arguments.matplotlib_args['ncols']
             else:
-                # Clear just specified axes
-                for idx in ax_idx:
-                    try:
-                        self.ax[idx].clear()
-                    except IndexError:
-                        log.warning(f'{ax_idx} is not found')
+                log.info(f'Defaulting to default LPATH plot layout')
+                if self.num_clusters > 4:
+                    n_cols = 3
+                else:
+                    n_cols = 2
+
+                n_rows = -(-self.num_clusters // n_cols)
+
+            # Doing ceiling division to determine how many rows available.
+            self.fig, self.ax = plt.subplots(nrows=n_rows, ncols=n_cols)
+        else:
+            self.fig, self.ax = plt.subplots(**self.mpl_args)
+
+        if isinstance(self.ax, plt.Axes):
+            # If only a single axes, put into list.
+            self.ax = numpy.asarray([self.ax], dtype=object)
+
+        self.ax = self.ax.flatten()
 
     def determine_plot_axes(self, ax_idx=None, separate=False):
         """
@@ -222,20 +253,26 @@ class LPATHPlot:
         if separate is False:
             if ax_idx:
                 plot_axes = [self.ax[ax_idx[0]]]
+
             else:
                 # Plotting all into first axes.
-                plot_axes = [self.ax[0]]
+                plot_axes = [self.ax[self.ax_idx]]
+
         else:
             # Plot all into subsequent axes
             if ax_idx is not None:
                 if len(ax_idx) >= len(self.path_indices):
                     plot_axes = self.ax[ax_idx]
+                    self.ax_idx += len(ax_idx) - 1
                 else:
                     log.warning(f'Not enough axes to plot each one individually. Plotting all into first idx provided.')
-                    plot_axes = [self.ax[ax_idx[0]]]
+                    plot_axes = [self.ax[ax_idx[self.ax_idx]]]
+                    self.ax_idx += 1
+
             else:
-                log.warning(f'Plot axes index not given. Plotting all into first axes.')
-                plot_axes = self.ax[0]
+                log.warning(f'Plot axes index not given. Plotting all into first N axes.')
+                plot_axes = self.ax[list(range(self.num_clusters))]
+                self.ax_idx += 1
 
         return plot_axes
 
@@ -317,11 +354,11 @@ class LPATHPlot:
             x_list = []
             y_list = []
             for c_idx, cluster_indices in enumerate(self.path_indices):
-                x_list.append(c_idx+1)
+                x_list.append(c_idx + 1)
                 y_list.append(numpy.sum(self.weights[cluster_indices]))
 
             axes.bar(x_list, y_list, width=0.75, color=self.mpl_colors[:-1])
-            axes.set_xlim(0, max(x_list)+1)
+            axes.set_xlim(0, max(x_list) + 1)
             axes.set_ylim(0, max(y_list))
             axes.set_xticks(ticks=x_list, labels=[f'{x}' for x in x_list])
             axes.set_xlabel(r'pathway classes')
@@ -330,6 +367,9 @@ class LPATHPlot:
         self.fig.set_layout_engine(layout='tight')
         self.fig.savefig(f"{self.out_path}/weight_histogram.pdf", dpi=300)
         log.info(f'Outputted graph in {self.out_path}/weight_histogram.pdf.')
+
+        if self.show_fig:
+            plt.show()
 
     def plothist_event_duration(self, ax_idx=None, separate=False):
         """
@@ -345,33 +385,72 @@ class LPATHPlot:
             Whether to plot each cluster in separate subplots or not.
 
         """
-        self.plt_config(ax_idx)
+        self.plt_config(ax_idx, separate=True)
         plot_axes = self.determine_plot_axes(ax_idx, separate)
 
         for n_axes, axes in enumerate(plot_axes):
             if separate:
                 # Plot each pathway class in a separate axes.
                 axes.hist(self.durations[self.path_indices[n_axes]], bins=self.bins,
-                          weights=self.weights[self.path_indices[n_axes]], density=True)
+                          range=(self.min_iter, self.max_iter),
+                          weights=self.weights[self.path_indices[n_axes]], density=True,
+                          color=self.mpl_colors[n_axes % (len(self.mpl_colors) - 1)])
                 axes.set_title(f'class {n_axes}')
             else:
                 # Plot all pathway classes into same axes
-                for cluster_id, c_indices in enumerate(self.path_indices):
-                    axes.hist(self.durations[c_indices], bins=self.bins,
-                              weights=self.weights[c_indices], density=True,
-                              color=self.mpl_colors[cluster_id % len(self.mpl_colors)-1])
+                axes.hist(self.durations[c_indices], bins=self.bins,
+                          weights=self.weights[c_indices], density=True,
+                          color=self.mpl_colors[cluster_id % (len(self.mpl_colors) - 1)])
             axes.set_xlim(0, max(self.durations))
-            axes.set_ylim(0, max(self.weights))
-            axes.set_xlabel(r'event duration time ($\tau$)')
+            # axes.set_ylim(0, max(self.weights))
+            axes.set_xlabel('duration')
             axes.set_ylabel('probability')
 
         self.fig.set_layout_engine(layout='tight')
         self.fig.savefig(f"{self.out_path}/durations.pdf", dpi=300)
         log.info(f'Outputted graph in {self.out_path}/durations.pdf.')
 
+        if self.show_fig:
+            plt.show()
+
     def plothist_target_iter(self, ax_idx=None, separate=False):
         """
-        Plot histogram of target iteration vs. iteration number history number
+        Plot network of transitions between different states.
+
+        Parameter
+        ---------
+        ax_idx : list of int or None, default: None
+            Which axes index to plot the graph.
+
+        separate : bool, default: False
+            Whether to plot each cluster in separate subplots or not.
+
+        """
+        self.plt_config(ax_idx, separate=True)
+        plot_axes = self.determine_plot_axes(ax_idx, separate)
+
+        for n_axes, axes in enumerate(plot_axes):
+            iteration_target = self.target_iter[self.path_indices[n_axes]]
+            axes.hist(iteration_target, bins=numpy.arange(self.min_iter - 1, self.max_iter, self.interval),
+                      weights=self.weights[self.path_indices[n_axes]],
+                      color=self.mpl_colors[n_axes % (len(self.mpl_colors) - 1)],
+                      label=f'class {n_axes}')
+
+            axes.set_xlim(self.min_iter - 1, self.max_iter)
+            axes.set_xlabel("iteration")
+            axes.set_ylabel("probability")
+            axes.set_yscale("log")
+
+        self.fig.set_layout_engine(layout='tight')
+        self.fig.savefig(f"{self.out_path}/target_iteration.pdf")
+        log.info(f'Outputted graph in {self.out_path}/target_iteration.pdf.')
+
+        if self.show_fig:
+            plt.show()
+
+    def plot_network(self, ax_idx=None, separate=False):
+        """
+        Plot network of target iteration vs. iteration number history number
         with customized colors defined by ``--mpl_colors``.
 
         Parameter
@@ -383,32 +462,32 @@ class LPATHPlot:
             Whether to plot each cluster in separate subplots or not.
 
         """
-        self.plt_config(ax_idx)
+        self.plt_config(ax_idx, separate=True)
         plot_axes = self.determine_plot_axes(ax_idx, separate)
 
         for n_axes, axes in enumerate(plot_axes):
-            if separate:
-                loop = []
-                axes.set_title(f'class {n_axes}')
-            else:
-                loop = range(len(self.path_indices))
+            G = networkx.DiGraph()
+            colors = [
+                matplotlib.colors.cnames[default_dendrogram_colors[cidx]] if mapping[i] not in ["A", "B"] else "#D3D3D3"
+                for i in range(n_total_states)]
 
-            for n_loop, to_plot in enumerate(loop):
-                iteration_target = [iter_id for iter_id in self.num_iter[self.path_indices[to_plot]]]
-                axes.hist(iteration_target, bins=numpy.arange(self.min_iter - 1, self.max_iter, self.interval),
-                          weights=self.weights[self.path_indices[to_plot]],
-                          color=self.mpl_colors[to_plot % len(self.mpl_colors)-1], alpha=0.7, label=f'class {n_loop}')
+            iteration_target = self.target_iter[self.path_indices[n_axes]]
+            axes.hist(iteration_target, bins=numpy.arange(self.min_iter - 1, self.max_iter, self.interval),
+                      weights=self.weights[self.path_indices[n_axes]],
+                      color=self.mpl_colors[n_axes % (len(self.mpl_colors) - 1)],
+                      label=f'class {n_axes}')
 
             axes.set_xlim(self.min_iter - 1, self.max_iter)
-            axes.set_xlabel("we iteration of arrival")
+            axes.set_xlabel("iteration")
             axes.set_ylabel("probability")
             axes.set_yscale("log")
 
-        axes.legend()
-
         self.fig.set_layout_engine(layout='tight')
-        self.fig.savefig(f"{self.out_path}/target_iteration.pdf")
-        log.info(f'Outputted graph in {self.out_path}/target_iteration.pdf.')
+        self.fig.savefig(f"{self.out_path}/network.pdf")
+        log.info(f'Outputted graph in {self.out_path}/network.pdf.')
+
+        if self.show_fig:
+            plt.show()
 
 
 def plot_custom():
@@ -480,7 +559,7 @@ def process_plot_args(arguments):
 
     if arguments.output_pickle is None:
         setattr(arguments, 'output_pickle', 'succ_traj/pathways.pickle')
-        log.info(f'Setting match pickle output/plot pickle input to default {arguments.arguments}.')
+        log.info(f'Setting match pickle output/plot pickle input to default {arguments.output_pickle}.')
 
     if arguments.dendrogram_threshold is None:
         setattr(arguments, 'dendrogram_threshold', 0.5)
@@ -506,17 +585,21 @@ def main(arguments):
     # Reassignment... (or not).
     data.new_pathways, data.new_cluster_labels = relabel(data)  # system-specific relabeling of things
 
-    if arguments.regen_cl:
-        # Attempt to re-visualize the dendrogram.
-        data.ax = visualize(data.linkage, threshold=arguments.dendrogram_threshold, out_path=arguments.out_path,
-                            show_fig=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors, ax=data.ax)
-        determine_rerun(data.linkage, out_path=data.out_path, mpl_colors=arguments.mpl_colors, ax=data.ax)
-        n_clusters = ask_number_clusters(arguments.num_clusters)
-        cluster_labels = hcluster(data.linkage, n_clusters)
-        data.cluster_labels = cluster_labels
-        numpy.save(f'{data.out_path}/new_cluster_labels.npy', data.cluster_labels)
+    # if arguments.regen_cl:
+    #     # Attempt to re-visualize the dendrogram.
+    #     data.ax = visualize(data.linkage, threshold=arguments.dendrogram_threshold, out_path=arguments.out_path,
+    #                         show_fig=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors, ax=data.ax)
+    #     determine_rerun(data.linkage, out_path=data.out_path, mpl_colors=arguments.mpl_colors, ax=data.ax)
+    #     data.num_clusters = ask_number_clusters(arguments.num_clusters)
+    #     cluster_labels = hcluster(data.linkage, data.num_clusters)
+    #     data.cluster_labels = cluster_labels
+    #     numpy.save(f'{data.out_path}/new_cluster_labels.npy', data.cluster_labels)
 
+    # The following plots are done in a single plot
     data.plotdendro_branch_colors()
     data.plothist_weight_cluster()
-    data.plothist_target_iter(separate=arguments.plot_separate)
-    data.plothist_event_duration(separate=arguments.plot_separate)
+
+    # The following plots are done per-cluster
+    data.plothist_target_iter(separate=True)
+    data.plothist_event_duration(separate=True)
+
