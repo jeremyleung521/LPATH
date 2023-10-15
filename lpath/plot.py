@@ -170,8 +170,8 @@ class LPATHPlot:
         self.target_iter = numpy.asarray(target_iter)
         self.num_clusters = len(path_indices)
 
-        weighted_counts = [numpy.sum(self.weights[self.states == i]) for i in range(self.num_clusters)]
-        self.weighted_counts = numpy.array(weighted_counts, dtype=float)
+        # weighted_counts = [numpy.sum(self.weights[self.states == i]) for i in range(self.num_clusters)]
+        # self.weighted_counts = numpy.array(weighted_counts, dtype=float)
 
         self.min_iter = min(self.num_iter)
         self.max_iter = max(self.num_iter)
@@ -359,7 +359,7 @@ class LPATHPlot:
 
             axes.bar(x_list, y_list, width=0.75, color=self.mpl_colors[:-1])
             axes.set_xlim(0, max(x_list) + 1)
-            axes.set_ylim(0, max(y_list))
+            # axes.set_ylim(0, max(y_list))
             axes.set_xticks(ticks=x_list, labels=[f'{x}' for x in x_list])
             axes.set_xlabel(r'pathway classes')
             axes.set_ylabel('probability')
