@@ -9,12 +9,12 @@ dependencies:
   - scikit-learn
   - tqdm
   - matplotlib
-  - networkx
   - pip:
     - pylcs
     - ray
     - timedinput
     - argparse-tui
+    - networkx
 
     # Testing
   - pytest

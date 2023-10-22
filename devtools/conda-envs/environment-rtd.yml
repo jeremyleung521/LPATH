@@ -12,7 +12,7 @@ dependencies:
     - networkx
     - mock
     - pillow
-    - sphinx==6.2.1 # sphinx 7 breaks "style"
+    - sphinx
     - sphinx_rtd_theme
     - pip
     - pip:
