@@ -119,7 +119,7 @@ for cidx, cluster in enumerate(range(n_clusters)):
 
     # Mapping state id to the state label to be shown on this network plot
     mapping = {0: "0", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "A", 7: "B", 8: "8", 9: "9", 10: "10", 11: "11"}
-    colors = [matplotlib.colors.cnames[default_dendrogram_colors[cidx]] if mapping[i] not in ["A", "B"] else "#D3D3D3" for i in range(n_total_states)]
+    colors = [matplotlib.colors.cnames[default_dendrogram_colors[cidx]] if mapping[i] in ["A", "B"] else "#D3D3D3" for i in range(n_total_states)]
 
     # Specifying custom positions of each state
     pos = {"0": cluster_centers[0], "1": cluster_centers[1], "2": cluster_centers[2], "3": cluster_centers[3], "4": cluster_centers[4], "5": cluster_centers[5], "A": (-140,80), "B": (80,-50), "8": (-110, 250), "9": (-110, -250), "10": (60, 250), "11": (60, -250)}
