@@ -46,7 +46,7 @@ jobs:
           python -c "import lpath.lpath" &&
           echo "All done with import tests!"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: dist/*.whl
 
@@ -79,7 +79,7 @@ jobs:
           python -c "import lpath.lpath" &&
           echo "All done with import tests!"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: dist/*.tar.gz
 
