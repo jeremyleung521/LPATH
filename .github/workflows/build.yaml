@@ -48,6 +48,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: artifact-wheels
           path: dist/*.whl
           overwrite: true
 
@@ -82,6 +83,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: artifact-sdist
           path: dist/*.tar.gz
           overwrite: true
 
@@ -99,7 +101,7 @@ jobs:
         with:
           # unpacks default artifact into dist/
           # if `name: artifact` is omitted, the action will create extra parent dir
-          name: artifact
+          name: artifact-*
           path: dist
           merge-multiple: true
 
