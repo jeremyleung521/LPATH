@@ -69,5 +69,5 @@ jobs:
           fail_ci_if_error: false
           verbose: false
         env:
-          token: ${{ secrets.CODECOV_TOKEN }} # Not needed for Public Repos
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Not needed for Public Repos
 
