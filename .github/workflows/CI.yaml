@@ -61,11 +61,13 @@ jobs:
           pytest -v --cov=lpath --cov-report=xml --color=yes lpath/tests/
 
       - name: CodeCov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
-          # token: ${{ secrets.CODECOV_TOKEN }} # Not needed for Public Repos
           file: ./coverage.xml
           flags: unittests
           name: codecov-${{ matrix.os }}-py${{ matrix.python-version }}
           fail_ci_if_error: false
           verbose: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Not needed for Public Repos
+
