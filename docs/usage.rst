@@ -92,7 +92,8 @@ In this step, we will pattern match any successful transitions we've identified 
 
 1. From the command line, run the following::
 
-    lpath match --input-pickle succ_traj/pathways.pickle --cluster-labels-output succ_traj/cluster_labels.npy
+    lpath match --input-pickle succ_traj/pathways.pickle --output-pickle succ_traj/match-output.pickle \
+    --cluster-labels-output succ_traj/cluster_labels.npy
 
 2. After the comparison process is completed, it should show you the dendrogram. Closing the figure should trigger prompts to guide you further.
 
@@ -100,9 +101,22 @@ In this step, we will pattern match any successful transitions we've identified 
 
 Plot
 ____
+This step will help you plot some of the most common graphs, such as dendrograms and histograms, directly from the pickle object generated from match. Users may also elect to use the plotting scripts from the ``examples`` folder.
+There is a script to plot ``NetworkX`` plots there.
 
-[UNDER CONSTRUCTION]
+More specifically, the following graphs will be made in the ``plots`` folder::
 
+* Dendrogram showing separation between clusters
+* Weights/Cluster bar graph
+* Target iteration histograms (per cluster)
+* Event duration histograms (per cluster)
+
+
+From the command line, run the following and it should generate a separate file for each of the above graphs::
+
+    lpath plot --plot-input succ_traj/match-output.pickle
+
+More options for customizing the graphs can be found by running ``lpath plot --help``.
 
 Weighted Ensemble Simulations
 -----------------------------
@@ -144,7 +158,7 @@ This will do the pattern matching and output individual h5 files for each cluste
 
 1. From the command line, run the following::
 
-    lpath match -we --input-pickle succ_traj/output.pickle --cluster-labels-output succ_traj/cluster_labels.npy \
+    lpath match -we --input-pickle succ_traj/output.pickle --output-pickle succ_traj/match-output.pickle  --cluster-labels-output succ_traj/cluster_labels.npy \
         --export-h5 --file-pattern "west_succ_c{}.h5"
 
 2. After the comparison process is completed, it should show you the dendrogram. Closing the figure should trigger prompts to guide you further.
@@ -154,11 +168,25 @@ This will do the pattern matching and output individual h5 files for each cluste
 
 For cases where you want to run pattern matching comparison between segment IDs, you will have to use the largest common substring ``--substring`` option. By default, the longest common subsequence algorithm is used.::
 
-    lpath match -we --input-pickle succ_traj/output.pickle --cluster-labels-output succ_traj/cluster_labels.npy \
+    lpath match -we --input-pickle succ_traj/output.pickle --output-pickle succ_traj/match-output.pickle --cluster-labels-output succ_traj/cluster_labels.npy \
         --export-h5 --file-pattern "west_succ_c{}.h5" --reassign-function "reassign_segid" --substring
 
 
 Plot
 ____
+This step will help you plot some of the most common graphs, such as dendrograms and histograms, directly from the pickle object generated from match. Users may also elect to use the plotting scripts from the ``examples`` folder.
+There is a script to plot ``NetworkX`` plots there.
 
-[UNDER CONSTRUCTION]
+More specifically, the following graphs will be made in the ``plots`` folder::
+
+* Dendrogram showing separation between clusters
+* Weights/Cluster bar graph
+* Target iteration histograms (per cluster)
+* Event duration histograms (per cluster)
+
+
+From the command line, run the following and it should generate a separate file for each of the above graphs::
+
+    lpath plot --plot-input succ_traj/match-output.pickle
+
+More options for customizing the graphs can be found by running ``lpath plot --help``.
