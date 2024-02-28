@@ -190,3 +190,68 @@ From the command line, run the following and it should generate a separate file 
     lpath plot --plot-input succ_traj/match-output.pickle
 
 More options for customizing the graphs can be found by running ``lpath plot --help``.
+
+
+Example Reassign file
+---------------------
+
+The following is a reassign function if you decides to reclassify your states.
+
+    def reassign_custom(data, pathways, dictionary, assign_file=None):
+        """
+        Reclassify/assign frames into different states. This is highly
+        specific to the system. If w_assign's definition is sufficient,
+        you can proceed with what's made in the previous step
+        using ``reassign_identity``.
+
+        In this example, the dictionary maps state idx to its corresponding ``state_string``.
+        We suggest using alphabets as states.
+
+        Parameters
+        ----------
+        data : list
+            An array with the data necessary to reassign, as extracted from ``output.pickle``.
+
+        pathways : numpy.ndarray
+            An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
+
+        dictionary : dict
+            An empty dictionary obj for mapping ``state_id`` with ``state string``. The last entry in
+            the dictionary should be the "unknown" state.
+
+        assign_file : str, default : None
+            A string pointing to the ``assign.h5`` file. Needed as a parameter for all functions,
+            but is ignored if it's an MD trajectory.
+
+        Returns
+        -------
+        dictionary : dict
+            A dictionary mapping each ``state_id`` (float/int) with a ``state string`` (character).
+            The last entry in the dictionary should be the "unknown" state.
+
+        """
+        # Other example for grouping multiple states into one.
+        for idx, pathway in enumerate(data):
+            # The following shows how you can "merge" multiple states into
+            # a single one.
+            pathway = numpy.asarray(pathway)
+            # Further downsizing... to if pcoord is less than 5
+            first_contact = numpy.where(pathway[:, 3] < 5)[0][0]
+            for jdx, frame in enumerate(pathway):
+                # First copy all columns over
+                pathways[idx, jdx] = frame
+                # ortho is assigned to state 0
+                if frame[2] in [1, 3, 4, 6, 7, 9]:
+                    frame[2] = 0
+                # para is assigned to state 1
+                elif frame[2] in [2, 5, 8]:
+                    frame[2] = 1
+                # Unknown state is assigned 2
+                if jdx < first_contact:
+                    frame[2] = 2
+                pathways[idx, jdx] = frame
+
+        # Generating a dictionary mapping each state
+        dictionary = {0: 'A', 1: 'B', 2: '!'}
+
+        return dictionary

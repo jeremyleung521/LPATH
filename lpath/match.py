@@ -395,7 +395,8 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
         An empty array with shapes for iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight.
 
     dictionary : dict
-        An empty dictionary obj for mapping ``state_id`` with ``state string``.
+        An empty dictionary obj for mapping ``state_id`` with ``state string``. The last entry in
+        the dictionary should be the "unknown" state.
 
     assign_file : str, default : None
         A string pointing to the ``assign.h5`` file. Needed as a parameter for all functions,
@@ -405,6 +406,7 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
     -------
     dictionary : dict
         A dictionary mapping each ``state_id`` (float/int) with a ``state string`` (character).
+        The last entry in the dictionary should be the "unknown" state.
 
     """
     # Other example for grouping multiple states into one.
