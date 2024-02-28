@@ -169,7 +169,7 @@ This will do the pattern matching and output individual h5 files for each cluste
 For cases where you want to run pattern matching comparison between segment IDs, you will have to use the largest common substring ``--substring`` option. By default, the longest common subsequence algorithm is used.::
 
     lpath match -we --input-pickle succ_traj/output.pickle --output-pickle succ_traj/match-output.pickle --cluster-labels-output succ_traj/cluster_labels.npy \
-        --export-h5 --file-pattern "west_succ_c{}.h5" --reassign-function "reassign_segid" --substring
+        --export-h5 --file-pattern "west_succ_c{}.h5" --reassign-method "reassign_segid" --substring
 
 
 Plot

@@ -410,14 +410,14 @@ def add_match_args(parser=None):
     match_io.add_argument('--output-pickle', '-op', '--OP', dest='output_pickle',
                           default='succ_traj/pathways.pickle', type=str, help='Path to reassigned object to be '
                           'outputted from the `match` step.')
-    match_io.add_argument('--cl-output', '-co', '--cluster-label-output', dest='cl_output',
+    match_io.add_argument('--cl-output', '-co', '--cluster-label-output', '--cluster-labels-output', dest='cl_output',
                           default='succ_traj/cluster_labels.npy', type=str,
                           help='Output file location for cluster labels.')
     match_io.add_argument('--match-exclude-min-length', '-me', '--match-exclude-length', '--match-exclude-short',
                           dest='exclude_short', type=check_non_neg, default=0,
                           help='Exclude trajectories shorter than provided value during '
                                'matching. Default is 0, which will include trajectories of all lengths.')
-    match_io.add_argument('--reassign', '-ra', '--reassign-method', dest='reassign_method',
+    match_io.add_argument('--reassign', '-ra', '--reassign-method', '--reassign-function', dest='reassign_method',
                           default='reassign_identity', type=str,
                           help='Reassign method to use. Could be one of the defaults or a module to load. Defaults are '
                                '``reassign_identity``, ``reassign_statelabel``, ``reassign_segid``, '
