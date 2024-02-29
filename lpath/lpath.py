@@ -56,6 +56,6 @@ def entry_point():
 
     make_dir(args)
 
-    print(args)
+    # print(args)
     # Run whatever function given
     args.func(args)
