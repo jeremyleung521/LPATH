@@ -195,7 +195,7 @@ More options for customizing the graphs can be found by running ``lpath plot --h
 Example Reassign file
 ---------------------
 
-The following is a reassign function if you decides to reclassify your states.
+The following is a reassign function if you decides to reclassify your states::
 
     def reassign_custom(data, pathways, dictionary, assign_file=None):
         """
