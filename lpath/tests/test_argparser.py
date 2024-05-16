@@ -124,7 +124,7 @@ class TestParsers:
 
         assert isinstance(output, argparse.ArgumentParser)
         # Need to change as number of options increase
-        assert len(output._actions) == 66
+        assert len(output._actions) == 67
 
     def test_common_arguments(self, create_ref_parser):
         """
@@ -180,7 +180,7 @@ class TestParsers:
         """
         output, test_output = create_ref_parser
         test_input = ['-ipl', '-icl', '-pdF', '-pod', '-sty', '-mpl', '-col', '-pdt', '-pds',
-                      '-pdh', '-nc', '-prl']
+                      '-pdh', '-nc', '-prl', '-pto']
 
         for option in test_input:
             assert option in test_output

@@ -940,7 +940,7 @@ def export_we_files(data_arr, weights, cluster_labels, clusters, file_pattern="w
         f.writelines(representative_list)
 
 
-def determine_rerun(z, out_path='plots', mpl_colors=default_dendrogram_colors, ax=None):
+def determine_rerun(z, out_path='plots', mpl_colors=default_dendrogram_colors, ax=None, timeout=None):
     """
     Asks if you want to regenerate the dendrogram.
 
@@ -957,11 +957,18 @@ def determine_rerun(z, out_path='plots', mpl_colors=default_dendrogram_colors, a
 
     ax : matplotlib.Axes, Default: None
         Matplotlib.Axes object to be inherited.
+
+    timeout : int, default: 30
+        Input timeout in seconds.
+
     """
+    if timeout is None:
+        timeout = 30
+
     while True:
         try:
             ans = timedinput('Do you want to regenerate the graph with a new threshold (y/[n])?\n',
-                             timeout=60, default='N')
+                             timeout=timeout, default='N')
             if ans == 'y' or ans == 'Y':
                 ans2 = timedinput('What new threshold would you like?\n', timeout=15, default=0.5)
                 try:
@@ -969,7 +976,7 @@ def determine_rerun(z, out_path='plots', mpl_colors=default_dendrogram_colors, a
                                    show_fig=True, mpl_colors=mpl_colors, ax=ax)
                     return ax
                 except ValueError:
-                    determine_rerun(z, out_path=out_path, mpl_colors=mpl_colors, ax=ax)
+                    determine_rerun(z, out_path=out_path, mpl_colors=mpl_colors, ax=ax, timeout=timeout)
             elif ans == 'n' or ans == 'N' or ans == '':
                 return None
             else:
@@ -978,16 +985,19 @@ def determine_rerun(z, out_path='plots', mpl_colors=default_dendrogram_colors, a
             sys.exit(0)
 
 
-def ask_number_clusters(num_clusters=None):
+def ask_number_clusters(num_clusters=None, timeout=None):
     """
     Asks how many clusters you want to separate the trajectories into.
 
     """
+    if timeout is None:
+        timeout = 15
+
     if not num_clusters:
         while True:
             try:
                 ans = timedinput('How many clusters would you like to separate the pathways into?\n',
-                                 timeout=15, default=2)
+                                 timeout=timeout, default=2)
                 try:
                     ans = int(ans)
                     return ans
@@ -995,6 +1005,8 @@ def ask_number_clusters(num_clusters=None):
                     log.warning("Invalid input.\n")
             except KeyboardInterrupt:
                 sys.exit(0)
+    else:
+        return num_clusters
 
 
 def report_statistics(n_clusters, cluster_labels, weights, segid_status=False):
@@ -1094,9 +1106,10 @@ def main(arguments):
     z = calc_linkage(dist_matrix)
     ax = visualize(z, threshold=arguments.dendrogram_threshold, out_path=arguments.out_path,
                    show_fig=arguments.dendrogram_show, mpl_colors=arguments.mpl_colors)
-    ax = determine_rerun(z, out_path=arguments.out_path, mpl_colors=arguments.mpl_colors, ax=ax)
+    ax = determine_rerun(z, out_path=arguments.out_path, mpl_colors=arguments.mpl_colors, ax=ax,
+                         timeout=arguments.plot_timeout)
 
-    n_clusters = ask_number_clusters(arguments.num_clusters)
+    n_clusters = ask_number_clusters(arguments.num_clusters, timeout=arguments.plot_timeout)
     cluster_labels = hcluster(z, n_clusters)
 
     # Report statistics

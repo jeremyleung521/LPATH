@@ -538,6 +538,8 @@ def add_plot_args(parser=None):
     plot_io.add_argument('--n-clusters', '-nc', '--num-clusters', dest='num_clusters', type=check_positive,
                          help='For cases where you know in advance how many clusters you want for '
                               'the hierarchical clustering.')
+    plot_io.add_argument('--timeout', '-pto', '--plot-timeout', dest='plot_timeout', type=check_non_neg,
+                         default=None, help='Timeout (in seconds) for asking input.')
 
     # plot_io.add_argument('--plot-regen-cl', '-rcl', '--plot-regenerate-cluster-labels', dest='regen_cl',
     #                      action='store_true',
