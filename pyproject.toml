@@ -33,7 +33,7 @@ dependencies = [
     "ray",
     "tqdm",
     "networkx",
-    "matplotlib",
+    "matplotlib>=3.6.0",
     "timedinput",
     "importlib-resources;python_version<'3.10'"
 ]
@@ -55,7 +55,7 @@ westpa = [
     "westpa>=2022.03"
 ]
 tui = [
-    "argparse-tui"
+    "argparse-tui>0.2.4"
 ]
 dev = [
     "lpath-md[test,westpa,tui]"
