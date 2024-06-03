@@ -438,11 +438,11 @@ def reassign_custom(data, pathways, dictionary, assign_file=None):
 
 def reassign_statelabel(data, pathways, dictionary, assign_file):
     """
-    Use ``assign.h5`` states as is with ``statelabels``. Does not reclassify/assign frames
+    Use ``assign.h5`` states as is with ``state_labels``. Does not reclassify/assign frames
     into new states.
 
-    In this example, the dictionary maps state idx to its ``statelabels``,
-    as defined in the assign.h5. We suggest using alphabets as ``statelabels``
+    In this example, the dictionary maps state idx to its ``state_labels``,
+    as defined in the assign.h5. We suggest using alphabets as ``state_labels``
     to allow for more than 9 states.
 
     Parameters
@@ -524,7 +524,7 @@ def reassign_segid(data, pathways, dictionary, assign_file=None):
 def reassign_identity(data, pathways, dictionary, assign_file=None):
     """
     Use assign.h5 states as is. Does not attempt to map assignment
-    to ``statelabels`` from assign.h5.
+    to ``state_labels`` from assign.h5.
 
     Parameters
     ----------
