@@ -48,8 +48,6 @@ def entry_point():
 
     argparser.check_argv()
 
-    parser.print_usage()
-
     # print(parser.__dict__)
     args = argparser.process_args(parser)
     log.info(f'LPATH arguments: {args}')

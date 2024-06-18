@@ -2,9 +2,10 @@
 All argument parsing from commandline is dealt here.
 """
 import argparse
-from argparse import ArgumentTypeError
-from lpath._logger import Logger
+from argparse import ArgumentTypeError, Namespace
 from ast import literal_eval
+
+from lpath._logger import Logger
 from lpath.io import default_dendrogram_colors
 
 log = Logger().get_logger(__name__)
@@ -21,6 +22,7 @@ class InvalidArgumentError(Exception):
     Custom Error for cases when invalid arguments are inputted.
 
     """
+
     def __init__(self, message="Invalid Argument."):
         self.message = message
         super().__init__(self.message)
@@ -344,8 +346,9 @@ def add_extract_args(parser=None):
                           help='Use Ray work manager. On by default.')
     raygroup.add_argument('--no-ray', '-NR', dest='use_ray', action='store_false',
                           help='Do not use Ray. This overrides ``--use-ray``.')
-    raygroup.add_argument('--threads', '-t', type=check_non_neg, default=0, help='Number of threads to use '
-                          'with Ray. The default of ``0`` uses all available resources detected.')
+    raygroup.add_argument('--threads', '-t', type=check_non_neg, default=0,
+                          help='Number of threads to use with Ray. The default of ``0`` uses '
+                               'all available resources detected.')
 
     extract_we = parser.add_argument_group('WE-specific Extract Parameters')
 
@@ -406,10 +409,10 @@ def add_match_args(parser=None):
 
     match_io.add_argument('--input-pickle', '-ip', '--IP', '--pickle', dest='extract_output',
                           default='succ_traj/output.pickle', type=str, help='Path to pickle object from the `extract` '
-                          'step.')
+                                                                            'step.')
     match_io.add_argument('--output-pickle', '-op', '--OP', dest='output_pickle',
                           default='succ_traj/pathways.pickle', type=str, help='Path to reassigned object to be '
-                          'outputted from the `match` step.')
+                                                                              'outputted from the `match` step.')
     match_io.add_argument('--cl-output', '-co', '--cluster-label-output', '--cluster-labels-output', dest='cl_output',
                           default='succ_traj/cluster_labels.npy', type=str,
                           help='Output file location for cluster labels.')
@@ -461,7 +464,7 @@ def add_match_args(parser=None):
                           help='Do not remake distance matrix.')
     match_io.add_argument('--remake-file', '--remade-file', '-dF', dest='dmatrix_save', type=str,
                           default='succ_traj/distmat.npy', help='Path to pre-calculated distance matrix. Make sure '
-                                  'the ``--no-remake`` flag is specified.')
+                                                                'the ``--no-remake`` flag is specified.')
     match_io.add_argument('--remake-parallel', '-dP', dest='dmatrix_parallel', type=int,
                           help='Number of jobs to run with the pairwise distance calculations. The default=None issues '
                                'one job. A value of -1 uses all available resources. This is directly passed to the '
@@ -766,3 +769,19 @@ def check_argv():
 
     if 1 < len(sys.argv) < 3 and sys.argv[1] in all_options:
         log.warning(f'Running {sys.argv[1]} with all default values. Make sure you\'re sure of this!')
+
+
+class DefaultArgs:
+    """
+    Convenience class that could be used to call all the default arguments for each subparser.
+    """
+    def __init__(self):
+        self.parser = create_parser()
+        self.subparsers = []
+        self.parser, self.subparsers = create_subparsers(self.parser, self.subparsers)
+
+        self.discretize = self.subparsers[0].parse_args('')
+        self.extract = self.subparsers[1].parse_args('')
+        self.match = self.subparsers[2].parse_args('')
+        self.plot = self.subparsers[3].parse_args('')
+        self.all = self.subparsers[4].parse_args('')
