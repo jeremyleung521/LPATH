@@ -22,7 +22,6 @@ class InvalidArgumentError(Exception):
     Custom Error for cases when invalid arguments are inputted.
 
     """
-
     def __init__(self, message="Invalid Argument."):
         self.message = message
         super().__init__(self.message)
