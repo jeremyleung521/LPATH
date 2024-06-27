@@ -571,7 +571,8 @@ def we(arguments):
                             for frame_index in frame_loop:
                                 indv_trace.append([iteration_num, segment_num, corr_assign[frame_index],
                                                    *ad_arr[frame_index], frame_index, weight])
-                            break
+                            if trace_basis is False:
+                                break
                         else:
                             # Just a normal iteration where we reached target state. Output everything in stride.
                             frame_loop = frame_range(-1, term_frame_num, total_frames, stride_step)
@@ -713,7 +714,8 @@ def we(arguments):
                         for frame_index in frame_loop:
                             indv_trace.append([iteration_num, segment_num, corr_assign[frame_index],
                                                *ad_arr[frame_index], frame_index, weight])
-                        break
+                        if trace_basis is False:
+                            break
                     else:
                         # Just a normal iteration where we reached target state. Output everything in stride.
                         frame_loop = frame_range(-1, term_frame_num, total_frames, stride_step)

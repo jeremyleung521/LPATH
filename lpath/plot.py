@@ -151,7 +151,7 @@ class LPATHPlot:
         for pathway in self.pathways:
             non_zero = pathway[numpy.nonzero(pathway[:, 0])]  # Removing padding frames...
             weights.append(non_zero[-1, -1])
-            durations.append(len(non_zero))
+            durations.append(len(non_zero) / arguments.stride)
             target_iter.append(non_zero[-1][0])
             iter_num += [frame[0] for frame in non_zero]
             states.append(pathway[:, 2])
@@ -169,6 +169,7 @@ class LPATHPlot:
         self.num_iter = numpy.asarray(iter_num, dtype=object)
         self.target_iter = numpy.asarray(target_iter)
         self.num_clusters = len(path_indices)
+        self.stride = arguments.stride
 
         # weighted_counts = [numpy.sum(self.weights[self.states == i]) for i in range(self.num_clusters)]
         # self.weighted_counts = numpy.array(weighted_counts, dtype=float)
@@ -191,6 +192,9 @@ class LPATHPlot:
         self.ax = None
         self.show_fig = arguments.dendrogram_show
         self.ax_idx = 0
+
+        if not self.show_fig:
+            matplotlib.use('agg')
 
     def plt_config(self, ax_idx=None, separate=None):
         """
