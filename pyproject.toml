@@ -55,7 +55,8 @@ westpa = [
     "westpa>=2022.03"
 ]
 tui = [
-    "argparse-tui>0.2.4"
+    "argparse-tui>0.2.4",
+    "textual<0.80.0"  # Pinning b/c argparse-tui does not support textual>=0.80.0
 ]
 dev = [
     "lpath-md[test,westpa,tui]"
