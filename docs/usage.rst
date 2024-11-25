@@ -111,7 +111,6 @@ More specifically, the following graphs will be made in the ``plots`` folder::
 * Target iteration histograms (per cluster)
 * Event duration histograms (per cluster)
 
-
 From the command line, run the following and it should generate a separate file for each of the above graphs::
 
     lpath plot --plot-input succ_traj/match-output.pickle
@@ -184,7 +183,6 @@ More specifically, the following graphs will be made in the ``plots`` folder::
 * Target iteration histograms (per cluster)
 * Event duration histograms (per cluster)
 
-
 From the command line, run the following and it should generate a separate file for each of the above graphs::
 
     lpath plot --plot-input succ_traj/match-output.pickle
@@ -255,3 +253,53 @@ The following is a reassign function if you decides to reclassify your states::
         dictionary = {0: 'A', 1: 'B', 2: '!'}
 
         return dictionary
+
+
+Analyzing the Pickle Files
+--------------------------
+
+By default, the pickle outputs of ``lpath`` contains a nested list of lists (or a multi-dimensional numpy array). The
+output from the ``extract`` step would be a list of lists. The output from ``match`` is a multi-dimensional numpy array,
+with the shortest pathway 0-padded to the longest length. Regardless of format, they should contain very similar information.
+
+Formatting of the Pickle Files
+______________________________
+The shape of the output is in the format::
+
+    (n_pathways, n_frames,
+        (iter_id/seg_id/state_id/pcoord_or_auxdata/frame#/weight))
+
+The first dimension would be the total number of pathways. The second dimension would be the number of frames in that pathways,
+which would vary depending if ``--trace-basis`` is chosen. each frame would always contain information like iteration number, segment number,
+state id, frame number, and weight. The number of columns for ``pcoord`` or ``auxdata`` would depend on the options used to generate the
+pickle object.
+
+Loading in the File with Python
+_______________________________
+To load in the pickle object from the binary file, one can run the following in a python or ipython terminal::
+
+    import pickle
+    with open('pickle.output', 'rb') as f:
+        pickle_obj = pickle.load(f)
+
+
+
+``pickle_obj[0]`` would be the first pathway traced. ``pickle_obj[1]`` would be second. ``len(pickle_obj)`` would be the total number of
+successful transitions found.
+
+Analyzing each pathway
+______________________
+Let's look at the first traced pathway::
+
+    pathway = pickle_obj[0]
+
+
+``pathway[0]`` would be the first frame of the first pathway. Typically, this could correspond to the frame it last exited
+from the source state. With ``-trace-basis``, this will trace all the way to the basis state.
+
+If ``pickle_obj`` is a list of lists (created using ``lpath extract``), then ``pickle_obj[0][-1]`` should always point to
+the last frame (first time it hits the target state). If the ``pickle obj`` is a multi-dimensional numpy array (created using
+``lpath match``), then ``pickle_obj[0][-1]`` could point to the last frame (first time it hits the target state) or it could
+be a 0-padded frame since numpy does not like ragged arrays. The 0-padded frames will always have an iteration number of 0.
+One can filter those frames by searching for columns using numpy indexing (e.g., ``pathway[pathway[:,0] != 0]``).
+
