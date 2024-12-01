@@ -61,7 +61,7 @@ jobs:
           pytest -v --cov=lpath --cov-report=xml --color=yes lpath/tests/
 
       - name: CodeCov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           file: ./coverage.xml
           flags: unittests
