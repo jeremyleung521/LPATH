@@ -20,7 +20,7 @@ Copyright © 2023, Anthony Bogetti, Jeremy Leung, Lillian Chong
 
 ## Quickstart Guide
 
-Users may install this program via [PyPI](https://pypi.org/project/lpath-md/) (recommended) or 
+Users may install this program via [PyPI](https://pypi.org/project/lpath/) (recommended) or 
 from [GitHub Source](https://github.com/chonglab-pitt/lpath). By default, LPATH is installed with the bare minimum to 
 run analysis on classic MD simulations. Users who intend to analyze WESTPA simulations should install WESTPA 
 in the same environment.
@@ -32,10 +32,10 @@ in the same environment.
     2. Move into the folder: ```cd lpath```
     3. Install the program in editable mode: ```python -m pip install -e .```
 3. There are a variety of optional dependencies you may install. These work with either installation options listed above.
-    1. Install with `WESTPA`: ```python -m pip install lpath-md[westpa]```
-    2. Install with terminal user interface (TUI): ```python -m pip install lpath-md[tui]```
-    3. Developers can install with [dev] (all dependencies) or [test] (minimal dependencies to run tests): ```python -m pip install lpath-md[dev]```
-    4. Options may be combined: ```python -m pip install lpath-md[westpa,tui]```
+    1. Install with `WESTPA`: ```python -m pip install lpath[westpa]```
+    2. Install with terminal user interface (TUI): ```python -m pip install lpath[tui]```
+    3. Developers can install with [dev] (all dependencies) or [test] (minimal dependencies to run tests): ```python -m pip install lpath[dev]```
+    4. Options may be combined: ```python -m pip install lpath[westpa,tui]```
 
 
 ### Acknowledgements

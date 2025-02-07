@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 # Self-descriptive entries which should always be present
 # https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 [project]
-name = "lpath-md"
+name = "lpath"
 description = "A user-friendly, Python tool for clustering pathways from molecular dynamics simulations."
 dynamic = ["version"]
 readme = "README.md"
@@ -58,7 +58,7 @@ tui = [
     "argparse-tui>0.2.5",
 ]
 dev = [
-    "lpath-md[test,westpa,tui]"
+    "lpath[test,westpa,tui]"
 ]
 
 [tool.setuptools]
