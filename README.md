@@ -25,8 +25,8 @@ from [GitHub Source](https://github.com/chonglab-pitt/lpath). By default, LPATH 
 run analysis on classic MD simulations. Users who intend to analyze WESTPA simulations should install WESTPA 
 in the same environment.
 
-1. Install from [PyPI](https://pypi.org/project/lpath-md/):
-    ```python -m  pip install lpath-md```
+1. Install from [PyPI](https://pypi.org/project/lpath/):
+    ```python -m  pip install lpath```
 2. Install from [GitHub Source](https://github.com/chonglab-pitt/lpath):
     1. Clone the git repository:  ```git clone https://github.com:chonglab-pitt/lpath```
     2. Move into the folder: ```cd lpath```
