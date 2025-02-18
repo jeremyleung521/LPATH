@@ -912,6 +912,7 @@ def we(arguments):
         name_root = west_name.rsplit(".h5", maxsplit=1)[0]
         new_file = f"{out_dir}/{name_root}_succ.h5"
         # if not exists(new_file): # Always recopy file...
+        log.info(f'Copying {west_name} as {new_file}. This might take a while depending on file size...')
         copyfile(west_name, new_file)
 
         # Prepping final list to be outputted
