@@ -198,7 +198,7 @@ def add_common_args(parser=None):
     commongroup = parser.add_argument_group('Shared Parameters')
 
     commongroup.add_argument('-od', '--out-dir', '--output-directory', dest='out_dir', default='succ_traj',
-                             type=str, help='Directory to save your output files. Path relative to ``$PWD``.')
+                             type=str, help='Directory to save your output files. Path relative to ``$PWD``. Default: ``succ_traj``')
     commongroup.add_argument('-st', '--stride', dest='stride', default=1, type=check_positive,
                              help='Dictates how much data to use in analysis. If used in standard MD, this will '
                                   'be the step size (at a per file basis during load time). For a WE simulation, '
@@ -513,7 +513,7 @@ def add_plot_args(parser=None):
                          help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is '
                               'specified. This is defaulted to what\'s provided in ``match`` step.')
     plot_io.add_argument('--plot-out-path', '-pod', '-POD', '--plot-output-path', dest='out_path', default='plots',
-                         type=str, help='Directory to save your plotting output files. Path relative to ``$PWD``.')
+                         type=str, help='Directory to save your plotting output files. Path relative to ``$PWD``. Default: ``plots``')
     plot_io.add_argument('-sty', '--STY', '--mpl-styles', '--matplotlib-styles', dest='mpl_styles',
                          default='default', type=str,
                          help='Path to custom style script. Defaults to our recommendations.')
