@@ -710,6 +710,34 @@ def process_extract_output(arguments):
     return arguments
 
 
+def process_output_folder(arguments):
+    """
+    Modify all output files to be in `out_dir` if it's not `succ_traj`.
+
+    Parameters
+    ----------
+    arguments : argparse.Namespace
+        Parsed arguments by parser.
+
+    Returns
+    -------
+    arguments : argparse.Namespace
+        Modified parsed arguments by parser.
+
+    """
+    if arguments.out_dir != 'succ_traj':
+        new_out_dir = arguments.out_dir
+        for output_attr in ['extract_output', 'output_pickle', 'cl_output', 'dmatrix_save']:
+            try:
+                expanded_arg = getattr(arguments, output_attr).replace('succ_traj', new_out_dir)
+                setattr(arguments, output_attr, expanded_arg)
+            except AttributeError:
+                pass
+        log.warning(f'WARNING: Modified it so all output file paths are in `out-dir`: \'{new_out_dir}\'.')
+
+    return arguments
+
+
 def process_args(parser):
     """
     Actually process whatever passed to the parser.
@@ -722,14 +750,17 @@ def process_args(parser):
     Returns
     -------
     args : argparse.Namespace
-        A Namespace object with all the argument parsed.
+        A Namespace object with all the arguments parsed.
 
     """
     args = parser.parse_args()
+
     # Automatically parse arguments for w_assign
     args = process_assign_args(args)
     # Fix cases where extract_output doesn't contain out_dir
     args = process_extract_output(args)
+    # Fix all cases where out_dir is not succ_traj
+    args = process_output_folder(args)
 
     # Process extract arguments
     if args.step_name in ['extract', 'all']:
