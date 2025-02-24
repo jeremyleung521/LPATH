@@ -729,7 +729,7 @@ def process_output_folder(arguments):
         new_out_dir = arguments.out_dir
         for output_attr in ['extract_output', 'output_pickle', 'cl_output', 'dmatrix_save']:
             try:
-                expanded_arg = getattr(arguments, output_attr).replace('succ_traj', new_out_dir)
+                expanded_arg = getattr(arguments, output_attr).replace('succ_traj/', f'{new_out_dir}/')
                 setattr(arguments, output_attr, expanded_arg)
             except AttributeError:
                 pass
