@@ -509,7 +509,8 @@ def add_plot_args(parser=None):
                          type=str, help='Path to pickle object from the `match` step.')
     plot_io.add_argument('-icl', '--ICL', '--plot-cl', '--plot-cluster-label', dest='cl_output',
                          type=str, help='Input file location for cluster labels.')
-    plot_io.add_argument('--plot-dmatrix-file', '-pdF', '-pdf', '-PDF', dest='dmatrix_save', type=str,
+    plot_io.add_argument('--plot-dmatrix-file', '-pdF', '-pdf', '-PDF', dest='dmatrix_save',
+                         default='succ_traj/distmat.npy', type=str,
                          help='Path to pre-calculated distance matrix. Make sure the ``--no-remake`` flag is '
                               'specified. This is defaulted to what\'s provided in ``match`` step.')
     plot_io.add_argument('--plot-out-path', '-pod', '-POD', '--plot-output-path', dest='out_path', default='plots',

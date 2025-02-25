@@ -552,11 +552,6 @@ def process_plot_args(arguments):
     relabel = determine_relabel(arguments.relabel_method)
 
     # In cases where you're not going through ``match`` first, some arguments might be empty.
-    if arguments.dmatrix_save is None:
-        setattr(arguments, 'dmatrix_save', 'succ_traj/distmat.npy')
-        log.warning(f'Setting distance matrix output to default {arguments.dmatrix_save}. Make sure you\'re sure '
-                    'of this, or remake the distance matrix with ``lpath match``.')
-
     if arguments.cl_output is None:
         setattr(arguments, 'cl_output', 'succ_traj/cluster_labels.npy')
         log.info(f'Setting cluster label output to default {arguments.cl_output}.')
