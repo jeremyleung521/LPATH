@@ -378,7 +378,7 @@ def add_extract_args(parser=None):
                                                              'assumed to be ``seg``, meaning the default name the file '
                                                              'is ``seg.ncrst``.')
     extract_we.add_argument('--out-top', '-ot', '--output-topology', dest='out_top', default='system.prmtop',
-                            type=str, help='Name of the topology file. Name is relative to ``$PWD/common_files``.')
+                            type=str, help='Name of the topology file. Name is relative to ``$PWD``.')
 
     return parser
 
